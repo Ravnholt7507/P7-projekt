@@ -3,12 +3,9 @@ import pandas as pd
 
 df = pd.read_csv("boats.csv")
 
-# id = df[(df.groupby('MMSI').size())]
-id = df.groupby('MMSI').filter(lambda x: len(x) > 10)
+id = df[df['MMSI'] == 367605150]
 
-print(id)
-
-fig = px.scatter_geo(id,lat='LAT',lon='LON', hover_name="BaseDateTime")
+fig = px.scatter_geo(id,lat='LAT',lon='LON', hover_name="BaseDateTime",color_discrete_sequence=["red"])
 fig.update_geos(
     scope="north america",
     resolution = 110, # Set to 50 or 110
@@ -17,4 +14,4 @@ fig.update_geos(
 )
 
 fig.update_layout(title = 'North America', title_x=0.5)
-# fig.show()
+fig.show()
