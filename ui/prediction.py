@@ -3,6 +3,7 @@ import numpy as np
 import time
 import datetime
 from datetime import datetime
+import math
 
 df = pd.read_csv('boats.csv')
 
@@ -34,4 +35,20 @@ for i in range(len(df['MMSI'].unique())-302):
     parsedPreTime=pd.to_datetime(first.iloc[i]['BaseDateTime'])
     parsedPostTime=pd.to_datetime(second.iloc[i]['BaseDateTime'])
     timeDiff=parsedPostTime-parsedPreTime
-    print(timeDiff.total_seconds())    
+    print("Time difference: ", timeDiff.total_seconds(), " seconds") 
+    
+    COGrad = 360 * math.pi/180
+    print("COGrad :", COGrad)
+
+    directX = math.cos(COGrad)
+    directY = math.sin(COGrad)
+    timeDiffFloat = timeDiff.total_seconds()
+
+
+    #predLocX = first.iloc[i]['LAT'] + (first.iloc[i]['SOG']*((timeDiff/60)/60))*directX
+    #predLocY = first.iloc[i]['LON'] + (first.iloc[i]['SOG']*((timeDiff/60)/60))*directY
+
+    print("Direct x,y  ", directX,directY)
+    print("Prediced x,y  ", predLocX,predLocY)
+
+    
