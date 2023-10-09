@@ -1,12 +1,11 @@
 import pandas as pd 
 import numpy as np
 from keras.models import Sequential
-from keras.layers import Dense, LSTM,  LeakyReLU
+from keras.layers import Dense, LSTM,  LeakyReLU, Conv1D, MaxPooling1D
 import matplotlib.pyplot as plt
 from keras import backend
 import math
 from sklearn.preprocessing import MinMaxScaler
-
 
 def data_loader(file_path, n_rows):
     # 'Timestamp', 'MMSI', 'Latitude', 'Longitude', 'SOG', 'COG'
@@ -117,7 +116,20 @@ def data_normalizer(x_train, x_test, y_train, y_test):
 
     return x_train, x_test, y_train, y_test, x_scaler, y_scaler
 
-def model_maker(num_features = 5, num_timesteps = 3):
+def cnn_and_lstm_model_maker(num_features = 5, num_timesteps = 3):
+    cnn_model = Sequential()
+    cnn_model.add(Conv1D(filters=32, kernel_size=2, activation='relu', input_shape=(num_timesteps, num_features)))
+    cnn_model.add(MaxPooling1D(pool_size=2))
+    model_cnn_lstm = Sequential()
+    model_cnn_lstm.add(LSTM(32, activation='relu'))
+    combined_model = Sequential()
+    combined_model.add(cnn_model)
+    combined_model.add(model_cnn_lstm)
+    combined_model.add(Dense(2))
+    combined_model.compile(loss=rmse, optimizer='adam')
+    return combined_model
+
+def lstm_model_maker(num_features = 5, num_timesteps = 3):
     # create model
     model = Sequential()
     model.add(LSTM(32, return_sequences=True, input_shape=(num_timesteps, num_features)))
@@ -175,12 +187,12 @@ def main():
     file_path = 'ann/data.csv'
     n_rows = 200000
     BATCH_SIZE = 10
-    NUM_EPOCHS = 10
+    NUM_EPOCHS = 5
     df, n_rows, n_cols = data_loader(file_path, n_rows)
     x_train, y_train, x_test, y_test = group_data_by_mmsi(df)
     print(y_test[0])
     x_train, x_test, y_train, y_test, x_scaler, y_scaler = data_normalizer(x_train, x_test, y_train, y_test)
-    model = model_maker()
+    model = cnn_and_lstm_model_maker()
     history = model.fit(x_train, y_train, batch_size=BATCH_SIZE, epochs=NUM_EPOCHS, validation_split=0.20)
     prediction = model.predict(x_test)
 
