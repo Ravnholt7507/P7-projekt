@@ -1,6 +1,7 @@
 import pandas as pd
 import csv
 import map
+import plot
 from haversine import haversine, Unit
 from math import asin, atan2, cos, degrees, radians, sin
 
@@ -87,3 +88,4 @@ for i in range(lenght-1):
         writer.writerow(array)
 
 map.plot()
+plot.plot()
