@@ -117,7 +117,7 @@ def data_normalizer(x_train, x_test, y_train, y_test):
 
     return x_train, x_test, y_train, y_test, x_scaler, y_scaler
 
-def model_maker(num_features = 5, num_timesteps = 3  ):
+def model_maker(num_features = 5, num_timesteps = 3):
     # create model
     model = Sequential()
     model.add(LSTM(32, return_sequences=True, input_shape=(num_timesteps, num_features)))
@@ -186,7 +186,7 @@ def main():
 
     #Evaluate the Model
     scores = model.evaluate(x_test, y_test, verbose=0)
-    print('\n%s: %f\n' % ("mse", scores))
+    print('\n%s: %f\n' % ("rmse", scores))
 
     plot_data(history)
 
