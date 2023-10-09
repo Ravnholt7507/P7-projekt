@@ -51,10 +51,7 @@ for i in range(len(df['MMSI'].unique())-302):
     
     predLocX = first.iloc[i]['LAT'] + (first.iloc[i]['SOG']*(timeDiffFloat/60)/60)*first.iloc[i]['COG']/1000
     predLocY = first.iloc[i]['LON'] + (first.iloc[i]['SOG']*(timeDiffFloat/60)/60)*first.iloc[i]['COG']/1000
-    
-    print('pred LAT',predLocX)
-    print('pred LON',predLocY)
-    
+        
     array = []
     array.append(first.iloc[i]['MMSI'])
     array.append(predLocX)
