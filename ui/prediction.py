@@ -26,7 +26,7 @@ def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
         sin(a) * sin(d/R) * cos(lat1),
         cos(d/R) - sin(lat1) * sin(lat2)
     )
-    return (degrees(lat2), degrees(lon2),)
+    return (degrees(lat2), degrees(lon2))
 
 
 for i in range(len(df['MMSI'].unique())-302):
