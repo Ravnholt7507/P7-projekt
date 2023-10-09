@@ -5,12 +5,15 @@ import datetime
 from datetime import datetime
 import math
 
-df = pd.read_csv('boats.csv')
+df = pd.read_csv('boats2.csv')
 
 first = df.groupby('MMSI').apply(lambda t: t.iloc[0])
 second = df.groupby('MMSI').apply(lambda t: t.iloc[1])
 
 for i in range(len(df['MMSI'].unique())-302):
+    
+    print("VESSEL: ", first.iloc[i]['MMSI'])
+    
     print("CURRENT LOCATION: \n")
     print("LAT: ", first.iloc[i]['LAT'])
     print("LON: ", first.iloc[i]['LON'])
@@ -18,7 +21,6 @@ for i in range(len(df['MMSI'].unique())-302):
     print("COG: ", first.iloc[i]['COG'])
     print("Heading: ", first.iloc[i]['Heading'])
     print("TIME: ", first.iloc[i]['BaseDateTime'], "\n")
-
 
     print("CALCULATED VECTOR: \n")
     print("FUTURE LOCATION: \n")
@@ -30,25 +32,32 @@ for i in range(len(df['MMSI'].unique())-302):
     print("TIME: ", second.iloc[i]['BaseDateTime'], "\n")
 
     print("VECTOR CALCULATION: \n")
-
     
     parsedPreTime=pd.to_datetime(first.iloc[i]['BaseDateTime'])
     parsedPostTime=pd.to_datetime(second.iloc[i]['BaseDateTime'])
     timeDiff=parsedPostTime-parsedPreTime
     print("Time difference: ", timeDiff.total_seconds(), " seconds") 
     
-    COGrad = 360 * math.pi/180
-    print("COGrad :", COGrad)
-
-    directX = math.cos(COGrad)
-    directY = math.sin(COGrad)
-    timeDiffFloat = timeDiff.total_seconds()
-
-
-    #predLocX = first.iloc[i]['LAT'] + (first.iloc[i]['SOG']*((timeDiff/60)/60))*directX
-    #predLocY = first.iloc[i]['LON'] + (first.iloc[i]['SOG']*((timeDiff/60)/60))*directY
-
-    print("Direct x,y  ", directX,directY)
-    print("Prediced x,y  ", predLocX,predLocY)
-
+    # Uselss code (angiveligt)    
+    # COGrad = 360 * math.pi/180
+    # print("COGrad :", COGrad)
     
+    # directX = math.cos(COGrad)
+    # directY = math.sin(COGrad)
+    
+    timeDiffFloat = timeDiff.total_seconds()
+    
+    predLocX = first.iloc[i]['LAT'] + (first.iloc[i]['SOG']*(timeDiffFloat/60)/60)*first.iloc[i]['COG']/1500
+    predLocY = first.iloc[i]['LON'] + (first.iloc[i]['SOG']*(timeDiffFloat/60)/60)*first.iloc[i]['COG']/1500
+    
+    predLocX2 = first.iloc[i]['LAT'] + (first.iloc[i]['SOG']*(timeDiffFloat/60)/60)*second.iloc[i]['Heading']/1000
+    predLocY2 = first.iloc[i]['LON'] + (first.iloc[i]['SOG']*(timeDiffFloat/60)/60)*second.iloc[i]['Heading']/1000
+    
+    print('pred LAT',predLocX)
+    print('pred LON',predLocY)
+    
+    print('pred LAT2',predLocX2)
+    print('pred LON2',predLocY2)
+
+    # print("Direct x,y  ", directX,directY)
+    # print("Prediced x,y  ", predLocX,predLocY)
