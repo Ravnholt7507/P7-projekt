@@ -1,12 +1,11 @@
 import pandas as pd
 import csv
 import map
+from haversine import haversine, Unit
 from math import asin, atan2, cos, degrees, radians, sin
 
-df = pd.read_csv('boats2.csv')
-
-first = df.groupby('MMSI').apply(lambda t: t.iloc[0])
-second = df.groupby('MMSI').apply(lambda t: t.iloc[1])
+# df = pd.read_csv('AIS_2023_01_01.csv')
+df = pd.read_csv('boats.csv')
 
 def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     """
@@ -29,60 +28,62 @@ def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     return (degrees(lat2), degrees(lon2))
 
 
-for i in range(len(df['MMSI'].unique())-302):
+# Take all rows with the same MMSI as the first row
+first = df.loc[df['MMSI'] == df.iloc[100]['MMSI']]
+lenght = len(first)
 
-    print("VESSEL: ", first.iloc[i]['MMSI'])
+with open('predictions.csv', 'w') as fp:
+    fp.truncate()
 
-    # print("CURRENT LOCATION: \n")
-    # print("LAT: ", first.iloc[i]['LAT'])
-    # print("LON: ", first.iloc[i]['LON'])
-    # print("SOG: ", first.iloc[i]['SOG'])
-    # print("COG: ", first.iloc[i]['COG'])
-    # print("Heading: ", first.iloc[i]['Heading'])
-    # print("TIME: ", first.iloc[i]['BaseDateTime'], "\n")
-
-    # print("CALCULATED VECTOR: \n")
-    # print("FUTURE LOCATION: \n")
-    # print("LAT: ", second.iloc[i]['LAT'])
-    # print("LON: ", second.iloc[i]['LON'])
-    # print("SOG: ", second.iloc[i]['SOG'])
-    # print("COG: ", second.iloc[i]['COG'])
-    # print("Heading: ", second.iloc[i]['Heading'])
-    # print("TIME: ", second.iloc[i]['BaseDateTime'], "\n")
-
-    # print("VECTOR CALCULATION: \n")
+for i in range(lenght-1):
 
     parsedPreTime = pd.to_datetime(first.iloc[i]['BaseDateTime'])
-    parsedPostTime = pd.to_datetime(second.iloc[i]['BaseDateTime'])
+    parsedPostTime = pd.to_datetime(first.iloc[i+1]['BaseDateTime'])
     timeDiff = parsedPostTime - parsedPreTime
-    print("Time difference: ", timeDiff.total_seconds(), " seconds")
 
     timeDiffFloat = timeDiff.total_seconds()
 
     # Calculating the speed in km/h
     speed = first.iloc[i]['SOG'] * 1.852
-    print("Speed: ", speed, " km/h")
 
     # Calculating the distance travelled in the time difference
     distance = speed * timeDiffFloat / 3600
-    print("Distance travelled: ", distance, " km")
+    distance = round(distance, 2)
 
     lat = first.iloc[i]['LAT']
     lon = first.iloc[i]['LON']
     bearing = first.iloc[i]['COG']
     lat2, lon2 = get_point_at_distance(lat, lon, distance, bearing)
 
-    print(lat2, lon2)
+    # Print MMSI and time
+    print("\n")
+    print("MMSI: ", first.iloc[i]['MMSI'])
+    print("Time: ", first.iloc[i]['BaseDateTime'])
+
+    print("Time difference: ", timeDiff.total_seconds(), " seconds")
+    print("Speed: ", speed, " km/h")
+    print("Distance travelled: ", distance, " km")
+    print("Initial position: ", lat, lon)
+    print("Predicted position: ", lat2, lon2)
+
+    # Print distance between initial and predicted position
+    # Round to 2 decimals
+    next_lat = first.iloc[i+1]['LAT']
+    next_lon = first.iloc[i+1]['LON']
+    dis = haversine((next_lat, next_lon), (lat2, lon2), unit=Unit.KILOMETERS)
+    dis = round(dis, 4)
+    print("Distance between initial and predicted position: ", dis, " km")
 
     array = []
     array.append(first.iloc[i]['MMSI'])
     array.append(lat2)
     array.append(lon2)
 
-with open('predictions.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    field = ["MMSI", "LAT", "LON"]
-    writer.writerow(field)
-    writer.writerow(array)
+    with open('predictions.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+        if i == 0:
+            field = ["MMSI", "LAT", "LON"]
+            writer.writerow(field)
+        writer.writerow(array)
 
 map.plot()
