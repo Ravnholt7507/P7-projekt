@@ -58,5 +58,5 @@ def actualToPred():
     plt.savefig('predPlotArrows.png')
     plt.close()
     
-#plot()
-#actualToPred()
+plot()
+actualToPred()

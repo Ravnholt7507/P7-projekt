@@ -7,7 +7,6 @@ from math import asin, atan2, cos, degrees, radians, sin
 # df = pd.read_csv('AIS_2023_01_01.csv')
 df = pd.read_csv('boats.csv')
 
-
 def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     '''
     lat: initial latitude, in degrees
@@ -89,5 +88,3 @@ for i in range(lenght-1):
         writer.writerow(array)
 
 map.plot()
-
-#209941000
