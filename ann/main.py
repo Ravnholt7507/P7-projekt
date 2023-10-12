@@ -1,25 +1,23 @@
 from evaluation import plot_data, Distance, Average
 from data_processing import data_loader, group_data_by_mmsi, data_normalizer, data_denomalizer
-from models import cnn_and_lstm_model_maker, lstm_model_maker, big_cnn_and_lstm_model_maker
+from models import cnn_and_lstm_model_maker, lstm_model_maker, big_cnn_and_lstm_model_maker, cnn_model_maker
 
 def main():
     file_path = 'ann/data.csv'
     n_rows = 100000
     BATCH_SIZE = 10
-    NUM_EPOCHS = 30
-    df, n_rows, n_cols = data_loader(file_path, n_rows)
+    NUM_EPOCHS = 200
+    df, n_rows, _ = data_loader(file_path, n_rows)
     x_train, y_train, x_test, y_test = group_data_by_mmsi(df)
-    print(y_test[0])
     x_train, x_test, y_train, y_test, x_scaler, y_scaler = data_normalizer(x_train, x_test, y_train, y_test)
-    model = big_cnn_and_lstm_model_maker()
+    model = lstm_model_maker(num_features = 5, num_timesteps = 3)
+ 
     history = model.fit(x_train, y_train, batch_size=BATCH_SIZE, epochs=NUM_EPOCHS, validation_split=0.20)
     prediction = model.predict(x_test)
 
     #Evaluate the Model
     scores = model.evaluate(x_test, y_test, verbose=0)
     print('\n%s: %f\n' % ("rmse", scores))
-
-    plot_data(history)
 
     #Denormalize the data
     y_test_denormalized, prediction_denormalized = data_denomalizer(y_test, y_scaler), data_denomalizer(prediction, y_scaler)
