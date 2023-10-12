@@ -7,8 +7,9 @@ from math import asin, atan2, cos, degrees, radians, sin
 # df = pd.read_csv('AIS_2023_01_01.csv')
 df = pd.read_csv('boats.csv')
 
+
 def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
-    """
+    '''
     lat: initial latitude, in degrees
     lon: initial longitude, in degrees
     d: target distance from initial
@@ -16,7 +17,7 @@ def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     R: optional radius of sphere, defaults to mean radius of earth
 
     Returns new lat/lon coordinate {d}km from initial, in degrees
-    """
+    '''
     lat1 = radians(lat1)
     lon1 = radians(lon1)
     a = radians(bearing)
@@ -27,9 +28,8 @@ def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     )
     return (degrees(lat2), degrees(lon2))
 
-
-# Take all rows with the same MMSI as the first row
-first = df.loc[df['MMSI'] == df.iloc[100]['MMSI']]
+# Take all rows with the same MMSI as the first row with [index]
+first = df.loc[df['MMSI'] == df.iloc[1]['MMSI']]
 lenght = len(first)
 
 with open('predictions.csv', 'w') as fp:
@@ -56,15 +56,15 @@ for i in range(lenght-1):
     lat2, lon2 = get_point_at_distance(lat, lon, distance, bearing)
 
     # Print MMSI and time
-    print("\n")
-    print("MMSI: ", first.iloc[i]['MMSI'])
-    print("Time: ", first.iloc[i]['BaseDateTime'])
+    print('\n')
+    print('MMSI: ', first.iloc[i]['MMSI'])
+    print('Time: ', first.iloc[i]['BaseDateTime'])
 
-    print("Time difference: ", timeDiff.total_seconds(), " seconds")
-    print("Speed: ", speed, " km/h")
-    print("Distance travelled: ", distance, " km")
-    print("Initial position: ", lat, lon)
-    print("Predicted position: ", lat2, lon2)
+    print('Time difference: ', timeDiff.total_seconds(), ' seconds')
+    print('Speed: ', speed, ' km/h')
+    print('Distance travelled: ', distance, ' km')
+    print('Initial position: ', lat, lon)
+    print('Predicted position: ', lat2, lon2)
 
     # Print distance between initial and predicted position
     # Round to 2 decimals
@@ -72,18 +72,22 @@ for i in range(lenght-1):
     next_lon = first.iloc[i+1]['LON']
     dis = haversine((next_lat, next_lon), (lat2, lon2), unit=Unit.KILOMETERS)
     dis = round(dis, 4)
-    print("Distance between initial and predicted position: ", dis, " km")
+    print('Distance between actual and predicted position: ', dis, ' km')
 
     array = []
     array.append(first.iloc[i]['MMSI'])
+    array.append(first.iloc[i]['BaseDateTime'])
     array.append(lat2)
     array.append(lon2)
+    array.append(first.iloc[i]['SOG'])
 
     with open('predictions.csv', 'a', newline='') as file:
         writer = csv.writer(file)
         if i == 0:
-            field = ["MMSI", "LAT", "LON"]
+            field = ['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG']
             writer.writerow(field)
         writer.writerow(array)
 
 map.plot()
+
+#209941000
