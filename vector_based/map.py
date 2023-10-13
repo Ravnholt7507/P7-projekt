@@ -20,4 +20,5 @@ def plot():
                   'BaseDateTime', 'SOG'], hover_name='MMSI', color_discrete_sequence=['green']).data[0])
 
     fig.update_layout(title='North America', title_x=0.5)
-    fig.show()
+    #fig.show()
+    fig.write_html('first_figure.html', auto_open=True)
