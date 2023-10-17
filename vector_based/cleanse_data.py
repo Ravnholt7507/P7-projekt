@@ -10,7 +10,7 @@ df = df.sort_values(["MMSI","BaseDateTime"])
 df = df.drop(df[df.SOG < 5].index)
 
 # Take MMSI where there are more than 10 rows
-df = df.groupby(['MMSI']).filter(lambda x: len(x) > 10)
+df = df.groupby(['MMSI']).filter(lambda x: len(x) == 10)
 
 #Take row where MMSI is 209941000
 # df = df.loc[df['MMSI'] == 209941000]
