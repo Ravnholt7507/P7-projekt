@@ -37,3 +37,4 @@ def Distance(prediction, target):
 
 def Average(lst):
     return sum(lst) / len(lst)
+

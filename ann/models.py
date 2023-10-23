@@ -1,24 +1,27 @@
 import tensorflow as tf
 import math
 from keras.models import Sequential
-from keras.layers import Dense, LSTM,  LeakyReLU, Conv1D, MaxPooling1D, Flatten
-from keras import backend
+from keras.layers import Dense, LSTM,  LeakyReLU, Conv1D, MaxPooling1D, Flatten, Dropout
+from keras import backend, optimizers
 
 #3 layer CNN +LSTM 
 def cnn_and_lstm_model_maker(num_features = 5, num_timesteps = 3):
+    lr = 0.0003
+    adam = optimizers.Adam(lr)
     cnn_model = Sequential()
-    cnn_model.add(Conv1D(filters=32, kernel_size=2, activation='relu', input_shape=(num_timesteps, num_features), padding='same'))
+    cnn_model.add(Conv1D(filters=64, kernel_size=1, activation='relu', input_shape=(num_timesteps, num_features)))
     cnn_model.add(MaxPooling1D(pool_size=2))
-    cnn_model.add(Conv1D(filters=64, kernel_size=2, activation='relu', padding='same'))
+    cnn_model.add(Conv1D(filters=32, kernel_size=1, activation='relu'))
     model_lstm = Sequential()
-    model_lstm.add(LSTM(128, return_sequences=True))
-    model_lstm.add(LSTM(256))
-    model_lstm.add(LeakyReLU(alpha=0.001))
+    model_lstm.add(LSTM(32, return_sequences=True))
+    model_lstm.add(LSTM(16, return_sequences=True))
+    model_lstm.add(LSTM(8))
+    model_lstm.add(LeakyReLU(alpha=0.0003))
     combined_model = Sequential()
-    combined_model.add(cnn_model)
-    combined_model.add(model_lstm)
-    combined_model.add(Dense(2))
-    combined_model.compile(loss=dist_error, optimizer='adam')
+    combined_model.add(cnn_model)  # Apply CNN to each time step
+    combined_model.add(model_lstm)  # Connect to LSTM
+    combined_model.add(Dense(2))  # Output layer
+    combined_model.compile(loss=rmse, optimizer=adam)
     return combined_model
 
 def big_cnn_and_lstm_model_maker(num_features = 5, num_timesteps = 3):
@@ -64,9 +67,10 @@ def lstm_model_maker(num_features = 5, num_timesteps = 3):
     model.add(LSTM(32, return_sequences=True, input_shape=(num_timesteps, num_features)))
     model.add(LSTM(16, return_sequences=True))
     model.add(LSTM(8))
-    model.add(LeakyReLU(alpha=0.01))
+    model.add(LeakyReLU(alpha=0.001))
     model.add(Dense(2))
-    model.compile(loss=dist_error, optimizer='adam')
+    
+    model.compile(loss=rmse, optimizer='adam')
     return model
 
 #error function
