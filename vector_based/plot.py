@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-
 def plot():
     df = pd.read_csv("boats.csv")
     prediction = pd.read_csv("predictions.csv")
@@ -14,6 +13,8 @@ def plot():
     pred_lats = prediction['LAT'].tolist()
     pred_lons = prediction['LON'].tolist()
 
+    print(act_lats)
+    
     plt.figure()
     plt.title('Actual vs Predicted ship path')
     plt.xlabel('Longitude')
@@ -28,7 +29,7 @@ def plot():
     for x in range(len(pred_lats)-1):
         plt.arrow(pred_lons[x], pred_lats[x], pred_lons[x+1]-pred_lons[x], pred_lats[x+1] -
                   pred_lats[x], color='blue', width=0.00001, head_width=0.00005, length_includes_head=True)
-    # plt.show()
+    
     plt.savefig('predPlot.png')
     plt.close()
 
@@ -54,7 +55,6 @@ def actualToPred():
     for x in range(len(act_lats)-1):
         plt.arrow(act_lons[x], act_lats[x], pred_lons[x]-act_lons[x], pred_lats[x] - act_lats[x], color='green', width=0.00001, head_width=0.00005, length_includes_head=True)
         
-    #plt.show()
     plt.savefig('predPlotArrows.png')
     plt.close()
     
