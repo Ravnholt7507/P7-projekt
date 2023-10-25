@@ -22,3 +22,4 @@ def plot():
     fig.update_layout(title='North America', title_x=0.5)
     #fig.show()
     fig.write_html('first_figure.html', auto_open=False)
+    fig.show()
