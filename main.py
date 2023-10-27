@@ -1,13 +1,11 @@
 from tkinter import *
-#from tkinter.ttk import *
 import vector_based.prediction as prediction
 import vector_based.plot as plot
 import vector_based.map as map
 from PIL import ImageTk, Image 
 import webbrowser
 import pandas as pd
-import csv
-import pickle
+
 import numpy as np
 
 
@@ -28,18 +26,20 @@ df = pd.read_csv("Data/boats.csv")
 MMSI = df['MMSI'].unique()
 
 def Take_input():
+    save_settingstxt()
     errorLabel.grid_forget()
+    clear()
     while True:
         try:
             input = mmsiEntryBox.get()
             if(int(input) in MMSI):
                 if(nnVar.get() == 1):
                     if(nnChoiceCheckVar.get() == 1):
-                        prediction.predict(input, 'CNN')
+                        blegh = 1
                     if(nnChoiceCheckVar2.get() == 1):
-                        prediction.predict(input, 'LSTM')
+                        blegh = 1
                     if(nnChoiceCheckVar3.get() == 1):
-                        prediction.predict(input, 'RNN')
+                        blegh = 1
                 if(vectorVar.get() == 1):
                     prediction.predict(input)
                     show_image("Figures/predPlotArrows.png")
@@ -137,6 +137,7 @@ def load_settingstxt():
         vectorCheck.select()
     if settings[2] == 1:
         nnCheck.select()
+        nerualNetworkChoices(1)
     if settings[3] == 1:
         nnChoiceCheck.select()
     if settings[4] == 1:
@@ -145,13 +146,21 @@ def load_settingstxt():
         nnChoiceCheck3.select()
     
     return settings
-    
-            
+
 def save_settingstxt():
+    #get settings
+    settings = []
+    settings.append('selectedMMSI='+mmsiEntryBox.get()+str('\n'))
+    settings.append('vectorCheck='+str(vectorVar.get())+str('\n'))
+    settings.append('NNCheck='+str(nnVar.get())+str('\n'))
+    settings.append('NN1Check='+str(nnChoiceCheckVar.get())+str('\n'))
+    settings.append('NN2Check='+str(nnChoiceCheckVar2.get())+str('\n'))
+    settings.append('NN3Check='+str(nnChoiceCheckVar3.get())+str('\n'))
     #save settings.txt
     with open('settings.txt', 'w') as f:
         f.writelines(settings)
-        
+
+
 
 # widgets
 mmsiEntryBox = Entry(sideframe, font='Arial 18', fg='Grey')
