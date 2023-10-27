@@ -2,7 +2,7 @@ import pandas as pd
 def cleanse():
     pd.set_option('display.max_columns', 20)
 
-    n = 1000000  # number of records in file
+    n = 150000  # number of records in file
 
     df = pd.read_csv('data/AIS_2023_01_01.csv',nrows=n)
     # Sort by MMSI

@@ -6,7 +6,7 @@ from math import asin, atan2, cos, degrees, radians, sin
 import statistics
 
 # df = pd.read_csv('AIS_2023_01_01.csv')
-df = pd.read_csv('data/1_boats.csv')
+df = pd.read_csv('data/boats.csv')
 file_path = 'data/predictions.csv'
 
 def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
@@ -125,13 +125,11 @@ def predict_intv():
     #Assumes at least 2 datapoints per group.
     for name, group in grouped:
         for current_point in range(group.shape[0]-1):
-            print("\nNAME: ", name,)
             i = 0
             for comparison_point in range(current_point+1, group.shape[0]-1):
-                print("RUN: ", i)
                 i=i+1
-                print("CURRENT POINT: ", current_point)
-                print("COMPARISON POINT: ", comparison_point)
+                #print("CURRENT POINT: ", current_point)
+                #print("COMPARISON POINT: ", comparison_point)
                 dis = haversine((group.iloc[comparison_point]['LAT'], group.iloc[comparison_point]['LON']), (group.iloc[current_point]['LAT'], group.iloc[current_point]['LON']), unit=Unit.KILOMETERS)
                 dis = round(dis, 4)
                 
@@ -147,7 +145,6 @@ def predict_intv():
                 distance = round(distance, 2)
                 
                 prediction = get_point_at_distance(group.iloc[current_point]['LAT'], group.iloc[current_point]['LON'], distance, group.iloc[current_point]['COG'])
-                
                 error = haversine((group.iloc[comparison_point]['LAT'], group.iloc[comparison_point]['LON']), (prediction[0], prediction[1]), unit=Unit.KILOMETERS)
                 error = round(error,4)
 
