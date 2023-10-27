@@ -40,7 +40,7 @@ def Take_input():
                         blegh = 1
                     if(nnChoiceCheckVar3.get() == 1):
                         blegh = 1
-                    else:
+                    elif(nnChoiceCheckVar.get() == 0 and nnChoiceCheckVar2.get() == 0 and nnChoiceCheckVar3.get() == 0):
                         print("Error: No neural network variant selected")
                         errorLabel.grid(row=16, column=0, sticky=W, padx=10, pady=2)
                         break
@@ -56,6 +56,10 @@ def Take_input():
                     output.insert(END, "Output appears here")
                 if(compShipsVar.get() == 1):
                     multiListbox_select(0)
+                elif(vectorVar.get() == 0 and nnVar.get() == 0):
+                    print("Error: No prediction method selected")
+                    errorLabel.grid(row=16, column=0, sticky=W, padx=10, pady=2)
+                    break 
                 break
             else:
                 print("Error: MMSI not found")
@@ -132,10 +136,10 @@ def load_settingstxt():
     #load settings.txt
     with open('settings.txt', 'r') as f:
         settings = f.readlines()
-        
+
     for i in range(len(settings)):
         settings[i] = int(settings[i].split('=')[1].replace('\n', ''))
-    
+        
     if settings[0] == 1:
         mmsiEntryBox.delete(0, END)
         mmsiEntryBox.insert(0, settings[0])
@@ -202,6 +206,7 @@ imagebox = Label(canvas)
 output = Text(canvas, width=50, height=33, bg="light yellow")
 webMapButton = Button(canvasFrame, text="Open Map", command=lambda: openURL())
 zoomButton = Button(canvasFrame, text="Open Zoomable Plot", command=lambda: plot.Load_plot('Figures/predPlotArrows.obj'))
+plotTypeLabel = Label()
 
 # grid, some widgets are hidden by default
 availableMMsisLabel.grid(row=0, column=0, sticky=W, padx=10, pady=2)
