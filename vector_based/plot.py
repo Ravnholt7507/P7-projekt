@@ -46,6 +46,7 @@ def actualToPred():
 
     fig = plt.figure(1)
     plt.subplot()
+    plt.title('Actual to Predicted ship path')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
     plt.plot(act_lons, act_lats, 'red', marker='.', label='Actual', linestyle='None')
@@ -53,7 +54,7 @@ def actualToPred():
     plt.legend(loc='upper right')
     
     for x in range(len(act_lats)-1):
-        plt.arrow(act_lons[x], act_lats[x], pred_lons[x]-act_lons[x], pred_lats[x] - act_lats[x], color='green', width=0.000001, head_width=0.00003, length_includes_head=True)
+        plt.arrow(act_lons[x], act_lats[x], pred_lons[x]-act_lons[x], pred_lats[x] - act_lats[x], color='green', width=0.000001, head_width=0.0002, length_includes_head=True)
         #arrow with head in the middle of the line between two points
         #plt.arrow(act_lons[x], act_lats[x], (pred_lons[x]-act_lons[x])/2, (pred_lats[x] - act_lats[x])/2, color='green', width=0.000001, head_width=0.00003, length_includes_head=True)
         
