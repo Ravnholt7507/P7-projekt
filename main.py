@@ -47,7 +47,7 @@ def Take_input():
                 if(vectorVar.get() == 1):
                     prediction.predict(input)
                     plot.actualToPred()
-                    map.plot()
+                    map.plot_land()
                     show_image("Figures/predPlotArrows.png")
                     webMapButton.grid(row=0, column=0)
                     zoomButton.grid(row=0, column=1)
@@ -155,7 +155,7 @@ def load_settingstxt():
 
 def save_settingstxt():
     #get settings
-    settings = []
+    settings = [] 
     settings.append('selectedMMSI='+mmsiEntryBox.get()+str('\n'))
     settings.append('vectorCheck='+str(vectorVar.get())+str('\n'))
     settings.append('NNCheck='+str(nnVar.get())+str('\n'))

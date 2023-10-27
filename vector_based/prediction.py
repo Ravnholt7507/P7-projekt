@@ -75,6 +75,7 @@ def predict(MMSI):
         next_lon = ship.iloc[i+1]['LON']
         dis = haversine((next_lat, next_lon), (lat2, lon2), unit=Unit.KILOMETERS)
         dis = round(dis, 4)
+        # print('Distance between actual and predicted position: ', dis, ' km')
 
         #print('Distance between actual and predicted position: ', dis, ' km')
         array = []
