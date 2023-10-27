@@ -6,7 +6,7 @@ from math import asin, atan2, cos, degrees, radians, sin
 import statistics
 
 # df = pd.read_csv('AIS_2023_01_01.csv')
-df = pd.read_csv('data/boats.csv')
+df = pd.read_csv('data/1_boats.csv')
 file_path = 'data/predictions.csv'
 
 def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
@@ -114,7 +114,6 @@ def find_dis_index(dist_intv, distance):
 
 def predict_intv():
 
-    ship = df.loc[df['MMSI'] == df.iloc[1]['MMSI']]
     grouped = df.groupby('MMSI')
     grouped_list = list(df)
     num_dist_intv = 1
@@ -126,13 +125,18 @@ def predict_intv():
     #Assumes at least 2 datapoints per group.
     for name, group in grouped:
         for current_point in range(group.shape[0]-1):
+            print("\nNAME: ", name,)
+            i = 0
             for comparison_point in range(current_point+1, group.shape[0]-1):
-                
+                print("RUN: ", i)
+                i=i+1
+                print("CURRENT POINT: ", current_point)
+                print("COMPARISON POINT: ", comparison_point)
                 dis = haversine((group.iloc[comparison_point]['LAT'], group.iloc[comparison_point]['LON']), (group.iloc[current_point]['LAT'], group.iloc[current_point]['LON']), unit=Unit.KILOMETERS)
                 dis = round(dis, 4)
                 
-                parsedPreTime = pd.to_datetime(ship.iloc[current_point]['BaseDateTime'])
-                parsedPostTime = pd.to_datetime(ship.iloc[comparison_point]['BaseDateTime'])
+                parsedPreTime = pd.to_datetime(group.iloc[current_point]['BaseDateTime'])
+                parsedPostTime = pd.to_datetime(group.iloc[comparison_point]['BaseDateTime'])
                 
                 timeDiff = parsedPostTime - parsedPreTime
                 timeDiffFloat = timeDiff.total_seconds()
