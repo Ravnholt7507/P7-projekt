@@ -40,8 +40,14 @@ def Take_input():
                         blegh = 1
                     if(nnChoiceCheckVar3.get() == 1):
                         blegh = 1
+                    else:
+                        print("Error: No neural network variant selected")
+                        errorLabel.grid(row=16, column=0, sticky=W, padx=10, pady=2)
+                        break
                 if(vectorVar.get() == 1):
                     prediction.predict(input)
+                    plot.actualToPred()
+                    map.plot()
                     show_image("Figures/predPlotArrows.png")
                     webMapButton.grid(row=0, column=0)
                     zoomButton.grid(row=0, column=1)
