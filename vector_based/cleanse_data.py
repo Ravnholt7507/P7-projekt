@@ -2,9 +2,9 @@ import pandas as pd
 def cleanse():
     pd.set_option('display.max_columns', 20)
 
-    n = 150000
+    n = 1000000  # number of records in file
 
-    df = pd.read_csv('data/AIS_2023_01_01.csv', nrows=n)
+    df = pd.read_csv('data/AIS_2023_01_01.csv',nrows=n)
     # Sort by MMSI
     df = df.sort_values(by=['MMSI', 'BaseDateTime'])
 
@@ -24,6 +24,12 @@ def cleanse():
     # group = pd.concat([group1, group2])
 
     # Cleasing data so there is only on row per MMSI
-    #df = df.drop_duplicates(subset='MMSI', keep='first')
-
+    df = df.drop_duplicates(subset='MMSI', keep='first')
+    
+    # Drop columns that are not needed
+    df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign', 'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo'])
+    
+    # # Remove all rows
+    # df = df.iloc[0:0]
+    
     df.to_csv('data/1_boats.csv', index=False)
