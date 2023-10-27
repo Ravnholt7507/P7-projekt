@@ -14,7 +14,8 @@ def plot():
     pred_lats = prediction['LAT'].tolist()
     pred_lons = prediction['LON'].tolist()
 
-    plt.figure()
+    fig = plt.figure(1)
+    plt.subplot()
     plt.title('Actual vs Predicted ship path')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
@@ -29,7 +30,9 @@ def plot():
         plt.arrow(pred_lons[x], pred_lats[x], pred_lons[x+1]-pred_lons[x], pred_lats[x+1] -
                   pred_lats[x], color='blue', width=0.00001, head_width=0.00005, length_includes_head=True)
     # plt.show()
-    plt.savefig('Figures/predPlot.png')
+    plt.savefig('Figures/actVsPred.png')
+    with open('Figures/actVsPred.obj', 'wb') as f:
+        pickle.dump(fig, f)
     plt.close()
 
 def actualToPred():

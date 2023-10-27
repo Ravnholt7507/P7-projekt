@@ -46,11 +46,15 @@ def Take_input():
                         break
                 if(vectorVar.get() == 1):
                     prediction.predict(input)
+                    plot.plot()
                     plot.actualToPred()
                     map.plot()
                     show_image("Figures/predPlotArrows.png")
-                    webMapButton.grid(row=0, column=0)
-                    zoomButton.grid(row=0, column=1)
+                    webMapButton.grid(row=0, column=1)
+                    zoomButton.grid(row=2, column=1)
+                    plot1.grid(row=1, column=0)
+                    plot2.grid(row=1, column=1)
+                    plot3.grid(row=1, column=2)
                     output.grid(row=1, column=1, sticky=W, padx=10, pady=2)
                     output.delete(1.0, END)
                     output.insert(END, "Output appears here")
@@ -74,6 +78,10 @@ def show_image(imagefile):
     image = ImageTk.PhotoImage(file=imagefile)
     imagebox.config(image=image)
     imagebox.image = image
+    print('show_image', imagefile)
+    
+    plotObjPath = imagefile.replace('.png', '.obj')
+    zoomButton.configure(command=lambda: plot.Load_plot(plotObjPath))
 
 def openURL():
     webbrowser.open_new('map.html')
@@ -170,6 +178,28 @@ def save_settingstxt():
     with open('settings.txt', 'w') as f:
         f.writelines(settings)
 
+def raised_button(button_object):
+    global chosen
+
+    if chosen: # previously clicked
+        chosen.configure(relief=RAISED, state=ACTIVE)
+
+    print(button_object)
+
+    chosen = button_object
+    button_object.configure(relief=SUNKEN, state=DISABLED)
+
+def stop():
+    global chosen
+
+    chosen = None
+
+    plot1.configure(relief=RAISED, state=ACTIVE)
+    plot2.configure(relief=RAISED, state=ACTIVE)
+
+#----
+
+chosen = None # set at start
 
 
 # widgets
@@ -205,8 +235,11 @@ canvasFrame = Frame(canvas)
 imagebox = Label(canvas)
 output = Text(canvas, width=50, height=33, bg="light yellow")
 webMapButton = Button(canvasFrame, text="Open Map", command=lambda: openURL())
-zoomButton = Button(canvasFrame, text="Open Zoomable Plot", command=lambda: plot.Load_plot('Figures/predPlotArrows.obj'))
+zoomButton = Button(canvasFrame, text="Open Zoomable Plot")
 plotTypeLabel = Label()
+plot1 = Button(canvasFrame, text='Act & Pred', command=lambda: [raised_button(button_object=plot1), show_image('figures/actVsPred.png')])
+plot2 = Button(canvasFrame, text='Act -> Pred', command=lambda: [raised_button(button_object=plot2), show_image('figures/predPlotArrows.png')])
+plot3 = Button(canvasFrame, text='Collisions', command=lambda: raised_button(button_object=plot3))
 
 # grid, some widgets are hidden by default
 availableMMsisLabel.grid(row=0, column=0, sticky=W, padx=10, pady=2)
