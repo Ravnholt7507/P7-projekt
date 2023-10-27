@@ -3,8 +3,8 @@ import pandas as pd
 import pickle
 
 def plot():
-    df = pd.read_csv("boats.csv")
-    prediction = pd.read_csv("predictions.csv")
+    df = pd.read_csv("Data/boats.csv")
+    prediction = pd.read_csv("Data/predictions.csv")
 
     MMSI = prediction['MMSI'].unique()
     Actual_ship = df[df['MMSI'] == MMSI[0]]
@@ -33,8 +33,8 @@ def plot():
     plt.close()
 
 def actualToPred():
-    df = pd.read_csv("boats.csv")
-    prediction = pd.read_csv("predictions.csv")
+    df = pd.read_csv("Data/boats.csv")
+    prediction = pd.read_csv("Data/predictions.csv")
 
     MMSI = prediction['MMSI'].unique()
     Actual_ship = df[df['MMSI'] == MMSI[0]]
