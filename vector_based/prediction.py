@@ -141,7 +141,7 @@ def predict_intv():
                 timeDiff = parsedPostTime - parsedPreTime
                 timeDiffFloat = timeDiff.total_seconds()
 
-                speed = ship.iloc[current_point]['SOG'] * 1.852
+                speed = group.iloc[current_point]['SOG'] * 1.852
                 
                 distance = speed * timeDiffFloat / 3600
                 distance = round(distance, 2)
