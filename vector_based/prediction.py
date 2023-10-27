@@ -6,7 +6,8 @@ from math import asin, atan2, cos, degrees, radians, sin
 import statistics
 
 # df = pd.read_csv('AIS_2023_01_01.csv')
-df = pd.read_csv('Data/boats.csv')
+df = pd.read_csv('data/boats.csv')
+file_path = 'data/predictions.csv'
 
 def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     '''
@@ -28,32 +29,28 @@ def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     )
     return (degrees(lat2), degrees(lon2))
 
-# Take all rows with the same MMSI as the ship row with [index]
-#ship = df.loc[df['MMSI'] == df.iloc[1]['MMSI']]
-#length = len(ship)
-
-""" with open('predictions.csv', 'w') as fp:
-    fp.truncate() """
-
 def predict(MMSI):
     ship = df[df['MMSI'] == int(MMSI)]
     length = len(ship)
+    empty = False
+    with open(file_path, 'r') as file:
+        csv_dict = [row for row in csv.DictReader(file)]
+        if len(csv_dict) == 0:
+            print('File is empty')
+            empty = True
     
     for i in range(length-1):
         parsedPreTime = pd.to_datetime(ship.iloc[i]['BaseDateTime'])
         parsedPostTime = pd.to_datetime(ship.iloc[i+1]['BaseDateTime'])
         timeDiff = parsedPostTime - parsedPreTime
-
         timeDiffFloat = timeDiff.total_seconds()
 
         # Calculating the speed in km/h
-
         speed = ship.iloc[i]['SOG'] * 1.852
 
         # Calculating the distance travelled in the time difference
         distance = speed * timeDiffFloat / 3600
         distance = round(distance, 2)
-
 
         lat = ship.iloc[i]['LAT']
         lon = ship.iloc[i]['LON']
@@ -61,15 +58,16 @@ def predict(MMSI):
         lat2, lon2 = get_point_at_distance(lat, lon, distance, bearing)
 
         # Print MMSI and time
-        print('\n')
-        print('MMSI: ', ship.iloc[i]['MMSI'])
-        print('Time: ', ship.iloc[i]['BaseDateTime'])
+        # print('\n')
+        # print('MMSI: ', ship.iloc[i]['MMSI'])
+        # print('Time: ', ship.iloc[i]['BaseDateTime'])
 
-        print('Time difference: ', timeDiff.total_seconds(), ' seconds')
-        print('Speed: ', speed, ' km/h')
-        print('Distance travelled: ', distance, ' km')
-        print('Initial position: ', lat, lon)
-        print('Predicted position: ', lat2, lon2)
+        # print('Time difference: ', timeDiff.total_seconds(), ' seconds')
+        # print('Speed: ', speed, ' km/h')
+        # print('Distance travelled: ', distance, ' km')
+        # print('Initial position: ', lat, lon)
+        # print('Predicted position: ', lat2, lon2)
+        # print('Distance between actual and predicted position: ', dis, ' km')
 
         # Print distance between initial and predicted position
         # Round to 2 decimals
@@ -77,7 +75,6 @@ def predict(MMSI):
         next_lon = ship.iloc[i+1]['LON']
         dis = haversine((next_lat, next_lon), (lat2, lon2), unit=Unit.KILOMETERS)
         dis = round(dis, 4)
-        print('Distance between actual and predicted position: ', dis, ' km')
 
         array = []
         array.append(ship.iloc[i]['MMSI'])
@@ -86,18 +83,24 @@ def predict(MMSI):
         array.append(lon2)
         array.append(ship.iloc[i]['SOG'])
 
-        with open('Data/predictions.csv', 'a', newline='') as file:
+        with open('data/predictions.csv', 'a', newline='') as file:
             writer = csv.writer(file)
-            if i == 0:
+            if i == 0 and empty:
                 field = ['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG']
                 writer.writerow(field)
             writer.writerow(array)
+        
+    # map.plot()
+    # plot.plot()
+    # plot.actualToPred()
+    
+def all_ships():
+    MMSI = df['MMSI'].unique()
+    ships = len(MMSI)
+    for i in range(ships):
+        predict(MMSI[i])
 
-    map.plot()
-    plot.plot()
-    plot.actualToPred()
-
-
+""" 
 def check_range(distance, range_index):
     start, end = dist_intv[range_index]
     return start <= distance <= end
@@ -107,6 +110,7 @@ def find_dis_index(dist_intv, distance):
                     if start<=distance<end:
                         return i
 
+
 grouped = df.groupby('MMSI')
 grouped_list = list(df)
 num_dist_intv = 1
@@ -115,7 +119,7 @@ available_point = True
 stat_array = [[] for _ in range(len(dist_intv))]
 total_predictions = 0
 
-""" #Assumes at least 2 datapoints per group.
+#Assumes at least 2 datapoints per group.
 for name, group in grouped:
     for current_point in range(group.shape[0]-1):
         for comparison_point in range(current_point+1, group.shape[0]-1):

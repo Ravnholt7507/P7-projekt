@@ -3,7 +3,7 @@ pd.set_option('display.max_columns', 20)
 
 n = 150000
 
-df = pd.read_csv('AIS_2023_01_01.csv', nrows=n)
+df = pd.read_csv('data/AIS_2023_01_01.csv', nrows=n)
 # Sort by MMSI
 df = df.sort_values(by=['MMSI', 'BaseDateTime'])
 
@@ -25,4 +25,4 @@ df = df[(df.LAT > 23) & (df.LAT < 24) & (df.LON > -82) & (df.LON < -80)]
 # Cleasing data so there is only on row per MMSI
 df = df.drop_duplicates(subset='MMSI', keep='first')
 
-df.to_csv('1_boats.csv', index=False)
+df.to_csv('data/1_boats.csv', index=False)

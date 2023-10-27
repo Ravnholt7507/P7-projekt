@@ -99,7 +99,7 @@ def visualize_ship_clusters(ship_data, num_clusters):
     plt.show()
 
 # Use the following code to load ship data from a CSV file
-ship_data = pd.read_csv('1_boats.csv')
+ship_data = pd.read_csv('data/1_boats.csv')
 
 # Specify the number of clusters
 num_clusters = 3
