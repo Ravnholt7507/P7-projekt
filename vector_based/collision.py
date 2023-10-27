@@ -19,7 +19,7 @@ def find_intersection(p1, v1, p2, v2):
         # The vectors do not intersect within their segments
         return None
 
-def actualToPred():
+def find_collisions():
     
     df = pd.read_csv("data/boats_h.csv")
     prediction = pd.read_csv("data/predictions_h.csv")
@@ -78,6 +78,3 @@ def actualToPred():
                   color='green', width=0.00001, head_width=0.00005, length_includes_head=True)
 
     plt.show()
-
-
-actualToPred()

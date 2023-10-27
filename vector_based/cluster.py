@@ -4,6 +4,7 @@ from sklearn.neighbors import NearestNeighbors
 import matplotlib.pyplot as plt
 import pandas as pd
 
+
 def cluster_ships_knn(ship_data, num_clusters, k_neighbors=3):
     """
     Cluster ships based on latitude and longitude using KNN.
@@ -51,7 +52,7 @@ def cluster_ships_knn(ship_data, num_clusters, k_neighbors=3):
     plt.title('Ship Clusters (KNN)')
     plt.show()
 
-def visualize_ship_clusters(ship_data, num_clusters):
+def cluster_ships_kmeans(ship_data, num_clusters):
     """
     Visualize ship clusters based on latitude and longitude.
 
@@ -97,14 +98,3 @@ def visualize_ship_clusters(ship_data, num_clusters):
     plt.title('Ship Clusters')
     plt.legend()
     plt.show()
-
-# Use the following code to load ship data from a CSV file
-ship_data = pd.read_csv('data/1_boats.csv')
-
-# Specify the number of clusters
-num_clusters = 3
-
-# Call the function to visualize the ship clusters
-visualize_ship_clusters(ship_data, num_clusters)
-
-# cluster_ships_knn(ship_data, num_clusters, k_neighbors=3)
