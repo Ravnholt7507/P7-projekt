@@ -3,7 +3,7 @@ import pandas as pd
 
 
 def plot():
-    df = pd.read_csv('Data/boats.csv')
+    df = pd.read_csv('data/boats.csv')
 
     fig = px.scatter_geo(df, lat='LAT', lon='LON', hover_data=['BaseDateTime', 'SOG', 'COG', 'Heading'],
                          hover_name='MMSI', color_discrete_sequence=['red'])
@@ -14,7 +14,7 @@ def plot():
         showrivers=True, rivercolor='Blue'
     )
 
-    df2 = pd.read_csv('Data/predictions.csv')
+    df2 = pd.read_csv('data/predictions.csv')
 
     fig.add_trace(px.scatter_geo(df2, lat='LAT', lon='LON', hover_data=[
                   'BaseDateTime', 'SOG'], hover_name='MMSI', color_discrete_sequence=['green']).data[0])

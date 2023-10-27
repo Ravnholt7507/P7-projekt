@@ -24,7 +24,7 @@ sideframe.grid_columnconfigure(2, weight=1)
 sideframe.grid_rowconfigure(100, weight=1)
 
 # Data setup
-df = pd.read_csv("Data/boats.csv")
+df = pd.read_csv("data/boats.csv")
 MMSI = df['MMSI'].unique()
 
 def Take_input():
@@ -119,7 +119,7 @@ def show_multi_listbox(var):
         multiListbox.selection_clear(0, END)
         
 def clear():
-    with open('Data/predictions.csv', 'w') as fp:
+    with open('data/predictions.csv', 'w') as fp:
         fp.truncate()
         
 def load_settingstxt():

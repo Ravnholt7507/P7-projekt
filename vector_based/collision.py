@@ -21,8 +21,8 @@ def find_intersection(p1, v1, p2, v2):
 
 def actualToPred():
     
-    df = pd.read_csv("boats_h.csv")
-    prediction = pd.read_csv("predictions_h.csv")
+    df = pd.read_csv("data/boats_h.csv")
+    prediction = pd.read_csv("data/predictions_h.csv")
 
     MMSI = prediction['MMSI'].unique()
     Actual_ship1 = df[df['MMSI'] == MMSI[0]]
