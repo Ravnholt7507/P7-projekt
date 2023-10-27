@@ -72,7 +72,7 @@ def show_image(imagefile):
     imagebox.image = image
 
 def openURL():
-    webbrowser.open_new('first_figure.html')
+    webbrowser.open_new('map.html')
     
 def focus_out_entry_box(widget, widget_text):
     if widget['fg'] == 'Black' and len(widget.get()) == 0:

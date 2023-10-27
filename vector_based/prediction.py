@@ -6,7 +6,7 @@ from math import asin, atan2, cos, degrees, radians, sin
 import statistics
 
 # df = pd.read_csv('AIS_2023_01_01.csv')
-df = pd.read_csv('data/1_boats.csv')
+df = pd.read_csv('data/boats.csv')
 file_path = 'data/predictions.csv'
 
 def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
