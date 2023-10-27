@@ -33,6 +33,7 @@ def predict(MMSI):
     ship = df[df['MMSI'] == int(MMSI)]
     length = len(ship)
     empty = False
+
     with open(file_path, 'r') as file:
         csv_dict = [row for row in csv.DictReader(file)]
         if len(csv_dict) == 0:
@@ -100,7 +101,7 @@ def all_ships():
     for i in range(ships):
         predict(MMSI[i])
 
-""" 
+
 def check_range(distance, range_index):
     start, end = dist_intv[range_index]
     return start <= distance <= end
@@ -111,46 +112,52 @@ def find_dis_index(dist_intv, distance):
                         return i
 
 
-grouped = df.groupby('MMSI')
-grouped_list = list(df)
-num_dist_intv = 1
-dist_intv = [(0,3),(3,5),(5,1000000000)]
-available_point = True
-stat_array = [[] for _ in range(len(dist_intv))]
-total_predictions = 0
+def predict_intv():
 
-#Assumes at least 2 datapoints per group.
-for name, group in grouped:
-    for current_point in range(group.shape[0]-1):
-        for comparison_point in range(current_point+1, group.shape[0]-1):
-            
-            dis = haversine((group.iloc[comparison_point]['LAT'], group.iloc[comparison_point]['LON']), (group.iloc[current_point]['LAT'], group.iloc[current_point]['LON']), unit=Unit.KILOMETERS)
-            dis = round(dis, 4)
-            
-            parsedPreTime = pd.to_datetime(ship.iloc[current_point]['BaseDateTime'])
-            parsedPostTime = pd.to_datetime(ship.iloc[comparison_point]['BaseDateTime'])
-            
-            timeDiff = parsedPostTime - parsedPreTime
-            timeDiffFloat = timeDiff.total_seconds()
-            distance = speed * timeDiffFloat / 3600
-            distance = round(distance, 2)
-            
-            prediction = get_point_at_distance(group.iloc[current_point]['LAT'], group.iloc[current_point]['LON'], distance, group.iloc[current_point]['COG'])
-            
-            error = haversine((group.iloc[comparison_point]['LAT'], group.iloc[comparison_point]['LON']), (prediction[0], prediction[1]), unit=Unit.KILOMETERS)
-            error = round(error,4)
+    ship = df.loc[df['MMSI'] == df.iloc[1]['MMSI']]
+    grouped = df.groupby('MMSI')
+    grouped_list = list(df)
+    num_dist_intv = 1
+    dist_intv = [(0,3),(3,5),(5,1000000000)]
+    available_point = True
+    stat_array = [[] for _ in range(len(dist_intv))]
+    total_predictions = 0
 
-            stat_array[find_dis_index(dist_intv, dis)].append(error)
-            total_predictions = total_predictions+1
+    #Assumes at least 2 datapoints per group.
+    for name, group in grouped:
+        for current_point in range(group.shape[0]-1):
+            for comparison_point in range(current_point+1, group.shape[0]-1):
+                
+                dis = haversine((group.iloc[comparison_point]['LAT'], group.iloc[comparison_point]['LON']), (group.iloc[current_point]['LAT'], group.iloc[current_point]['LON']), unit=Unit.KILOMETERS)
+                dis = round(dis, 4)
+                
+                parsedPreTime = pd.to_datetime(ship.iloc[current_point]['BaseDateTime'])
+                parsedPostTime = pd.to_datetime(ship.iloc[comparison_point]['BaseDateTime'])
+                
+                timeDiff = parsedPostTime - parsedPreTime
+                timeDiffFloat = timeDiff.total_seconds()
 
-print("\nTotal predictions: ", total_predictions)
-i = 0
-for row in stat_array:
-    print("\nFor distance interval:", dist_intv[i])
-    print("Number of predictions: ", len(row))
-    print("Avg. error: ", round(sum(row)/len(row),2))            
-    print("Mean error: ", round(statistics.median(row),2))
-    i = i+1 """
+                speed = ship.iloc[current_point]['SOG'] * 1.852
+                
+                distance = speed * timeDiffFloat / 3600
+                distance = round(distance, 2)
+                
+                prediction = get_point_at_distance(group.iloc[current_point]['LAT'], group.iloc[current_point]['LON'], distance, group.iloc[current_point]['COG'])
+                
+                error = haversine((group.iloc[comparison_point]['LAT'], group.iloc[comparison_point]['LON']), (prediction[0], prediction[1]), unit=Unit.KILOMETERS)
+                error = round(error,4)
+
+                stat_array[find_dis_index(dist_intv, dis)].append(error)
+                total_predictions = total_predictions+1
+
+    print("\nTotal predictions: ", total_predictions)
+    i = 0
+    for row in stat_array:
+        print("\nFor distance interval:", dist_intv[i])
+        print("Number of predictions: ", len(row))
+        print("Avg. error: ", round(sum(row)/len(row),2))            
+        print("Mean error: ", round(statistics.median(row),2))
+        i = i+1
 
 """for row in stat_array:
     for value in row:
