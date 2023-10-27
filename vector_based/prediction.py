@@ -63,12 +63,11 @@ def predict(MMSI):
         # print('MMSI: ', ship.iloc[i]['MMSI'])
         # print('Time: ', ship.iloc[i]['BaseDateTime'])
 
-        # print('Time difference: ', timeDiff.total_seconds(), ' seconds')
+        #print('Time difference: ', timeDiff.total_seconds(), ' seconds')
         # print('Speed: ', speed, ' km/h')
-        # print('Distance travelled: ', distance, ' km')
+        #print('Distance travelled: ', distance, ' km')
         # print('Initial position: ', lat, lon)
         # print('Predicted position: ', lat2, lon2)
-        # print('Distance between actual and predicted position: ', dis, ' km')
 
         # Print distance between initial and predicted position
         # Round to 2 decimals
@@ -77,6 +76,7 @@ def predict(MMSI):
         dis = haversine((next_lat, next_lon), (lat2, lon2), unit=Unit.KILOMETERS)
         dis = round(dis, 4)
 
+        #print('Distance between actual and predicted position: ', dis, ' km')
         array = []
         array.append(ship.iloc[i]['MMSI'])
         array.append(ship.iloc[i]['BaseDateTime'])

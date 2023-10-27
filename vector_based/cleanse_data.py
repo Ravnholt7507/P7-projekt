@@ -27,7 +27,7 @@ def cleanse():
     #df = df.drop_duplicates(subset='MMSI', keep='first')
     
     # Drop columns that are not needed
-    df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign', 'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo'])
+    #df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign', 'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo'])
     
     # # Remove all rows
     # df = df.iloc[0:0]
