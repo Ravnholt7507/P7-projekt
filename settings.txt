@@ -1,0 +1,6 @@
+selectedMMSI=311001072
+vectorCheck=1
+NNCheck=0
+NN1Check=0
+NN2Check=0
+NN3Check=0

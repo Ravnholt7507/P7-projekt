@@ -1,13 +1,13 @@
 import pandas as pd
 import csv
-import map
+import vector_based.map as map, vector_based.plot as plot
 from haversine import haversine, Unit
 from math import asin, atan2, cos, degrees, radians, sin
 import statistics
 
 # df = pd.read_csv('AIS_2023_01_01.csv')
-df = pd.read_csv('boats.csv')
-
+df = pd.read_csv('data/boats.csv')
+file_path = 'data/predictions.csv'
 
 def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     '''
@@ -29,69 +29,78 @@ def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     )
     return (degrees(lat2), degrees(lon2))
 
-# Take all rows with the same MMSI as the first row with [index]
-first = df.loc[df['MMSI'] == df.iloc[1]['MMSI']]
-length = len(first)
+def predict(MMSI):
+    ship = df[df['MMSI'] == int(MMSI)]
+    length = len(ship)
+    empty = False
 
-with open('predictions.csv', 'w') as fp:
-    fp.truncate()
+    with open(file_path, 'r') as file:
+        csv_dict = [row for row in csv.DictReader(file)]
+        if len(csv_dict) == 0:
+            print('File is empty')
+            empty = True
+    
+    for i in range(length-1):
+        parsedPreTime = pd.to_datetime(ship.iloc[i]['BaseDateTime'])
+        parsedPostTime = pd.to_datetime(ship.iloc[i+1]['BaseDateTime'])
+        timeDiff = parsedPostTime - parsedPreTime
+        timeDiffFloat = timeDiff.total_seconds()
 
-for i in range(length-1):
+        # Calculating the speed in km/h
+        speed = ship.iloc[i]['SOG'] * 1.852
 
-    parsedPreTime = pd.to_datetime(first.iloc[i]['BaseDateTime'])
-    parsedPostTime = pd.to_datetime(first.iloc[i+1]['BaseDateTime'])
-    timeDiff = parsedPostTime - parsedPreTime
+        # Calculating the distance travelled in the time difference
+        distance = speed * timeDiffFloat / 3600
+        distance = round(distance, 2)
 
-    timeDiffFloat = timeDiff.total_seconds()
+        lat = ship.iloc[i]['LAT']
+        lon = ship.iloc[i]['LON']
+        bearing = ship.iloc[i]['COG']
+        lat2, lon2 = get_point_at_distance(lat, lon, distance, bearing)
 
-    # Calculating the speed in km/h
+        # Print MMSI and time
+        # print('\n')
+        # print('MMSI: ', ship.iloc[i]['MMSI'])
+        # print('Time: ', ship.iloc[i]['BaseDateTime'])
 
-    speed = first.iloc[i]['SOG'] * 1.852
+        #print('Time difference: ', timeDiff.total_seconds(), ' seconds')
+        # print('Speed: ', speed, ' km/h')
+        #print('Distance travelled: ', distance, ' km')
+        # print('Initial position: ', lat, lon)
+        # print('Predicted position: ', lat2, lon2)
 
-    # Calculating the distance travelled in the time difference
-    distance = speed * timeDiffFloat / 3600
-    distance = round(distance, 2)
+        # Print distance between initial and predicted position
+        # Round to 2 decimals
+        next_lat = ship.iloc[i+1]['LAT']
+        next_lon = ship.iloc[i+1]['LON']
+        dis = haversine((next_lat, next_lon), (lat2, lon2), unit=Unit.KILOMETERS)
+        dis = round(dis, 4)
+        # print('Distance between actual and predicted position: ', dis, ' km')
 
+        #print('Distance between actual and predicted position: ', dis, ' km')
+        array = []
+        array.append(ship.iloc[i]['MMSI'])
+        array.append(ship.iloc[i]['BaseDateTime'])
+        array.append(lat2)
+        array.append(lon2)
+        array.append(ship.iloc[i]['SOG'])
 
-    lat = first.iloc[i]['LAT']
-    lon = first.iloc[i]['LON']
-    bearing = first.iloc[i]['COG']
-    lat2, lon2 = get_point_at_distance(lat, lon, distance, bearing)
-
-    # Print MMSI and time
-    print('\n')
-    print('MMSI: ', first.iloc[i]['MMSI'])
-    print('Time: ', first.iloc[i]['BaseDateTime'])
-
-    print('Time difference: ', timeDiff.total_seconds(), ' seconds')
-    print('Speed: ', speed, ' km/h')
-    print('Distance travelled: ', distance, ' km')
-    print('Initial position: ', lat, lon)
-    print('Predicted position: ', lat2, lon2)
-
-    # Print distance between initial and predicted position
-    # Round to 2 decimals
-    next_lat = first.iloc[i+1]['LAT']
-    next_lon = first.iloc[i+1]['LON']
-    dis = haversine((next_lat, next_lon), (lat2, lon2), unit=Unit.KILOMETERS)
-    dis = round(dis, 4)
-    print('Distance between actual and predicted position: ', dis, ' km')
-
-    array = []
-    array.append(first.iloc[i]['MMSI'])
-    array.append(first.iloc[i]['BaseDateTime'])
-    array.append(lat2)
-    array.append(lon2)
-    array.append(first.iloc[i]['SOG'])
-
-    with open('predictions.csv', 'a', newline='') as file:
-        writer = csv.writer(file)
-        if i == 0:
-            field = ['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG']
-            writer.writerow(field)
-        writer.writerow(array)
-
-map.plot()
+        with open('data/predictions.csv', 'a', newline='') as file:
+            writer = csv.writer(file)
+            if i == 0 and empty:
+                field = ['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG']
+                writer.writerow(field)
+            writer.writerow(array)
+        
+    # map.plot()
+    # plot.plot()
+    # plot.actualToPred()
+    
+def all_ships():
+    MMSI = df['MMSI'].unique()
+    ships = len(MMSI)
+    for i in range(ships):
+        predict(MMSI[i])
 
 
 def check_range(distance, range_index):
@@ -103,46 +112,54 @@ def find_dis_index(dist_intv, distance):
                     if start<=distance<end:
                         return i
 
-grouped = df.groupby('MMSI')
-grouped_list = list(df)
-num_dist_intv = 1
-dist_intv = [(0,3),(3,5),(5,1000000000)]
-available_point = True
-stat_array = [[] for _ in range(len(dist_intv))]
-total_predictions = 0
 
-#Assumes at least 2 datapoints per group.
-for name, group in grouped:
-    for current_point in range(group.shape[0]-1):
-        for comparison_point in range(current_point+1, group.shape[0]-1):
-            
-            dis = haversine((group.iloc[comparison_point]['LAT'], group.iloc[comparison_point]['LON']), (group.iloc[current_point]['LAT'], group.iloc[current_point]['LON']), unit=Unit.KILOMETERS)
-            dis = round(dis, 4)
-            
-            parsedPreTime = pd.to_datetime(first.iloc[current_point]['BaseDateTime'])
-            parsedPostTime = pd.to_datetime(first.iloc[comparison_point]['BaseDateTime'])
-            
-            timeDiff = parsedPostTime - parsedPreTime
-            timeDiffFloat = timeDiff.total_seconds()
-            distance = speed * timeDiffFloat / 3600
-            distance = round(distance, 2)
-            
-            prediction = get_point_at_distance(group.iloc[current_point]['LAT'], group.iloc[current_point]['LON'], distance, group.iloc[current_point]['COG'])
-            
-            error = haversine((group.iloc[comparison_point]['LAT'], group.iloc[comparison_point]['LON']), (prediction[0], prediction[1]), unit=Unit.KILOMETERS)
-            error = round(error,4)
+def predict_intv():
 
-            stat_array[find_dis_index(dist_intv, dis)].append(error)
-            total_predictions = total_predictions+1
+    grouped = df.groupby('MMSI')
+    grouped_list = list(df)
+    num_dist_intv = 1
+    dist_intv = [(0,3),(3,5),(5,1000000000)]
+    available_point = True
+    stat_array = [[] for _ in range(len(dist_intv))]
+    total_predictions = 0
 
-print("\nTotal predictions: ", total_predictions)
-i = 0
-for row in stat_array:
-    print("\nFor distance interval:", dist_intv[i])
-    print("Number of predictions: ", len(row))
-    print("Avg. error: ", round(sum(row)/len(row),2))            
-    print("Mean error: ", round(statistics.median(row),2))
-    i = i+1
+    #Assumes at least 2 datapoints per group.
+    for name, group in grouped:
+        for current_point in range(group.shape[0]-1):
+            i = 0
+            for comparison_point in range(current_point+1, group.shape[0]-1):
+                i=i+1
+                #print("CURRENT POINT: ", current_point)
+                #print("COMPARISON POINT: ", comparison_point)
+                dis = haversine((group.iloc[comparison_point]['LAT'], group.iloc[comparison_point]['LON']), (group.iloc[current_point]['LAT'], group.iloc[current_point]['LON']), unit=Unit.KILOMETERS)
+                dis = round(dis, 4)
+                
+                parsedPreTime = pd.to_datetime(group.iloc[current_point]['BaseDateTime'])
+                parsedPostTime = pd.to_datetime(group.iloc[comparison_point]['BaseDateTime'])
+                
+                timeDiff = parsedPostTime - parsedPreTime
+                timeDiffFloat = timeDiff.total_seconds()
+
+                speed = group.iloc[current_point]['SOG'] * 1.852
+                
+                distance = speed * timeDiffFloat / 3600
+                distance = round(distance, 2)
+                
+                prediction = get_point_at_distance(group.iloc[current_point]['LAT'], group.iloc[current_point]['LON'], distance, group.iloc[current_point]['COG'])
+                error = haversine((group.iloc[comparison_point]['LAT'], group.iloc[comparison_point]['LON']), (prediction[0], prediction[1]), unit=Unit.KILOMETERS)
+                error = round(error,4)
+
+                stat_array[find_dis_index(dist_intv, dis)].append(error)
+                total_predictions = total_predictions+1
+
+    print("\nTotal predictions: ", total_predictions)
+    i = 0
+    for row in stat_array:
+        print("\nFor distance interval:", dist_intv[i])
+        print("Number of predictions: ", len(row))
+        print("Avg. error: ", round(sum(row)/len(row),2))            
+        print("Mean error: ", round(statistics.median(row),2))
+        i = i+1
 
 """for row in stat_array:
     for value in row:

@@ -2,8 +2,8 @@ import plotly.express as px
 import pandas as pd
 
 
-def plot():
-    df = pd.read_csv('boats.csv')
+def plot_land():
+    df = pd.read_csv('data/boats.csv')
 
     fig = px.scatter_geo(df, lat='LAT', lon='LON', hover_data=['BaseDateTime', 'SOG', 'COG', 'Heading'],
                          hover_name='MMSI', color_discrete_sequence=['red'])
@@ -14,11 +14,11 @@ def plot():
         showrivers=True, rivercolor='Blue'
     )
 
-    df2 = pd.read_csv('predictions.csv')
+    df2 = pd.read_csv('data/predictions.csv')
 
     fig.add_trace(px.scatter_geo(df2, lat='LAT', lon='LON', hover_data=[
                   'BaseDateTime', 'SOG'], hover_name='MMSI', color_discrete_sequence=['green']).data[0])
 
     fig.update_layout(title='North America', title_x=0.5)
-    #fig.show()
-    fig.write_html('first_figure.html', auto_open=True)
+    fig.show()
+    # fig.write_html('map.html', auto_open=True)
