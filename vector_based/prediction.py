@@ -37,7 +37,7 @@ def predict(MMSI):
     with open(file_path, 'r') as file:
         csv_dict = [row for row in csv.DictReader(file)]
         if len(csv_dict) == 0:
-            print('File is empty')
+            #print('File is empty')
             empty = True
     
     for i in range(length-1):
@@ -151,15 +151,26 @@ def predict_intv():
                 stat_array[find_dis_index(dist_intv, dis)].append(error)
                 total_predictions = total_predictions+1
 
-    print("\nTotal predictions: ", total_predictions)
-    i = 0
-    for row in stat_array:
-        print("\nFor distance interval:", dist_intv[i])
-        print("Number of predictions: ", len(row))
-        print("Avg. error: ", round(sum(row)/len(row),2))            
-        print("Mean error: ", round(statistics.median(row),2))
-        i = i+1
+    #print("\nTotal predictions: ", total_predictions)
+    #i = 0
+    #for row in stat_array:
+    #    print("\nFor distance interval:", dist_intv[i])
+     #   print("Number of predictions: ", len(row))
+      #  print("Avg. error: ", round(sum(row)/len(row),2))            
+       # print("Mean error: ", round(statistics.median(row),2))
+        #i = i+1
 
+    output = []
+    output.append('Total predictions: {}\n'.format(total_predictions))
+    for row in stat_array:
+        output.append('\nFor distance interval: {}\n'.format(dist_intv[i]))
+        output.append('Number of predictions: {}\n'.format(len(row)))
+        output.append('Avg. error: {}\n'.format(round(sum(row)/len(row),2)))
+        output.append('Mean error: {}\n'.format(round(statistics.median(row),2)))
+    
+    
+    return output
+    
 """for row in stat_array:
     for value in row:
         print(value, end=' ')

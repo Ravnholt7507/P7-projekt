@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import pickle
+import cartopy.crs as ccrs
+import cartopy
+import cartopy.feature as cfeature
 
 def plot():
     df = pd.read_csv("data/boats.csv")
@@ -29,6 +32,7 @@ def plot():
     for x in range(len(pred_lats)-1):
         plt.arrow(pred_lons[x], pred_lats[x], pred_lons[x+1]-pred_lons[x], pred_lats[x+1] -
                   pred_lats[x], color='blue', width=0.00001, head_width=0.00005, length_includes_head=True)
+    plt.tight_layout()
     # plt.show()
     plt.savefig('Figures/actVsPred.png')
     with open('Figures/actVsPred.obj', 'wb') as f:
@@ -60,9 +64,28 @@ def actualToPred():
         plt.arrow(act_lons[x], act_lats[x], pred_lons[x]-act_lons[x], pred_lats[x] - act_lats[x], color='green', width=0.000001, head_width=0.0002, length_includes_head=True)
         #arrow with head in the middle of the line between two points
         #plt.arrow(act_lons[x], act_lats[x], (pred_lons[x]-act_lons[x])/2, (pred_lats[x] - act_lats[x])/2, color='green', width=0.000001, head_width=0.00003, length_includes_head=True)
-        
+    plt.tight_layout()
     plt.savefig('Figures/predPlotArrows.png')
     with open('Figures/predPlotArrows.obj', 'wb') as f:
+        pickle.dump(fig, f)
+    plt.close()
+
+def worldMapPlot():
+    ccrs.PlateCarree()
+    plt.axes(projection=ccrs.PlateCarree())
+
+    fig = plt.figure(figsize=(12, 6))
+    ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
+    ax.add_feature(cartopy.feature.OCEAN)
+    ax.add_feature(cartopy.feature.LAND, edgecolor='black')
+    ax.add_feature(cartopy.feature.LAKES, edgecolor='black')
+    ax.add_feature(cartopy.feature.RIVERS)
+    ax.gridlines(draw_labels=True, dms=True, x_inline=False, y_inline=False, color = 'None')
+    df = pd.read_csv("data/boats.csv")
+    plt.scatter(df['LON'], df['LAT'], s=0.1, c='red', marker='*', transform=ccrs.PlateCarree())
+    plt.tight_layout()
+    plt.savefig('Figures/map.png')
+    with open('Figures/map.obj', 'wb') as f:
         pickle.dump(fig, f)
     plt.close()
 
@@ -71,5 +94,4 @@ def Load_plot(pltName):
     plt.subplot()
     with open(pltName, 'rb') as file:
         fig = pickle.load(file)
-    plt.show()
-    plt.close()
+    return fig

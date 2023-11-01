@@ -5,8 +5,14 @@ import vector_based.map as map
 from PIL import ImageTk, Image 
 import webbrowser
 import pandas as pd
-
+import os
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+from matplotlib.figure import Figure
+import cartopy.crs as ccrs
+import cartopy
+import cartopy.feature as cfeature
 
 
 # Main window setup
@@ -48,16 +54,16 @@ def Take_input():
                     prediction.predict(input)
                     plot.plot()
                     plot.actualToPred()
+                    plot.worldMapPlot()
                     map.plot()
-                    show_image("Figures/predPlotArrows.png")
-                    webMapButton.grid(row=0, column=1)
-                    zoomButton.grid(row=2, column=1)
-                    plot1.grid(row=1, column=0)
-                    plot2.grid(row=1, column=1)
-                    plot3.grid(row=1, column=2)
+                    mapButton.grid(row=0, column=0)
+                    plot1.grid(row=0, column=1)
+                    plot2.grid(row=0, column=2)
+                    plot3.grid(row=0, column=3)
                     output.grid(row=1, column=1, sticky=W, padx=10, pady=2)
                     output.delete(1.0, END)
                     output.insert(END, "Output appears here")
+                    mapButton.invoke()
                 if(compShipsVar.get() == 1):
                     multiListbox_select(0)
                 elif(vectorVar.get() == 0 and nnVar.get() == 0):
@@ -73,18 +79,6 @@ def Take_input():
             print("Error: MMSI not found")
             errorLabel.grid(row=16, column=0, sticky=W, padx=10, pady=2)
             break
-      
-def show_image(imagefile):
-    image = ImageTk.PhotoImage(file=imagefile)
-    imagebox.config(image=image)
-    imagebox.image = image
-    print('show_image', imagefile)
-    
-    plotObjPath = imagefile.replace('.png', '.obj')
-    zoomButton.configure(command=lambda: plot.Load_plot(plotObjPath))
-
-def openURL():
-    webbrowser.open_new('map.html')
     
 def focus_out_entry_box(widget, widget_text):
     if widget['fg'] == 'Black' and len(widget.get()) == 0:
@@ -178,14 +172,12 @@ def save_settingstxt():
     with open('settings.txt', 'w') as f:
         f.writelines(settings)
 
+chosen = None
 def raised_button(button_object):
     global chosen
 
     if chosen: # previously clicked
         chosen.configure(relief=RAISED, state=ACTIVE)
-
-    print(button_object)
-
     chosen = button_object
     button_object.configure(relief=SUNKEN, state=DISABLED)
 
@@ -194,13 +186,110 @@ def stop():
 
     chosen = None
 
+    mapButton.configure(relief=RAISED, state=ACTIVE)
     plot1.configure(relief=RAISED, state=ACTIVE)
     plot2.configure(relief=RAISED, state=ACTIVE)
+    plot3.configure(relief=RAISED, state=ACTIVE)
 
-#----
+def showBackForw():
+    backward.grid(row=3, column=0)
+    forward.grid(row=3, column=2)
 
-chosen = None # set at start
+def backOrForw():
+    blegh = 1
+    
+def getListOfFiles():
+    Files = []
+    for file_path in os.listdir('Figures'):
+        if file_path.endswith('.png'):
+            Files.append(file_path)
 
+show_plot = False
+def showFigure(path):
+    fig = plot.Load_plot(path)
+    plt.figure(figsize=(12,6))
+    figure = FigureCanvasTkAgg(fig , master =imagebox)
+    toolbar_frame = Frame(imagebox)
+    
+    global show_plot
+    if show_plot:
+        figure.get_tk_widget().grid_forget()
+        toolbar_frame.destroy()
+    
+    figure.draw()
+    toolbar_frame = Frame(toolBox)
+    toolbar = NavigationToolbar2Tk(figure, toolbar_frame)
+    toolbar_frame.grid(row=0, column=0)
+    figure.get_tk_widget().grid(row=0, column=0)
+    
+    show_plot = True
+
+def worldMap(master):
+    fig,ax = plt.subplots()
+    ccrs.PlateCarree()
+    plt.axes(projection=ccrs.PlateCarree())
+
+    names = np.array(list("ABCDEFGHIJKLMNO"))
+    norm = plt.Normalize(1,4)
+    cmap = plt.cm.RdYlGn
+    c = np.random.randint(1,5,size=10000)
+
+
+    fig = plt.figure(figsize=(12, 6))
+    ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
+    ax.add_feature(cartopy.feature.OCEAN)
+    ax.add_feature(cartopy.feature.LAND, edgecolor='black')
+    ax.add_feature(cartopy.feature.LAKES, edgecolor='black')
+    ax.add_feature(cartopy.feature.RIVERS)
+    ax.gridlines(draw_labels=True, dms=True, x_inline=False, y_inline=False, color = 'None')
+    df = pd.read_csv("data/boats.csv")
+    sc = plt.scatter(df['LON'], df['LAT'], s=0.1, c='red', marker='*', transform=ccrs.PlateCarree())
+    plt.tight_layout()
+    
+    annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
+                    bbox=dict(boxstyle="round", fc="w"),
+                    arrowprops=dict(arrowstyle="->"))
+    annot.set_visible(False)
+
+    def update_annot(ind):
+        pos = sc.get_offsets()[ind["ind"][0]]
+        annot.xy = pos
+        df = pd.read_csv("data/boats.csv")
+        text = 'Vessel: {}'.format(df['VesselName'].iloc[ind["ind"][0]]) + '\n' + 'MMSI: {}'.format(df['MMSI'].iloc[ind["ind"][0]]) + '\n' + 'Latitude: {}'.format(df['LAT'].iloc[ind["ind"][0]]) + '\n' + 'Longitude: {}'.format(df['LON'].iloc[ind["ind"][0]]) + '\n' + 'BaseDateTime: {}'.format(df['BaseDateTime'].iloc[ind["ind"][0]]) + '\n' + 'SOG: {}'.format(df['SOG'].iloc[ind["ind"][0]]) + '\n' + 'COG: {}'.format(df['COG'].iloc[ind["ind"][0]]) + '\n' + 'Heading: {}'.format(df['Heading'].iloc[ind["ind"][0]])
+        annot.set_text(text)
+        annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
+        annot.get_bbox_patch().set_alpha(0.4)
+
+    def hover(event):
+        vis = annot.get_visible()
+        if event.inaxes == ax:
+            cont, ind = sc.contains(event)
+            if cont:
+                update_annot(ind)
+                annot.set_visible(True)
+                fig.canvas.draw_idle()
+            else:
+                if vis:
+                    annot.set_visible(False)
+                    fig.canvas.draw_idle()
+
+    global cId
+    cId = fig.canvas.mpl_connect("motion_notify_event", hover)
+
+    figure = FigureCanvasTkAgg(fig , master =master)
+    toolbar_frame = Frame(master)
+    
+    global show_plot
+    if show_plot:
+        figure.get_tk_widget().grid_forget()
+        toolbar_frame.destroy()
+    
+    figure.draw()
+    toolbar_frame = Frame(toolBox)
+    toolbar = NavigationToolbar2Tk(figure, toolbar_frame)
+    toolbar_frame.grid(row=0, column=0)
+    figure.get_tk_widget().grid(row=0, column=0)
+    show_plot = True
 
 # widgets
 mmsiEntryBox = Entry(sideframe, font='Arial 18', fg='Grey')
@@ -233,13 +322,15 @@ clearButton = Button(buttonFrame, text="Clear predictions", command=lambda: clea
 errorLabel = Label(sideframe, text="Error: You seem to have fucked up!", fg='red')
 canvasFrame = Frame(canvas)
 imagebox = Label(canvas)
+toolBox = Frame(canvas)
 output = Text(canvas, width=50, height=33, bg="light yellow")
-webMapButton = Button(canvasFrame, text="Open Map", command=lambda: openURL())
-zoomButton = Button(canvasFrame, text="Open Zoomable Plot")
-plotTypeLabel = Label()
-plot1 = Button(canvasFrame, text='Act & Pred', command=lambda: [raised_button(button_object=plot1), show_image('figures/actVsPred.png')])
-plot2 = Button(canvasFrame, text='Act -> Pred', command=lambda: [raised_button(button_object=plot2), show_image('figures/predPlotArrows.png')])
-plot3 = Button(canvasFrame, text='Collisions', command=lambda: raised_button(button_object=plot3))
+mapButton = Button(canvasFrame, text='Map', command=lambda: [raised_button(button_object=mapButton), worldMap(imagebox)])
+plot1 = Button(canvasFrame, text='Act & Pred', command=lambda: [raised_button(button_object=plot1), showFigure('figures/actVsPred.obj')])
+plot2 = Button(canvasFrame, text='Act -> Pred', command=lambda: [raised_button(button_object=plot2), showFigure('figures/predPlotArrows.obj')])
+plot3 = Button(canvasFrame, text='Collisions', command=lambda: [raised_button(button_object=plot3), showBackForw()])
+backward = Button(canvasFrame, text='Previous Image')
+forward = Button(canvasFrame, text='Next Image')
+
 
 # grid, some widgets are hidden by default
 availableMMsisLabel.grid(row=0, column=0, sticky=W, padx=10, pady=2)
@@ -255,6 +346,7 @@ predButton.grid(row=0, column=0)
 clearButton.grid(row=0, column=1)
 canvasFrame.grid(row=0, column=0)
 imagebox.grid(row=1, column=0)
+toolBox.grid(row=2, column=0)
 
 # bindings for when a listbox item is selected
 mmsiListbox.bind('<<ListboxSelect>>', listbox_select)
