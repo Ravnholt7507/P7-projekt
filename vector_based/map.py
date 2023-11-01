@@ -2,7 +2,7 @@ import plotly.express as px
 import pandas as pd
 
 
-def plot():
+def plot_land():
     df = pd.read_csv('data/boats.csv')
 
     fig = px.scatter_geo(df, lat='LAT', lon='LON', hover_data=['BaseDateTime', 'SOG', 'COG', 'Heading'],
@@ -20,5 +20,5 @@ def plot():
                   'BaseDateTime', 'SOG'], hover_name='MMSI', color_discrete_sequence=['green']).data[0])
 
     fig.update_layout(title='North America', title_x=0.5)
-    #fig.show()
-    fig.write_html('map.html', auto_open=False)
+    fig.show()
+    # fig.write_html('map.html', auto_open=True)

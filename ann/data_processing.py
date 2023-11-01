@@ -7,7 +7,8 @@ def convert_dt_to_sec(df, n_rows):
 
     for i in range(n_rows):
         df[i][1] = int(df[i][1][11:13])*3600 + int(df[i][1][14:16])*60 + int(df[i][1][17:])
-
+    return df
+"""
     i = 0
     while i in range(n_rows):
         end = False
@@ -27,11 +28,10 @@ def convert_dt_to_sec(df, n_rows):
             df[start][1] = 0
             df[start+1:i+1, 1] = diff_array
         i += 1
-    return df
+"""
 
 def group_data_by_mmsi(df):
     MMSI_Values = df[:, 0]
-
     i = 0
 
     for count, k in enumerate(MMSI_Values):
@@ -42,7 +42,7 @@ def group_data_by_mmsi(df):
             pass
     SizeOfTrain = i
 
-    x_train = np.empty([SizeOfTrain, 3, 6])
+    x_train = np.empty([SizeOfTrain, 5, 6])
     y_train = np.empty([SizeOfTrain, 6])
 
     i = 0
@@ -53,6 +53,8 @@ def group_data_by_mmsi(df):
                 x_train[i][0][:] = df[count + 1][:]
                 x_train[i][1][:] = df[count + 2][:]
                 x_train[i][2][:] = df[count + 3][:]
+                x_train[i][3][:] = df[count + 4][:]
+                x_train[i][4][:] = df[count + 5][:]
                 i += 1
         except:
             pass
@@ -102,18 +104,19 @@ def data_loader(file_path, n_rows):
     df = df.dropna()
 
     #sort by MMSI, then by time/date
-    df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
 
-    #remove all mmsi's with SOG == 0
-    df = df[df['SOG'] != 0]
-
+    #remove all mmsi's with SOG > 5
+    df = df[df['SOG'] > 5.0]
     
     # remove elements with only 1 mmsi entry
     counts = df.value_counts('MMSI')
 
     for name, count in counts.items():
-        if  count == 3 or count == 2 or count == 1:
+        if  count == 4 or count == 3 or count == 2 or count == 1:
             df = df[df['MMSI'] != name]
+
+    df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
+    df.to_csv('sorted_data.csv', index=False, mode='w')
     # change dataframe to numpy array
     df = df.values
     # new number of rows and columns
@@ -142,7 +145,8 @@ def interpolater(df: np.ndarray):
     
     interpolated_df = pd.concat(interpolated_dfs)
     interpolated_df = interpolated_df.ffill().bfill()
-    interpolated_df.to_csv('interpolated_data.csv', index=False)
+    interpolated_df = interpolated_df[['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG', 'COG']]
+    interpolated_df.to_csv('interpolated_data.csv', index=False, mode='w')
     interpolated_data = interpolated_df.to_numpy()
 
     return interpolated_data

@@ -21,8 +21,8 @@ def find_intersection(p1, v1, p2, v2):
 
 def find_collisions():
     
-    df = pd.read_csv("data/boats_h.csv")
-    prediction = pd.read_csv("data/predictions_h.csv")
+    df = pd.read_csv("data/boats_hh.csv")
+    prediction = pd.read_csv("data/predictions_hh.csv")
 
     MMSI = prediction['MMSI'].unique()
     Actual_ship1 = df[df['MMSI'] == MMSI[0]]
@@ -42,6 +42,8 @@ def find_collisions():
     # Remove the first element of the list
     p2 = (p2[0][1:], p2[1][1:])
 
+    plt.figure()
+    
     # Make loop where intersection is found for each point p1 to every point p2
     for x in range(len(p1[0])-1):
         for y in range(len(p2[0])-1):
@@ -53,12 +55,11 @@ def find_collisions():
             if intersection is not None:
                 print(f"Intersection point: {intersection}")
                 # Plot the intersection points
-                plt.scatter(*intersection, color='g')
+                plt.scatter(*intersection, color='black')
             else:
                 print("The vectors do not intersect.")
 
     # Plot the vectors
-    plt.figure()
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
     plt.plot(p1[0], p1[1], 'red', marker='.', label='Actual', linestyle='None')

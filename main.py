@@ -161,7 +161,7 @@ def load_settingstxt():
 
 def save_settingstxt():
     #get settings
-    settings = []
+    settings = [] 
     settings.append('selectedMMSI='+mmsiEntryBox.get()+str('\n'))
     settings.append('vectorCheck='+str(vectorVar.get())+str('\n'))
     settings.append('NNCheck='+str(nnVar.get())+str('\n'))

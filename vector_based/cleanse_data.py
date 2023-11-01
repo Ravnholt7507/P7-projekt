@@ -16,7 +16,7 @@ def cleanse():
 
     # group = df.groupby("MMSI")
 
-    #Take row where MMSI is 
+    #Take row where MMSI is
     # group1 = group.get_group(636093085)
     # group2 = group.get_group(310731000)
 
@@ -24,12 +24,9 @@ def cleanse():
     # group = pd.concat([group1, group2])
 
     # Cleasing data so there is only on row per MMSI
-    #df = df.drop_duplicates(subset='MMSI', keep='first')
-    
-    # Drop columns that are not needed
-    #df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign', 'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo'])
-    
+    df = df.drop_duplicates(subset='MMSI', keep='first')
+
     # # Remove all rows
     # df = df.iloc[0:0]
     
-    df.to_csv('data/boats.csv', index=False)
+    df.to_csv('data/1_boats.csv', index=False)
