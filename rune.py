@@ -60,15 +60,16 @@ ship_data = ship_data.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
 
 
 #Generate two new vectors wich intersect
-p1 = np.array([23, -81])
-v1 = np.array([20, -81])
+p1 = np.array([1, 1])
+v1 = np.array([4, 4])
 
-p2 = np.array([22, -81])
-v2 = np.array([24, -82])
+p2 = np.array([2, 2])
+v2 = np.array([5, 1])
 
-# Add these vectors to the dataframe
-new_row1 = {'MMSI': 123456789, 'LAT': p1[0], 'LON': p1[1], 'pred_lat': v1[0], 'pred_lon': v1[1], 'cluster': 0}
-new_row2 = {'MMSI': 123456789, 'LAT': p2[0], 'LON': p2[1], 'pred_lat': v2[0], 'pred_lon': v2[1], 'cluster': 0}
+# Add these vectors to the ship_data DataFrame
+new_row1 = {'MMSI': 1, 'BaseDateTime': '2017-01-01T00:00:00', 'LAT': 34.0522, 'LON': -118.2437, 'SOG': 10,'COG':12, 'pred_lat':  37.7749, 'pred_lon': -122.4194, 'cluster': 0}
+new_row2 = {'MMSI': 2, 'BaseDateTime': '2017-01-01T00:00:00', 'LAT': 36.7783, 'LON': -119.417, 'SOG': 10,'COG':12, 'pred_lat': 37.3541, 'pred_lon': -121.9552, 'cluster': 0}
+
 
 new_row1 = pd.DataFrame([new_row1])
 new_row2 = pd.DataFrame([new_row2])
@@ -76,6 +77,8 @@ new_row2 = pd.DataFrame([new_row2])
 # Concatenate the new row with your ship_data DataFrame
 ship_data = pd.concat([ship_data, new_row1], ignore_index=True)
 ship_data = pd.concat([ship_data, new_row2], ignore_index=True)
+
+print(ship_data)
 
 # Make function where intersection is found for each point p1 to every point p2 in the same cluster
 for cluster in range(num_clusters):
@@ -88,7 +91,6 @@ for cluster in range(num_clusters):
     p1 = (cluster_data['LON'].tolist(), cluster_data['LAT'].tolist())
     v1 = (cluster_data['pred_lon'].tolist(), cluster_data['pred_lat'].tolist())
 
-    
     # Make loop where intersection is found for each p1 and v1 to every point p2 and v2 in the same cluster
     for x in range(len(p1[0])-1):
         for y in range(x+1, len(p1[0])):
@@ -100,5 +102,6 @@ for cluster in range(num_clusters):
             if intersection is not None:
                 # Reverse order of intersection to Lat, Lon
                 intersection = (intersection[1], intersection[0])
+                print(f"Intersection point: {intersection}")
             else:
                 print("The vectors do not intersect.")
