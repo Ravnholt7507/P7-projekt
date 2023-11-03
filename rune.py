@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import vector_based.prediction as prediction
-import vector_based.cleanse_data as cleanse_data
+import vector_based.fuckcleansedata as cleanse_data
 import vector_based.cluster as cluster
 import pandas as pd
 import numpy as np
