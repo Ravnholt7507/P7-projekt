@@ -87,14 +87,16 @@ def cluster_ships_kmeans(ship_data, num_clusters):
 
 
     # Create a scatter plot to visualize ship clusters
-    plt.figure(figsize=(10, 8))
+    # plt.figure(figsize=(10, 8))
     
-    plt.scatter(ship_data['LON'], ship_data['LAT'],
-                c=cluster_labels, cmap='rainbow', marker='o', s=50)
-    plt.scatter(cluster_centers[:, 1], cluster_centers[:, 0],
-                c='black', marker='x', s=100, label='Cluster Centers')
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
-    plt.title('Ship Clusters')
-    plt.legend()
-    plt.show()
+    # plt.scatter(ship_data['LON'], ship_data['LAT'],
+    #             c=cluster_labels, cmap='rainbow', marker='o', s=50)
+    # plt.scatter(cluster_centers[:, 1], cluster_centers[:, 0],
+    #             c='black', marker='x', s=100, label='Cluster Centers')
+    # plt.xlabel('Longitude')
+    # plt.ylabel('Latitude')
+    # plt.title('Ship Clusters')
+    # plt.legend()
+    # plt.show()
+    
+    return cluster_labels

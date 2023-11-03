@@ -8,7 +8,7 @@ def find_intersection(p1, v1, p2, v2):
     if np.allclose(cross_product, 0):
         # Vectors are parallel or collinear, no intersection
         return None
-
+    
     t = np.cross(p2 - p1, v2) / cross_product
     s = np.cross(p2 - p1, v1) / cross_product
 
@@ -21,8 +21,8 @@ def find_intersection(p1, v1, p2, v2):
 
 def find_collisions():
     
-    df = pd.read_csv("data/boats_hh.csv")
-    prediction = pd.read_csv("data/predictions_hh.csv")
+    df = pd.read_csv("data/actual_positions.csv")
+    prediction = pd.read_csv("data/predictions.csv")
 
     MMSI = prediction['MMSI'].unique()
     Actual_ship1 = df[df['MMSI'] == MMSI[0]]

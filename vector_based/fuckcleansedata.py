@@ -17,4 +17,4 @@ def cleanse():
 
      df = df.groupby('MMSI').tail(2)
 
-     df.to_csv('data/Collision_boats.csv', index=False)
+     df.to_csv('data/actual_positions.csv', index=False)
