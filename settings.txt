@@ -1,11 +1,5 @@
-selectedMMSI=241613000
 vectorCheck=1
-NNCheck=0
+NNCheck=1
 NN1Check=0
 NN2Check=0
-NN3Check=0
-cleanseData=0
-AISPath=data/AIS_2023_01_01.csv
-cleanAISPath=data/boats.csv
-predictionPath=data/predictions.csv
-saveFigures=1
+NN3Check=1
