@@ -4,8 +4,8 @@ from haversine import haversine, Unit
 from math import asin, atan2, cos, degrees, radians, sin
 import statistics
 
-# df = pd.read_csv('AIS_2023_01_01.csv')
 df = pd.read_csv('data/actual_positions.csv')
+# df = pd.read_csv('data/boats.csv')
 file_path = 'data/predictions.csv'
 
 def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
