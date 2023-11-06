@@ -9,10 +9,10 @@ def cleanse():
     df = df.sort_values(by=['MMSI', 'BaseDateTime'])
 
     # Take only rows where mmsi is 538007785
-    df = df[df.MMSI == 367634160]
+    # df = df[df.MMSI == 367634160]
 
     # Take ships where the SOG is greater than 5
-    # df = df[df.SOG > 5]
+    df = df[df.SOG > 5]
 
     # Take ships where lat is between 30 and 50 and lon is between -130 and -110
     # df = df[(df.LAT > 23) & (df.LAT < 24) & (df.LON > -82) & (df.LON < -80)]
