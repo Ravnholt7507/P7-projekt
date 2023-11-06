@@ -5,7 +5,7 @@ import vector_based.cluster as cluster
 import pandas as pd
 import numpy as np
 
-def find_intersection1(p1, v1, p2, v2):
+def find_intersection(p1, v1, p2, v2):
     cross_product = np.cross(v1, v2)
 
     if np.allclose(cross_product, 0):
@@ -59,7 +59,6 @@ ship_data["cluster"] = clusters
 ship_data = ship_data.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
                            'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
-
 #Generate two new vectors wich intersect
 p1 = np.array([1, 1])
 v1 = np.array([4, 4])
@@ -95,14 +94,32 @@ for cluster in range(num_clusters):
     # Make loop where intersection is found for each p1 and v1 to every point p2 and v2 in the same cluster
     for x in range(len(p1[0])-1):
         for y in range(x+1, len(p1[0])):
-            intersection = find_intersection1(np.array([p1[0][x], p1[1][x]]),
+            intersection = find_intersection(np.array([p1[0][x], p1[1][x]]),
                                               np.array([v1[0][x]-p1[0][x], v1[1][x] - p1[1][x]]),
                                               np.array([p1[0][y], p1[1][y]]),
                                               np.array([v1[0][y]-p1[0][y], v1[1][y] - p1[1][y]]))
 
             if intersection is not None:
-                # Reverse order of intersection to Lat, Lon
-                intersection = (intersection[1], intersection[0])
+                # Add legend LON and LAT
+                plt.xlabel('LON')
+                plt.ylabel('LAT')
+         
+                # plot p1 and p2
+                plt.scatter(p1[0][x], p1[1][x], color='red')
+                plt.scatter(p1[0][y], p1[1][y], color='red')
+                # Plot the intersection points
+                plt.scatter(*intersection, color='black')
+                #plot v1 and v2
+                plt.scatter(v1[0][x], v1[1][x], color='blue')
+                plt.scatter(v1[0][y], v1[1][y], color='blue')
+                
+                # Plot the vectors between p1 and v1
+                plt.plot([p1[0][x], v1[0][x]], [p1[1][x], v1[1][x]], color='blue')
+                plt.plot([p1[0][y], v1[0][y]], [p1[1][y], v1[1][y]], color='blue')
+                
+                plt.show()
+                # Reverse intersection array
+                intersection = intersection[::-1]
                 print(f"Intersection point: {intersection}")
             else:
                 print("The vectors do not intersect.")
