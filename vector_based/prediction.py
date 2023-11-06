@@ -4,10 +4,6 @@ from haversine import haversine, Unit
 from math import asin, atan2, cos, degrees, radians, sin
 import statistics
 
-df = pd.read_csv('data/actual_positions.csv')
-# df = pd.read_csv('data/boats.csv')
-file_path = 'data/predictions.csv'
-
 def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     '''
     lat: initial latitude, in degrees
@@ -28,7 +24,8 @@ def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     )
     return (degrees(lat2), degrees(lon2))
 
-def predict(MMSI):
+def predict(MMSI, df, file_path):
+
     ship = df[df['MMSI'] == int(MMSI)]
     length = len(ship)
     empty = False
@@ -142,11 +139,11 @@ def predict2(MMSI):
             writer.writerow(array)
 
 
-def all_ships():
+def all_ships(df):
     MMSI = df['MMSI'].unique()
     ships = len(MMSI)
     for i in range(ships):
-        predict(MMSI[i])
+        predict(MMSI[i],df,'data/predictions.csv')
 
 
 def check_range(distance, range_index):
@@ -160,7 +157,7 @@ def find_dis_index(dist_intv, distance):
             return i
 
 
-def predict_intv():
+def predict_intv(df):
 
     grouped = df.groupby('MMSI')
     grouped_list = list(df)

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
+import vector_based.cleanse_all_collisions as cleanse
 import vector_based.prediction as prediction
-import vector_based.fuckcleansedata as cleanse_data
 import vector_based.cluster as cluster
 import pandas as pd
 import numpy as np
@@ -22,13 +22,14 @@ def find_intersection1(p1, v1, p2, v2):
     else:
         # The vectors do not intersect within their segments
         return None
-
-cleanse_data.cleanse()
+    
+cleanse.cleanse('data/actual_positions.csv')
 
 with open('data/predictions.csv', 'w') as fp:
     fp.truncate()
 
-prediction.all_ships()
+df = pd.read_csv('data/actual_positions.csv')
+prediction.all_ships(df)
 
 # map.plot_land()
 

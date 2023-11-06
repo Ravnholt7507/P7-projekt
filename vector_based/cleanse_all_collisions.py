@@ -1,6 +1,6 @@
 import pandas as pd
 
-def cleanse():
+def cleanse(save_to):
      pd.set_option('display.max_columns', 20)
 
      n = 150000
@@ -17,4 +17,4 @@ def cleanse():
 
      df = df.groupby('MMSI').tail(2)
 
-     df.to_csv('data/actual_positions.csv', index=False)
+     df.to_csv(save_to, index=False)
