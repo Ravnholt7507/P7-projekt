@@ -47,7 +47,7 @@ preds_lon = predictions['LON']
 ship_data["pred_lat"] = preds_lat
 ship_data["pred_lon"] = preds_lon
 
-clusters = cluster.cluster_ships_kmeans(ship_data, 3)
+clusters = cluster.cluster_ships_kmeans(ship_data, 30)
 
 # Calculate number of clusters
 num_clusters = len(pd.Series(clusters).value_counts())
@@ -59,6 +59,7 @@ ship_data["cluster"] = clusters
 ship_data = ship_data.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
                            'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
+"""
 #Generate two new vectors wich intersect
 p1 = np.array([1, 1])
 v1 = np.array([4, 4])
@@ -70,7 +71,6 @@ v2 = np.array([5, 1])
 new_row1 = {'MMSI': 1, 'BaseDateTime': '2017-01-01T00:00:00', 'LAT': 34.0522, 'LON': -118.2437, 'SOG': 10,'COG':12, 'pred_lat':  37.7749, 'pred_lon': -122.4194, 'cluster': 0}
 new_row2 = {'MMSI': 2, 'BaseDateTime': '2017-01-01T00:00:00', 'LAT': 36.7783, 'LON': -119.417, 'SOG': 10,'COG':12, 'pred_lat': 37.3541, 'pred_lon': -121.9552, 'cluster': 0}
 
-
 new_row1 = pd.DataFrame([new_row1])
 new_row2 = pd.DataFrame([new_row2])
 
@@ -78,8 +78,10 @@ new_row2 = pd.DataFrame([new_row2])
 ship_data = pd.concat([ship_data, new_row1], ignore_index=True)
 ship_data = pd.concat([ship_data, new_row2], ignore_index=True)
 
-print(ship_data)
+# print(ship_data)
+"""
 
+Total_intersections = 0
 # Make function where intersection is found for each point p1 to every point p2 in the same cluster
 for cluster in range(num_clusters):
     cluster_data = ship_data[ship_data['cluster'] == cluster]
@@ -90,7 +92,7 @@ for cluster in range(num_clusters):
 
     p1 = (cluster_data['LON'].tolist(), cluster_data['LAT'].tolist())
     v1 = (cluster_data['pred_lon'].tolist(), cluster_data['pred_lat'].tolist())
-
+    intersection_count = 0
     # Make loop where intersection is found for each p1 and v1 to every point p2 and v2 in the same cluster
     for x in range(len(p1[0])-1):
         for y in range(x+1, len(p1[0])):
@@ -100,6 +102,7 @@ for cluster in range(num_clusters):
                                               np.array([v1[0][y]-p1[0][y], v1[1][y] - p1[1][y]]))
 
             if intersection is not None:
+                """
                 # Add legend LON and LAT
                 plt.xlabel('LON')
                 plt.ylabel('LAT')
@@ -118,8 +121,16 @@ for cluster in range(num_clusters):
                 plt.plot([p1[0][y], v1[0][y]], [p1[1][y], v1[1][y]], color='blue')
                 
                 plt.show()
+                """
                 # Reverse intersection array
-                intersection = intersection[::-1]
-                print(f"Intersection point: {intersection}")
-            else:
-                print("The vectors do not intersect.")
+                # intersection = intersection[::-1]
+                # print(f"Intersection point: {intersection}")
+                intersection_count += 1
+            # else:
+                # print("The vectors do not intersect.")
+    
+    print(f"Intersection count: {intersection_count}")
+    
+    Total_intersections += intersection_count
+    
+print(f"Total intersections: {Total_intersections}")

@@ -85,18 +85,31 @@ def cluster_ships_kmeans(ship_data, num_clusters):
     print("Number of ships in each cluster:")
     print(pd.Series(cluster_labels).value_counts())
 
+    # Check if clusters are close to each other
+    for i in range(num_clusters):
+        for j in range(i+1, num_clusters):
+            distance = np.sqrt((cluster_centers[i][0] - cluster_centers[j][0])**2 + (cluster_centers[i][1] - cluster_centers[j][1])**2)
+            if distance < 0.5:
+                print(f"Clusters {i} and {j} are close to each other.")
+                print(f"Distance between cluster centers: {distance}")
 
+                # if clusters are close to each other, merge them
+                print("Merging clusters...")
+                cluster_labels = np.where(cluster_labels == j, i, cluster_labels)
+                cluster_centers = np.delete(cluster_centers, j, 0)
+                num_clusters -= 1
+                
     # Create a scatter plot to visualize ship clusters
-    # plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(10, 8))
     
-    # plt.scatter(ship_data['LON'], ship_data['LAT'],
-    #             c=cluster_labels, cmap='rainbow', marker='o', s=50)
-    # plt.scatter(cluster_centers[:, 1], cluster_centers[:, 0],
-    #             c='black', marker='x', s=100, label='Cluster Centers')
-    # plt.xlabel('Longitude')
-    # plt.ylabel('Latitude')
-    # plt.title('Ship Clusters')
-    # plt.legend()
-    # plt.show()
+    plt.scatter(ship_data['LON'], ship_data['LAT'],
+                c=cluster_labels, cmap='rainbow', marker='o', s=50)
+    plt.scatter(cluster_centers[:, 1], cluster_centers[:, 0],
+                c='black', marker='x', s=100, label='Cluster Centers')
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    plt.title('Ship Clusters')
+    plt.legend()
+    plt.show()
     
     return cluster_labels

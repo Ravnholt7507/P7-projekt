@@ -5,13 +5,13 @@ def cleanse(save_to):
 
      n = 150000
 
-     df = pd.read_csv('data/AIS_2023_01_01.csv',nrows=n)
+     df = pd.read_csv('data/AIS_2023_01_01.csv')
 
      df = df.sort_values(by=['MMSI', 'BaseDateTime'])
 
      df = df[df.SOG > 5]
 
-     df = df[(df.LAT > 23) & (df.LAT < 24) & (df.LON > -82) & (df.LON < -80)]
+     # df = df[(df.LAT > 23) & (df.LAT < 24) & (df.LON > -82) & (df.LON < -80)]
 
      #df = df.drop_duplicates(subset='MMSI', keep='First')
 
