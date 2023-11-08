@@ -94,7 +94,7 @@ def predict(MMSI, df, file_path):
     # plot.actualToPred()
 
 # Make new prediction function that takes in MMSI and returns a list of predictions, but instead of calculating time, use a predefined time interval.
-def predict2(MMSI):
+def predict2(MMSI, df, file_path):
     ship = df[df['MMSI'] == int(MMSI)]
     length = len(ship)
     empty = False

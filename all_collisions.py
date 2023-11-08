@@ -4,12 +4,13 @@ import vector_based.prediction as prediction
 import vector_based.cluster as cluster
 import pandas as pd
 import numpy as np
+from haversine import haversine, Unit
 
 def find_intersection(p1, v1, p2, v2):
     cross_product = np.cross(v1, v2)
 
     if np.allclose(cross_product, 0):
-        print("Vectors are parallel or collinear, no intersection")
+        # print("Vectors are parallel or collinear, no intersection")
         # Vectors are parallel or collinear, no intersection
         return None
 
@@ -22,18 +23,18 @@ def find_intersection(p1, v1, p2, v2):
     else:
         # The vectors do not intersect within their segments
         return None
-    
+
+print('Cleaning data...')
 cleanse.cleanse('data/actual_positions.csv')
 
 with open('data/predictions.csv', 'w') as fp:
     fp.truncate()
 
 df = pd.read_csv('data/actual_positions.csv')
+
+print('Predicting ship positions...')
 prediction.all_ships(df)
-
 # map.plot_land()
-
-# collision.find_collisions()
 
 # Use the following code to load ship data from a CSV file
 ship_data = pd.read_csv('data/actual_positions.csv')
@@ -47,7 +48,18 @@ preds_lon = predictions['LON']
 ship_data["pred_lat"] = preds_lat
 ship_data["pred_lon"] = preds_lon
 
+# Calculate distance traveled for each ship
+ship_data['distance'] = ship_data.apply(lambda row: haversine((row['LAT'], row['LON']), (row['pred_lat'], row['pred_lon']), unit=Unit.KILOMETERS), axis=1)
+
+# Print boat data for the 10 boats that have traveled the furthest distance in km using the Haversine formula
+sorted_ship_data = ship_data.sort_values(by='distance', ascending=False)
+print(sorted_ship_data[['MMSI', 'distance']].head(10),'km')
+
+print('Clustering ships...')
+# num_clusters = cluster.find_best_cluster(ship_data, 1000)
 clusters = cluster.cluster_ships_kmeans(ship_data, 30)
+# clusters = cluster.linkage_clustering(ship_data)
+# print(clusters)
 
 # Calculate number of clusters
 num_clusters = len(pd.Series(clusters).value_counts())
@@ -59,30 +71,12 @@ ship_data["cluster"] = clusters
 ship_data = ship_data.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
                            'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
-"""
-#Generate two new vectors wich intersect
-p1 = np.array([1, 1])
-v1 = np.array([4, 4])
-
-p2 = np.array([2, 2])
-v2 = np.array([5, 1])
-
-# Add these vectors to the ship_data DataFrame
-new_row1 = {'MMSI': 1, 'BaseDateTime': '2017-01-01T00:00:00', 'LAT': 34.0522, 'LON': -118.2437, 'SOG': 10,'COG':12, 'pred_lat':  37.7749, 'pred_lon': -122.4194, 'cluster': 0}
-new_row2 = {'MMSI': 2, 'BaseDateTime': '2017-01-01T00:00:00', 'LAT': 36.7783, 'LON': -119.417, 'SOG': 10,'COG':12, 'pred_lat': 37.3541, 'pred_lon': -121.9552, 'cluster': 0}
-
-new_row1 = pd.DataFrame([new_row1])
-new_row2 = pd.DataFrame([new_row2])
-
-# Concatenate the new row with your ship_data DataFrame
-ship_data = pd.concat([ship_data, new_row1], ignore_index=True)
-ship_data = pd.concat([ship_data, new_row2], ignore_index=True)
-
-# print(ship_data)
-"""
+# Save ship data to CSV file
+ship_data.to_csv('data/ship_data.csv', index=False)
 
 Total_intersections = 0
 # Make function where intersection is found for each point p1 to every point p2 in the same cluster
+print('Finding intersections...')
 for cluster in range(num_clusters):
     cluster_data = ship_data[ship_data['cluster'] == cluster]
     cluster_data = cluster_data.reset_index(drop=True)
@@ -121,10 +115,11 @@ for cluster in range(num_clusters):
                 plt.plot([p1[0][y], v1[0][y]], [p1[1][y], v1[1][y]], color='blue')
                 
                 plt.show()
-                """
+                
                 # Reverse intersection array
                 # intersection = intersection[::-1]
                 # print(f"Intersection point: {intersection}")
+                """
                 intersection_count += 1
             # else:
                 # print("The vectors do not intersect.")
@@ -134,3 +129,19 @@ for cluster in range(num_clusters):
     Total_intersections += intersection_count
     
 print(f"Total intersections: {Total_intersections}")
+
+# Plot all the points in cluster 
+cluster_data = ship_data[ship_data['cluster'] == 1]
+cluster_data = cluster_data.reset_index(drop=True)
+# print(cluster_data)
+plt.scatter(cluster_data['LON'], cluster_data['LAT'], color='red')
+plt.scatter(cluster_data['pred_lon'], cluster_data['pred_lat'], color='blue')
+# Plot lines between p1 and v1
+for i in range(len(cluster_data['LON'])):
+    plt.plot([cluster_data['LON'][i], cluster_data['pred_lon'][i]], [cluster_data['LAT'][i], cluster_data['pred_lat'][i]], color='blue')
+
+# Plot the intersection points
+if intersection is not None:
+    plt.scatter(*intersection, color='black')
+
+plt.show()
