@@ -114,7 +114,12 @@ def cluster_ships_kmeans(ship_data, num_clusters):
     # Create a scatter plot to visualize ship clusters
     plt.figure(figsize=(10, 8))
     plt.scatter(ship_data['LON'], ship_data['LAT'], c=cluster_labels, cmap='rainbow', marker='o', s=50)
-    plt.scatter(cluster_centers[:, 1], cluster_centers[:, 0], c='black', marker='x', s=100) # swap the order of the coordinates
+    plt.scatter(cluster_centers[:, 1], cluster_centers[:, 0], c='black', marker='x', s=10) # swap the order of the coordinates
+    
+    # Make the cluster centers show which one is which
+    for i in range(len(cluster_centers)):
+        plt.text(cluster_centers[i][1], cluster_centers[i][0], i)
+    
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
     plt.title('Ship Clusters (K-Means)')

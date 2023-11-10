@@ -74,7 +74,6 @@ def predict(MMSI, df, file_path):
         dis = round(dis, 4)
         # print('Distance between actual and predicted position: ', dis, ' km')
 
-        # print('Distance between actual and predicted position: ', dis, ' km')
         array = []
         array.append(ship.iloc[i]['MMSI'])
         array.append(ship.iloc[i]['BaseDateTime'])
@@ -145,17 +144,14 @@ def all_ships(df):
     for i in range(ships):
         predict(MMSI[i],df,'data/predictions.csv')
 
-
 def check_range(distance, range_index):
     start, end = dist_intv[range_index]
     return start <= distance <= end
-
 
 def find_dis_index(dist_intv, distance):
     for i, (start, end) in enumerate(dist_intv):
         if start <= distance < end:
             return i
-
 
 def predict_intv(df):
     print("penis")
@@ -201,14 +197,14 @@ def predict_intv(df):
                 stat_array[find_dis_index(dist_intv, dis)].append(error)
                 total_predictions = total_predictions+1
 
-     print("\nTotal predictions: ", total_predictions)
-     i = 0
-     for row in stat_array:
-         print("\nFor distance interval:", dist_intv[i])
-         print("Number of predictions: ", len(row))
-         print("Avg. error: ", round(sum(row)/len(row),2))
-         print("Mean error: ", round(statistics.median(row),2))
-         i = i+1
+    print("\nTotal predictions: ", total_predictions)
+    i = 0
+    for row in stat_array:
+        print("\nFor distance interval:", dist_intv[i])
+        print("Number of predictions: ", len(row))
+        print("Avg. error: ", round(sum(row)/len(row),2))
+        print("Mean error: ", round(statistics.median(row),2))
+        i = i+1
 
     # output = []
     # output.append('Total predictions: {}\n'.format(total_predictions))

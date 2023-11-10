@@ -34,7 +34,6 @@ df = pd.read_csv('data/actual_positions.csv')
 
 print('Predicting ship positions...')
 prediction.all_ships(df)
-# map.plot_land()
 
 # Use the following code to load ship data from a CSV file
 ship_data = pd.read_csv('data/actual_positions.csv')
@@ -75,6 +74,8 @@ ship_data = ship_data.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
 ship_data.to_csv('data/ship_data.csv', index=False)
 
 Total_intersections = 0
+max_intersection_count = 0
+max_cluster = 0
 # Make function where intersection is found for each point p1 to every point p2 in the same cluster
 print('Finding intersections...')
 for cluster in range(num_clusters):
@@ -123,15 +124,23 @@ for cluster in range(num_clusters):
                 intersection_count += 1
             # else:
                 # print("The vectors do not intersect.")
-    
-    print(f"Intersection count: {intersection_count}")
-    
+                # Save the cluster with the most intersections
+        
     Total_intersections += intersection_count
-    
+        
+    print(f"Intersection count: {intersection_count}")
+    # Find the cluster with the most intersections
+    if intersection_count > max_intersection_count:
+        max_intersection_count = intersection_count
+        max_cluster = cluster
+
+
+print(f"Cluster with the most intersections: {max_cluster}")
+print(f"Intersection count: {max_intersection_count}")
 print(f"Total intersections: {Total_intersections}")
 
 # Plot all the points in cluster 
-cluster_data = ship_data[ship_data['cluster'] == 1]
+cluster_data = ship_data[ship_data['cluster'] == max_cluster]
 cluster_data = cluster_data.reset_index(drop=True)
 # print(cluster_data)
 plt.scatter(cluster_data['LON'], cluster_data['LAT'], color='red')
