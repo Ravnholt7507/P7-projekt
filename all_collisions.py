@@ -5,6 +5,12 @@ import vector_based.cluster as cluster
 import pandas as pd
 import numpy as np
 from haversine import haversine, Unit
+# Print time taken to run the program
+import time
+start_time = time.time()
+
+def round_time(x):
+    return round(x, 2)
 
 def find_intersection(p1, v1, p2, v2):
     cross_product = np.cross(v1, v2)
@@ -27,6 +33,10 @@ def find_intersection(p1, v1, p2, v2):
 print('Cleaning data...')
 cleanse.cleanse('data/actual_positions.csv')
 
+# Print time taken to run the program down 2 decimal places
+print("in %s seconds" % (round_time(time.time() - start_time)))
+
+
 with open('data/predictions.csv', 'w') as fp:
     fp.truncate()
 
@@ -34,8 +44,9 @@ df = pd.read_csv('data/actual_positions.csv')
 
 print('Predicting ship positions...')
 prediction.all_ships(df)
-
+print("in %s seconds" % (round_time(time.time() - start_time)))
 # Use the following code to load ship data from a CSV file
+
 ship_data = pd.read_csv('data/actual_positions.csv')
 ship_data = ship_data.drop_duplicates(
     subset="MMSI", keep='first').reset_index(drop=True)
@@ -56,9 +67,10 @@ print(sorted_ship_data[['MMSI', 'distance']].head(10),'km')
 
 print('Clustering ships...')
 # num_clusters = cluster.find_best_cluster(ship_data, 1000)
-clusters = cluster.cluster_ships_kmeans(ship_data, 30)
-# clusters = cluster.linkage_clustering(ship_data)
+# clusters = cluster.cluster_ships_kmeans(ship_data, 30)
+clusters = cluster.linkage_clustering(ship_data)
 # print(clusters)
+print("in %s seconds" % (round_time(time.time() - start_time)))
 
 # Calculate number of clusters
 num_clusters = len(pd.Series(clusters).value_counts())
@@ -81,9 +93,6 @@ print('Finding intersections...')
 for cluster in range(num_clusters):
     cluster_data = ship_data[ship_data['cluster'] == cluster]
     cluster_data = cluster_data.reset_index(drop=True)
-
-    # Print which cluster is being checked
-    print(f"Cluster: {cluster}")
 
     p1 = (cluster_data['LON'].tolist(), cluster_data['LAT'].tolist())
     v1 = (cluster_data['pred_lon'].tolist(), cluster_data['pred_lat'].tolist())
@@ -121,22 +130,35 @@ for cluster in range(num_clusters):
                 # intersection = intersection[::-1]
                 # print(f"Intersection point: {intersection}")
                 """
-                intersection_count += 1
+                # Convert 'BaseDateTime' to datetime format
+                cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
+                
+                # Check if the time difference between the two ships is less than 3 minutes
+                if abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y]) < pd.Timedelta(minutes=3):
+                    intersection_count += 1
+
+                    if intersection_count > 0:
+                        # Print which cluster is being checked
+                        print(f"Cluster: {cluster}")
+                        print(f"Intersection count: {intersection_count}")
+                    
+                    print(f"Ship 1: {cluster_data['MMSI'][x]}")
+                    print(f"Ship 2: {cluster_data['MMSI'][y]}")
+                    print(f"Time of ship 1: {cluster_data['BaseDateTime'][x]}")
+                    print(f"Time of ship 2: {cluster_data['BaseDateTime'][y]}")
             # else:
                 # print("The vectors do not intersect.")
                 # Save the cluster with the most intersections
         
     Total_intersections += intersection_count
         
-    print(f"Intersection count: {intersection_count}")
     # Find the cluster with the most intersections
     if intersection_count > max_intersection_count:
         max_intersection_count = intersection_count
         max_cluster = cluster
 
-
-print(f"Cluster with the most intersections: {max_cluster}")
-print(f"Intersection count: {max_intersection_count}")
+print(f"Cluster with the most intersections: Cluster - {max_cluster}")
+print(f"Intersections in cluster {max_cluster}: {max_intersection_count}")
 print(f"Total intersections: {Total_intersections}")
 
 # Plot all the points in cluster 
@@ -148,9 +170,8 @@ plt.scatter(cluster_data['pred_lon'], cluster_data['pred_lat'], color='blue')
 # Plot lines between p1 and v1
 for i in range(len(cluster_data['LON'])):
     plt.plot([cluster_data['LON'][i], cluster_data['pred_lon'][i]], [cluster_data['LAT'][i], cluster_data['pred_lat'][i]], color='blue')
-
-# Plot the intersection points
-if intersection is not None:
-    plt.scatter(*intersection, color='black')
-
+plt.title(f"Cluster {max_cluster}")
 plt.show()
+
+# Print time taken to run the program
+print("--- Total %s seconds ---" % (round_time(time.time() - start_time)))

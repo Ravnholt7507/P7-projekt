@@ -94,8 +94,8 @@ def cluster_ships_kmeans(ship_data, num_clusters):
         for j in range(i+1, num_clusters):
             distance = np.sqrt((cluster_centers[i][0] - cluster_centers[j][0])**2 + (cluster_centers[i][1] - cluster_centers[j][1])**2)
             if distance < 0.5:
-                # print(f"Clusters {i} and {j} are close to each other.")
-                # print(f"Distance between cluster centers: {distance}")
+                print(f"Clusters {i} and {j} are close to each other.")
+                print(f"Distance between cluster centers: {distance}")
                 merge_pairs.append(j)
 
     # Merge clusters
@@ -172,7 +172,6 @@ def find_best_cluster(ship_data, max_clusters):
     # Return the best number of clusters
     return np.argmin(sse)+1
 
-
 # Linkage clustering
 def linkage_clustering(ship_data):
     
@@ -212,3 +211,6 @@ def linkage_clustering(ship_data):
     ax.coastlines()
     ax.legend()
     plt.show()
+    
+    # Return clusters
+    return clusters

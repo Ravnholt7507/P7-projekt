@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.figure import Figure
 import seaborn as sns
+import mplcursors
 import datetime
 import pickle
 import webbrowser
@@ -176,162 +177,24 @@ class plotFrame(Frame):
         self.imagebox = ttk.Label(self)
         self.imagebox.configure(background='black')
         self.toolBox = ttk.Frame(self)
-        self.zoomButton = ttk.Button(self.buttonFrame, text='Zoom to point', command=lambda: self.zoomto())
-        self.wholeMap = ttk.Button(self.buttonFrame, text='Whole map', command=lambda: self.noZoom())
-        self.drawPredBtt = ttk.Button(self.buttonFrame, text='Draw predicted path', command=lambda: self.drawPredictedPath())
-        self.heatMapBtt = ttk.Button(self.buttonFrame, text='Heatmap', command=lambda: self.heatMap())
+        self.drawActualBtt = ttk.Button(self.buttonFrame, text='Draw actual path', command=lambda: self.map.scatterActual())
+        self.zoomButton = ttk.Button(self.buttonFrame, text='Zoom to point', command=lambda: self.map.zoomToPred())
+        self.wholeMap = ttk.Button(self.buttonFrame, text='Whole map', command=lambda: self.map.noZoom())
+        self.drawPredBtt = ttk.Button(self.buttonFrame, text='Draw predicted path', command=lambda: self.map.drawPredictedPath())
+        self.heatMapBtt = ttk.Button(self.buttonFrame, text='Heatmap', command=lambda: self.map.heatMap())
         
         
         #Widget Placement        
         self.buttonFrame.grid(row=0, column=0, sticky=N, padx=10, pady=2)
-        self.zoomButton.grid(row=0, column=0, sticky=W, padx=10, pady=2)
-        self.wholeMap.grid(row=0, column=1, sticky=W, padx=10, pady=2)
-        self.drawPredBtt.grid(row=0, column=2, sticky=W, padx=10, pady=2)
-        self.heatMapBtt.grid(row=0, column=3, sticky=W, padx=10, pady=2)
+        self.drawActualBtt.grid(row=0, column=0, sticky=W, padx=10, pady=2)
+        self.zoomButton.grid(row=0, column=1, sticky=W, padx=10, pady=2)
+        self.wholeMap.grid(row=0, column=2, sticky=W, padx=10, pady=2)
+        self.drawPredBtt.grid(row=0, column=3, sticky=W, padx=10, pady=2)
+        self.heatMapBtt.grid(row=0, column=4, sticky=W, padx=10, pady=2)
         
         self.imagebox.grid(row=1, column=0, sticky=W, padx=10, pady=2)
         self.toolBox.grid(row=2, column=0, sticky=W, padx=10, pady=2)
 
-    def showFigure(self, path):
-        fig = plot.Load_plot(path)
-        plt.figure(figsize=(12,6))
-        figure = FigureCanvasTkAgg(fig , master =self.imagebox)
-        toolbar_frame = Frame(self.imagebox)
-        
-        if self.showPlot:
-            figure.get_tk_widget().grid_forget()
-            toolbar_frame.destroy()
-        
-        figure.draw()
-        toolbar_frame = Frame(self.toolBox)
-        toolbar = self.CustomToolbar(figure, toolbar_frame)
-        toolbar_frame.grid(row=0, column=0)
-        figure.get_tk_widget().grid(row=0, column=0)
-        self.showPlot = True
-        plt.clf()
-                
-    def worldMap(self, toPlotOrNotToPlot, *args):
-            fig,ax = plt.subplots()
-            ccrs.PlateCarree()
-            plt.axes(projection=ccrs.PlateCarree())
-
-            norm = plt.Normalize(1,4)
-            cmap = plt.cm.RdYlGn
-            c = np.random.randint(1,5,size=757757)
-
-            fig = plt.figure(figsize=(12, 6))
-            ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
-            ax.add_feature(cartopy.feature.OCEAN)
-            ax.add_feature(cartopy.feature.LAND, edgecolor='black')
-            ax.add_feature(cartopy.feature.LAKES, edgecolor='black')
-            ax.add_feature(cartopy.feature.RIVERS)
-            ax.gridlines(draw_labels=True, dms=True, x_inline=False, y_inline=False, color = 'None')
-            ax.margins(666,666)
-            sc = plt.scatter(self.parent.inputFrame.availShips['LON'], self.parent.inputFrame.availShips['LAT'], s=0.1, c='red', marker='*', linewidths=5, transform=ccrs.PlateCarree())
-            if args:
-                print('args: ', args)
-                df = self.parent.background.getData('data/predictions.csv')
-                df2 = self.parent.background.getData('data/boats.csv')
-                # plots the actual path
-                for x in range(len(df2)-1):
-                    plt.arrow(df2.iloc[x]['LON'], df2.iloc[x]['LAT'], df2.iloc[x+1]['LON']-df2.iloc[x]['LON'], df2.iloc[x+1]['LAT'] - df2.iloc[x]['LAT'], color='red', width=0.000001, head_width=0.0002, length_includes_head=True)
-
-                scp = plt.scatter(df['LON'], df['LAT'], s=0.1, c='green', marker='*', linewidths=5, transform=ccrs.PlateCarree())
-                # plots the predicted path
-                for x in range(len(df)-1):
-                    plt.arrow(df.iloc[x]['LON'], df.iloc[x]['LAT'], df.iloc[x+1]['LON']-df.iloc[x]['LON'], df.iloc[x+1]['LAT'] - df.iloc[x]['LAT'], color='green', width=0.000001, head_width=0.0002, length_includes_head=True)
-
-                # from actual to predicted
-                for x in range(len(df2)-1):
-                    plt.arrow(df2.iloc[x]['LON'], df2.iloc[x]['LAT'], df.iloc[x]['LON']-df2.iloc[x]['LON'], df.iloc[x]['LAT'] - df2.iloc[x]['LAT'], color='blue', width=0.000001, head_width=0.0002, length_includes_head=True)
-                
-            plt.tight_layout()
-            f = self.zoom_factory(ax, 1.5)
-            plt.savefig('figures/map.png')
-            with open('Figures/map.obj', 'wb') as f:
-                pickle.dump(fig, f)
-            annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
-                            bbox=dict(boxstyle="round", fc="w"),
-                            arrowprops=dict(arrowstyle="->"))
-            annot.set_visible(False)
-
-            def update_annot(ind):
-                pos = sc.get_offsets()[ind["ind"][0]]
-                annot.xy = pos
-                text = 'Vessel: {}'.format(self.parent.parent.inputFrame.availShips['VesselName'].iloc[ind["ind"][0]]) + '\n' + 'MMSI: {}'.format(self.parent.parent.inputFrame.availShips['MMSI'].iloc[ind["ind"][0]]) + '\n' + 'Latitude: {}'.format(self.parent.parent.inputFrame.availShips['LAT'].iloc[ind["ind"][0]]) + '\n' + 'Longitude: {}'.format(self.parent.parent.inputFrame.availShips['LON'].iloc[ind["ind"][0]]) + '\n' + 'BaseDateTime: {}'.format(self.parent.parent.inputFrame.availShips['BaseDateTime'].iloc[ind["ind"][0]]) + '\n' + 'SOG: {}'.format(self.parent.parent.inputFrame.availShips['SOG'].iloc[ind["ind"][0]]) + '\n' + 'COG: {}'.format(self.parent.parent.inputFrame.availShips['COG'].iloc[ind["ind"][0]]) + '\n' + 'Heading: {}'.format(self.parent.parent.inputFrame.availShips['Heading'].iloc[ind["ind"][0]])
-                annot.set_text(text)
-                annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
-                annot.get_bbox_patch().set_alpha(0.4)
-
-            def hover(event):
-                vis = annot.get_visible()
-                if event.inaxes == ax:
-                    cont, ind = sc.contains(event)
-                    if cont:
-                        update_annot(ind)
-                        annot.set_visible(True)
-                        fig.canvas.draw_idle()
-                    else:
-                        if vis:
-                            annot.set_visible(False)
-                            fig.canvas.draw_idle()
-            def deactivate():
-                fig.canvas.mpl_disconnect(cId)
-                plt.clf()
-
-            cId = fig.canvas.mpl_connect("motion_notify_event", hover)
-
-            figure = FigureCanvasTkAgg(fig , master =self.imagebox)
-            toolbar_frame = Frame(self.toolBox)
-            
-            if self.showPlot:
-                figure.get_tk_widget().grid_forget()
-                toolbar_frame.destroy()
-            
-            if toPlotOrNotToPlot:
-                figure.draw()
-            toolbar_frame = Frame(self.toolBox)
-            toolbar = self.CustomToolbar(figure, toolbar_frame)
-            toolbar_frame.grid(row=0, column=0)
-            figure.get_tk_widget().grid(row=0, column=0)
-            self.showPlot = True
-
-            if not toPlotOrNotToPlot:
-                deactivate()
-
-    def zoom_factory(self, ax,base_scale = 2.):
-        def zoom_fun(event):
-            # get the current x and y limits
-            cur_xlim = ax.get_xlim()
-            cur_ylim = ax.get_ylim()
-            cur_xrange = (cur_xlim[1] - cur_xlim[0])*.5
-            cur_yrange = (cur_ylim[1] - cur_ylim[0])*.5
-            xdata = event.xdata # get event x location
-            ydata = event.ydata # get event y location
-            if event.button == 'up':
-                # deal with zoom in
-                scale_factor = 1/base_scale
-            elif event.button == 'down':
-                # deal with zoom out
-                scale_factor = base_scale
-            else:
-                # deal with something that should never happen
-                scale_factor = 1
-                print(event.button)
-            # set new limits
-            ax.set_xlim([xdata - cur_xrange*scale_factor,
-                        xdata + cur_xrange*scale_factor])
-            ax.set_ylim([ydata - cur_yrange*scale_factor,
-                        ydata + cur_yrange*scale_factor])
-            plt.draw() # force re-draw
-
-        fig = ax.get_figure() # get the figure of interest
-        # attach the call back
-        fig.canvas.mpl_connect('scroll_event',zoom_fun)
-
-        #return the function
-        return zoom_fun
-    
     class CustomToolbar(NavigationToolbar2Tk):    
         def __init__(self, canvas, parent):
             self.toolitems = (
@@ -352,6 +215,10 @@ class plotFrame(Frame):
             self.fig,self.ax = plt.subplots()
             self.plt = plt
             self.sns = sns
+            
+            self.ActDf = self.parent.parent.inputFrame.availShips
+            self.predDf = self.parent.parent.background.getData('data/predictions.csv')
+            
             ccrs.PlateCarree()
             self.plt.axes(projection=ccrs.PlateCarree())
 
@@ -367,49 +234,36 @@ class plotFrame(Frame):
             self.ax.add_feature(cartopy.feature.LAKES, edgecolor='black')
             self.ax.add_feature(cartopy.feature.RIVERS)
             self.ax.margins(666666666,66666666)
-            self.sc = plt.scatter(self.parent.parent.inputFrame.availShips['LON'], self.parent.parent.inputFrame.availShips['LAT'], s=0.1, c='red', marker='*', linewidths=5, transform=ccrs.PlateCarree())
-            #split the data into x dataframes based on mmsi
-            self.df = self.parent.parent.inputFrame.availShips.groupby('MMSI')
-            #plot the actual path
-
+            self.first = None
+            self.last = None
+            self.remainder = None
+            self.FLRhold = []
+            self.predPath = None
+            
             self.plt.tight_layout()
             
-            self.annot = self.ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
-                            bbox=dict(boxstyle="round", fc="w"),
-                            arrowprops=dict(arrowstyle="->"))
-            self.annot.set_visible(False)
-            
-            annotConId = self.fig.canvas.mpl_connect("motion_notify_event", self.hover)
-            zoomConId = self.fig.canvas.mpl_connect('scroll_event',self.zoom_factory(self.ax, 1.5))
+            self.annotConId = None
+            self.removeAnot = None
+            self.zoomConId = self.fig.canvas.mpl_connect('scroll_event',self.zoom_factory(self.ax, 1.5))
+            self.pickConId = self.fig.canvas.mpl_connect('pick_event', self.onPick)
             
             self.figure = FigureCanvasTkAgg(self.fig , master =self.parent.imagebox)
             self.toolbar_frame = Frame(self.parent.toolBox)
             self.toolbar = self.parent.CustomToolbar(self.figure, self.toolbar_frame)
             self.toolbar_frame.grid(row=0, column=0)
             self.figure.get_tk_widget().grid(row=0, column=0)
-
-        def update_annot(self, ind):
-            pos = self.sc.get_offsets()[ind["ind"][0]]
-            self.annot.xy = pos
-            text = 'Vessel: {}'.format(self.parent.parent.inputFrame.availShips['VesselName'].iloc[ind["ind"][0]]) + '\n' + 'MMSI: {}'.format(self.parent.parent.inputFrame.availShips['MMSI'].iloc[ind["ind"][0]]) + '\n' + 'Latitude: {}'.format(self.parent.parent.inputFrame.availShips['LAT'].iloc[ind["ind"][0]]) + '\n' + 'Longitude: {}'.format(self.parent.parent.inputFrame.availShips['LON'].iloc[ind["ind"][0]]) + '\n' + 'BaseDateTime: {}'.format(self.parent.parent.inputFrame.availShips['BaseDateTime'].iloc[ind["ind"][0]]) + '\n' + 'SOG: {}'.format(self.parent.parent.inputFrame.availShips['SOG'].iloc[ind["ind"][0]]) + '\n' + 'COG: {}'.format(self.parent.parent.inputFrame.availShips['COG'].iloc[ind["ind"][0]]) + '\n' + 'Heading: {}'.format(self.parent.parent.inputFrame.availShips['Heading'].iloc[ind["ind"][0]])
             
-            self.annot.set_text(text)
-            self.annot.get_bbox_patch().set_facecolor(self.cmap(self.norm(self.c[ind["ind"][0]])))
-            self.annot.get_bbox_patch().set_alpha(0.4)
+        def annotate(self, sel):
+            index = sel.index
+            text = None
+            if sel.artist == self.first:
+                text = 'Vessel: {}'.format(self.FLRhold[0].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[0].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[0].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[0].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[0].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[0].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[0].iloc[index]['COG']) + '\n' + 'Heading: {}'.format(self.FLRhold[0].iloc[index]['Heading'])
+            elif sel.artist == self.last:
+                text = 'Vessel: {}'.format(self.FLRhold[1].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[1].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[1].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[1].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[1].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[1].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[1].iloc[index]['COG']) + '\n' + 'Heading: {}'.format(self.FLRhold[1].iloc[index]['Heading'])
+            elif sel.artist == self.remainder:
+                text = 'Vessel: {}'.format(self.FLRhold[2].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[2].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[2].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[2].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[2].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[2].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[2].iloc[index]['COG']) + '\n' + 'Heading: {}'.format(self.FLRhold[2].iloc[index]['Heading'])
+            sel.annotation.set_text(text)
 
-        def hover(self, event):
-            vis = self.annot.get_visible()
-            if event.inaxes == self.ax:
-                cont, ind = self.sc.contains(event)
-                if cont:
-                    self.update_annot(ind)
-                    self.annot.set_visible(True)
-                    self.fig.canvas.draw_idle()
-                else:
-                    if vis:
-                        self.annot.set_visible(False)
-                        self.fig.canvas.draw_idle()
-                        
         def zoom_factory(self, ax,base_scale = 2.):
             def zoom_fun(event):
                 # get the current x and y limits
@@ -443,41 +297,80 @@ class plotFrame(Frame):
             #return the function
             return zoom_fun
     
+        def onPick(self, event):
+            if event.mouseevent.button == 1:
+                ind = None
+                if event.artist == self.first:
+                    ind = event.ind[0]
+                    mmsi = self.FLRhold[0].iloc[ind]['MMSI']
+                elif event.artist == self.last:
+                    ind = event.ind[0]
+                    mmsi = self.FLRhold[1].iloc[ind]['MMSI']
+                elif event.artist == self.remainder:
+                    ind = event.ind[0]
+                    mmsi = self.FLRhold[2].iloc[ind]['MMSI']
+                
+                self.parent.parent.inputFrame.mmsiEntryBox.delete(0, END)
+                self.parent.parent.inputFrame.mmsiEntryBox.insert(0, mmsi)
+
+        def scatterActual(self):
+            if self.first == None and self.last == None and self.remainder == None:
+                self.FLRhold.append(self.ActDf.groupby('MMSI', as_index=False).first())
+                self.FLRhold.append(self.ActDf.groupby('MMSI', as_index=False).last())
+                self.FLRhold.append(self.ActDf.groupby('MMSI', as_index=False).apply(lambda x: x.iloc[1:-1]))
+                self.first = plt.scatter(self.FLRhold[0]['LON'], self.FLRhold[0]['LAT'], marker='o', color='green', linewidth=3, transform=ccrs.PlateCarree(), picker=True)
+                self.last = plt.scatter(self.FLRhold[1]['LON'], self.FLRhold[1]['LAT'], marker='o', color='red', linewidth=3, transform=ccrs.PlateCarree(), picker = True)
+                self.remainder = plt.scatter(self.FLRhold[2]['LON'], self.FLRhold[2]['LAT'], s=0.1, c='grey', marker='*', linewidths=2, transform=ccrs.PlateCarree(), picker = True)    
+                self.annotConId = mplcursors.cursor([self.first, self.last, self.remainder], hover=True)
+                self.annotConId.connect("add", self.annotate)
+                if self.predPath != None:
+                    self.predPath.remove()
+                    self.predPath = None
+                    self.drawPredictedPath()
+                self.plt.draw()
+
+            else:
+                self.first.remove()
+                self.last.remove()
+                self.remainder.remove()
+                self.first = None
+                self.last = None
+                self.remainder = None
+                self.annotConId.remove()
+                self.fig.canvas.mpl_disconnect(self.annotConId)
+                self.annotConId = None
+                self.plt.draw()
+            
+        def zoomToPred(self):
+            if self.predPath != None:
+                self.drawPredictedPath()
+                self.ax.margins(1,1)
+                #self.scatterActual()
+                self.plt.draw()
+
+        def noZoom(self):
+            self.__init__(self, self.parent)
+            self.plt.draw()
+            
+        def drawPredictedPath(self):
+            if self.predPath == None:
+                self.predPath = plt.scatter(self.predDf['LON'], self.predDf['LAT'], s=0.1, c='blue', marker='*', linewidths=5, transform=ccrs.PlateCarree())
+                self.plt.draw()
+            else:
+                self.predPath.remove()
+                self.predPath = None
+                self.plt.draw()
+
+        def heatMap(self):
+            #non functional
+            self.__init__(self)
+            df = self.parent.background.getData('data/boats.csv')
+            #self.map.ax.sns.kdeplot(df['LON'], df['LAT'], shade=True, cmap='Reds', transform=ccrs.PlateCarree())
+            self.sns.kdeplot(data = df, x="LON", y="LAT", fill=True, thresh=0, levels=100)
+            self.plt.draw()
+            
     def ready(self):
         self.map = self.worldMap2(self)
-    
-    def scatterActual(self):
-        plt.scatter(self.parent.parent.inputFrame.availShips['LON'], self.parent.parent.inputFrame.availShips['LAT'], s=0.1, c='red', marker='*', linewidths=5, transform=ccrs.PlateCarree())
-        for name, group in self.df:
-            self.ax.plot(group['LON'], group['LAT'], color='red', linewidth=0.1, transform=ccrs.PlateCarree())
-        self.ax.gridlines(draw_labels=True, dms=True, x_inline=False, y_inline=False, color = 'None')
-    
-    def zoomto(self):
-        self.map.__init__(self)
-        self.map.ax.margins(1,1)
-        self.map.plt.draw()
-
-    def noZoom(self):
-        self.map.__init__(self)
-        self.map.ax.margins(666666666,666666666)
-        self.map.plt.draw()
-        
-    def drawPredictedPath(self):
-        self.map.__init__(self)
-        df = self.parent.background.getData('data/predictions.csv')
-        df2 = self.parent.background.getData('data/boats.csv')
-        
-        self.map.plt.scatter(df['LON'], df['LAT'], s=0.1, c='green', marker='*', linewidths=5, transform=ccrs.PlateCarree())
-
-
-    def heatMap(self):
-        #non functional
-        self.map.__init__(self)
-        df = self.parent.background.getData('data/boats.csv')
-        #self.map.ax.sns.kdeplot(df['LON'], df['LAT'], shade=True, cmap='Reds', transform=ccrs.PlateCarree())
-        self.map.sns.kdeplot(data = df, x="LON", y="LAT", fill=True, thresh=0, levels=100)
-        self.map.plt.draw()
-
 
 class outputFrame(Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -512,7 +405,7 @@ class outputFrame(Frame):
         self.outputText.configure(state='normal')
         self.outputText.delete('1.0', END)
         self.outputText.configure(state='disabled')
-        
+
 class BackgroundFunctionality():
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
@@ -571,7 +464,7 @@ class BackgroundFunctionality():
     def getData(self, filePath):
         df = pd.read_csv(filePath)
         return df
-        
+
 class MenuBar(Menu):
     def __init__(self, parent, *args, **kwargs ):
         self.parent = parent
