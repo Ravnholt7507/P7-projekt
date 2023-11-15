@@ -5,7 +5,7 @@ def cleanse(save_to):
 
      n = 150000  # number of records in file
      # Read the CSV file
-     df = pd.read_csv('data/AIS_2023_01_01.csv',nrows=n)
+     df = pd.read_csv('data/AIS_2023_01_01.csv')
 
      # Sort the data by MMSI and BaseDateTime
      df = df.sort_values(by=['MMSI', 'BaseDateTime'])

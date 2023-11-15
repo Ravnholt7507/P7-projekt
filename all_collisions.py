@@ -43,12 +43,12 @@ ship_data['distance'] = ship_data.apply(lambda row: haversine((row['LAT'], row['
 
 # Print boat data for the 10 boats that have traveled the furthest distance in km using the Haversine formula
 sorted_ship_data = ship_data.sort_values(by='distance', ascending=False)
-print(sorted_ship_data[['MMSI', 'distance']].head(10),'km')
+# print(sorted_ship_data[['MMSI', 'distance']].head(10),'km')
 
 print('Clustering ships...')
 # num_clusters = cluster.find_best_cluster(ship_data, 1000)
-# clusters = cluster.cluster_ships_kmeans(ship_data, 30)
-clusters = cluster.linkage_clustering(ship_data)
+clusters = cluster.cluster_ships_kmeans(ship_data, 300)
+# clusters = cluster.linkage_clustering(ship_data)
 # print(clusters)
 
 print("in %s seconds" % (round_time(time.time() - start_time)))
