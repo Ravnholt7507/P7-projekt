@@ -151,7 +151,7 @@ def linkage_clustering(ship_data):
 
     print(cluster_stats)
 
-    
+
     # Assuming you have a DataFrame 'ship_data' with 'LAT', 'LON', and 'cluster' columns
     # fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
 

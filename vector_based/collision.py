@@ -31,6 +31,7 @@ def find_collisions(ship_data, num_clusters):
     Total_intersections = 0
     max_intersection_count = 0
     max_cluster = 0
+    
     # Make function where intersection is found for each point p1 to every point p2 in the same cluster
     print('Finding intersections...')
     for cluster in tqdm(range(num_clusters)):
@@ -41,6 +42,7 @@ def find_collisions(ship_data, num_clusters):
         p1 = (cluster_data['LON'].tolist(), cluster_data['LAT'].tolist())
         v1 = (cluster_data['pred_lon'].tolist(), cluster_data['pred_lat'].tolist())
         intersection_count = 0
+        time_intersection = 0
 
         for x in range(len(p1[0])):
             for y in range(x+1, len(p1[0])):
@@ -54,7 +56,7 @@ def find_collisions(ship_data, num_clusters):
                     # print(f"Intersection point: {intersection}")
                     # Save intersection points and clusters to a csv file
                     with open('data/intersection_points.csv', 'a') as fp:
-                        fp.write(f"{intersection[0]},{intersection[1]},{cluster}\n")
+                        fp.write(f"{intersection[0]},{intersection[1]},{cluster},{0}\n")
 
                     """
                     # Add legend LON and LAT
@@ -79,11 +81,15 @@ def find_collisions(ship_data, num_clusters):
                     # Reverse intersection array
                     # Convert 'BaseDateTime' to datetime format
                     cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
+                    intersection_count += 1
                     
                     # Check if the time difference between the two ships is less than 3 minutes
                     if abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y]) < pd.Timedelta(minutes=3):
-                        intersection_count += 1
-
+                        time_intersection += 1
+                        
+                        with open('data/intersection_points.csv', 'a') as fp:
+                            fp.write(f"{intersection[0]},{intersection[1]},{cluster},{1}\n")
+                            
                         # if intersection_count > 0:
                         #     # Print which cluster is being checked
                         #     print(f"Cluster: {cluster}")
@@ -96,11 +102,11 @@ def find_collisions(ship_data, num_clusters):
                 # else:
                     # print("The vectors do not intersect.")
 
-        Total_intersections += intersection_count
+        Total_intersections += time_intersection
         
         # Find the cluster with the most intersections
-        if intersection_count > max_intersection_count:
-            max_intersection_count = intersection_count
+        if time_intersection > max_intersection_count:
+            max_intersection_count = time_intersection
             max_cluster = cluster
 
     print(f"Cluster with the most intersections: Cluster - {max_cluster}")
@@ -113,11 +119,18 @@ def find_collisions(ship_data, num_clusters):
     plt.scatter(cluster_data['LON'], cluster_data['LAT'], color='red')
     plt.scatter(cluster_data['pred_lon'], cluster_data['pred_lat'], color='green')
 
-    # Plot points from intersection_points.csv
+    # Plot points from intersection_points.csv where the last column is 0
     intersection_points = pd.read_csv('data/intersection_points.csv', header=None)
-    intersection_points.columns = ['LON', 'LAT', 'cluster']
+    intersection_points.columns = ['LON', 'LAT', 'cluster', 'id']
     intersection_points = intersection_points[intersection_points['cluster'] == max_cluster]
-    intersection_points = intersection_points.reset_index(drop=True)
+    intersection_points = intersection_points[intersection_points['id'] == 0]
+    plt.scatter(intersection_points['LON'], intersection_points['LAT'], color='purple')
+    
+    # Plot points from intersection_points.csv where the last column is 1
+    intersection_points = pd.read_csv('data/intersection_points.csv', header=None)
+    intersection_points.columns = ['LON', 'LAT', 'cluster', 'id']
+    intersection_points = intersection_points[intersection_points['cluster'] == max_cluster]
+    intersection_points = intersection_points[intersection_points['id'] == 1]
     plt.scatter(intersection_points['LON'], intersection_points['LAT'], color='yellow')
     
     # Make background lightblue

@@ -12,20 +12,20 @@ def round_time(x):
     return round(x, 2)
 
 print('Cleaning data...')
-cleanse.cleanse('data/actual_positions.csv')
+# cleanse.cleanse('data/actual_positions.csv')
 
 # Print time taken to run the program
 print("in %s seconds" % (round_time(time.time() - start_time)))
 
-with open('data/predictions.csv', 'w') as fp:
-    fp.truncate()
+# with open('data/predictions.csv', 'w') as fp:
+#     fp.truncate()
 
 df = pd.read_csv('data/actual_positions.csv')
 
 print('Predicting ship positions...')
 print(f"Number of ships: {len(df['MMSI'].unique())}")
 
-prediction.all_ships(df)
+# prediction.all_ships(df)
 print("in %s seconds" % (round_time(time.time() - start_time)))
 
 # load ship data from a CSV file
@@ -44,7 +44,7 @@ ship_data["pred_lon"] = preds_lon
 ship_data['distance'] = ship_data.apply(lambda row: haversine((row['LAT'], row['LON']), (row['pred_lat'], row['pred_lon']), unit=Unit.KILOMETERS), axis=1)
 
 # Print boat data for the 10 boats that have traveled the furthest distance in km using the Haversine formula
-sorted_ship_data = ship_data.sort_values(by='distance', ascending=False)
+# sorted_ship_data = ship_data.sort_values(by='distance', ascending=False)
 # print(sorted_ship_data[['MMSI', 'distance']].head(10),'km')
 
 print('Clustering ships...')
