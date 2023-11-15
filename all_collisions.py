@@ -12,20 +12,19 @@ def round_time(x):
     return round(x, 2)
 
 print('Cleaning data...')
-# cleanse.cleanse('data/actual_positions.csv')
+cleanse.cleanse('data/actual_positions.csv')
 
 # Print time taken to run the program
 print("in %s seconds" % (round_time(time.time() - start_time)))
 
-# with open('data/predictions.csv', 'w') as fp:
-#     fp.truncate()
+with open('data/predictions.csv', 'w') as fp:
+    fp.truncate()
 
 df = pd.read_csv('data/actual_positions.csv')
 
-print('Predicting ship positions...')
-print(f"Number of ships: {len(df['MMSI'].unique())}")
+print(f"Predicting {len(df['MMSI'].unique())} ship positions...")
 
-# prediction.all_ships(df)
+prediction.all_ships(df)
 print("in %s seconds" % (round_time(time.time() - start_time)))
 
 # load ship data from a CSV file
