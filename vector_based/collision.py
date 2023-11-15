@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 def find_intersection(p1, v1, p2, v2):
     cross_product = np.cross(v1, v2)
@@ -20,21 +21,28 @@ def find_intersection(p1, v1, p2, v2):
         # The vectors do not intersect within their segments
         return None
 
+# Make another find_collisions function but using tqdm
 def find_collisions(ship_data, num_clusters):
+    
+    # Clear intersection_points.csv
+    with open('data/intersection_points.csv', 'w') as fp:
+        fp.truncate()
+    
     Total_intersections = 0
     max_intersection_count = 0
     max_cluster = 0
     # Make function where intersection is found for each point p1 to every point p2 in the same cluster
     print('Finding intersections...')
-    for cluster in range(num_clusters):
+    for cluster in tqdm(range(num_clusters)):
+
         cluster_data = ship_data[ship_data['cluster'] == cluster]
         cluster_data = cluster_data.reset_index(drop=True)
 
         p1 = (cluster_data['LON'].tolist(), cluster_data['LAT'].tolist())
         v1 = (cluster_data['pred_lon'].tolist(), cluster_data['pred_lat'].tolist())
         intersection_count = 0
-        
-        for x in range(len(p1[0])-1):
+
+        for x in range(len(p1[0])):
             for y in range(x+1, len(p1[0])):
                 intersection = find_intersection(np.array([p1[0][x], p1[1][x]]),
                                                 np.array([v1[0][x]-p1[0][x], v1[1][x] - p1[1][x]]),
@@ -42,6 +50,12 @@ def find_collisions(ship_data, num_clusters):
                                                 np.array([v1[0][y]-p1[0][y], v1[1][y] - p1[1][y]]))
 
                 if intersection is not None:
+                    
+                    # print(f"Intersection point: {intersection}")
+                    # Save intersection points and clusters to a csv file
+                    with open('data/intersection_points.csv', 'a') as fp:
+                        fp.write(f"{intersection[0]},{intersection[1]},{cluster}\n")
+
                     """
                     # Add legend LON and LAT
                     plt.xlabel('LON')
@@ -61,11 +75,8 @@ def find_collisions(ship_data, num_clusters):
                     plt.plot([p1[0][y], v1[0][y]], [p1[1][y], v1[1][y]], color='blue')
                     
                     plt.show()
-                    
-                    # Reverse intersection array
-                    # intersection = intersection[::-1]
-                    # print(f"Intersection point: {intersection}")
                     """
+                    # Reverse intersection array
                     # Convert 'BaseDateTime' to datetime format
                     cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
                     
@@ -73,15 +84,15 @@ def find_collisions(ship_data, num_clusters):
                     if abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y]) < pd.Timedelta(minutes=3):
                         intersection_count += 1
 
-                        if intersection_count > 0:
-                            # Print which cluster is being checked
-                            print(f"Cluster: {cluster}")
-                            print(f"Intersection count: {intersection_count}")
+                        # if intersection_count > 0:
+                        #     # Print which cluster is being checked
+                        #     print(f"Cluster: {cluster}")
+                        #     print(f"Intersection count: {intersection_count}")
                         
-                        print(f"Ship 1: {cluster_data['MMSI'][x]}")
-                        print(f"Ship 2: {cluster_data['MMSI'][y]}")
-                        print(f"Time of ship 1: {cluster_data['BaseDateTime'][x]}")
-                        print(f"Time of ship 2: {cluster_data['BaseDateTime'][y]}")
+                        # print(f"Ship 1: {cluster_data['MMSI'][x]}")
+                        # print(f"Ship 2: {cluster_data['MMSI'][y]}")
+                        # print(f"Time of ship 1: {cluster_data['BaseDateTime'][x]}")
+                        # print(f"Time of ship 2: {cluster_data['BaseDateTime'][y]}")
                 # else:
                     # print("The vectors do not intersect.")
 
@@ -100,10 +111,20 @@ def find_collisions(ship_data, num_clusters):
     cluster_data = ship_data[ship_data['cluster'] == max_cluster]
     cluster_data = cluster_data.reset_index(drop=True)
     plt.scatter(cluster_data['LON'], cluster_data['LAT'], color='red')
-    plt.scatter(cluster_data['pred_lon'], cluster_data['pred_lat'], color='blue')
+    plt.scatter(cluster_data['pred_lon'], cluster_data['pred_lat'], color='green')
 
+    # Plot points from intersection_points.csv
+    intersection_points = pd.read_csv('data/intersection_points.csv', header=None)
+    intersection_points.columns = ['LON', 'LAT', 'cluster']
+    intersection_points = intersection_points[intersection_points['cluster'] == max_cluster]
+    intersection_points = intersection_points.reset_index(drop=True)
+    plt.scatter(intersection_points['LON'], intersection_points['LAT'], color='yellow')
+    
+    # Make background lightblue
+    plt.gca().set_facecolor('lightblue')
+    
     # Plot lines between p1 and v1
     for i in range(len(cluster_data['LON'])):
-        plt.plot([cluster_data['LON'][i], cluster_data['pred_lon'][i]], [cluster_data['LAT'][i], cluster_data['pred_lat'][i]], color='blue')
-    plt.title(f"Cluster {max_cluster}")
+        plt.plot([cluster_data['LON'][i], cluster_data['pred_lon'][i]], [cluster_data['LAT'][i], cluster_data['pred_lat'][i]], color='green')
+    plt.title(f"Cluster {max_cluster} - {max_intersection_count} intersections")
     plt.show()

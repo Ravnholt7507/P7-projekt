@@ -23,6 +23,8 @@ with open('data/predictions.csv', 'w') as fp:
 df = pd.read_csv('data/actual_positions.csv')
 
 print('Predicting ship positions...')
+print(f"Number of ships: {len(df['MMSI'].unique())}")
+
 prediction.all_ships(df)
 print("in %s seconds" % (round_time(time.time() - start_time)))
 
@@ -47,8 +49,8 @@ sorted_ship_data = ship_data.sort_values(by='distance', ascending=False)
 
 print('Clustering ships...')
 # num_clusters = cluster.find_best_cluster(ship_data, 1000)
-clusters = cluster.cluster_ships_kmeans(ship_data, 300)
-# clusters = cluster.linkage_clustering(ship_data)
+# clusters = cluster.cluster_ships_kmeans(ship_data, 1)
+clusters = cluster.linkage_clustering(ship_data)
 # print(clusters)
 
 print("in %s seconds" % (round_time(time.time() - start_time)))

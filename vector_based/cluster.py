@@ -7,7 +7,6 @@ from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.cluster.hierarchy import fcluster
 import cartopy.crs as ccrs
 
-
 def cluster_ships_kmeans(ship_data, num_clusters):
     """
     Visualize ship clusters based on latitude and longitude.
@@ -131,11 +130,9 @@ def linkage_clustering(ship_data):
     coordinates = ship_data[['LAT', 'LON']].to_numpy()
 
     linkage_matrix = linkage(coordinates, method='average', metric='euclidean')
-    dendrogram(linkage_matrix)
+    # dendrogram(linkage_matrix)
     
-    import cartopy.crs as ccrs
-
-    plt.show()
+    # plt.savefig('dendrogram.png')
 
     # Specify the threshold or number of clusters
     threshold = 2.0
@@ -154,15 +151,16 @@ def linkage_clustering(ship_data):
 
     print(cluster_stats)
 
+    
     # Assuming you have a DataFrame 'ship_data' with 'LAT', 'LON', and 'cluster' columns
-    fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
+    # fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
 
-    for cluster_id, cluster_data in ship_data.groupby('cluster'):
-        ax.scatter(cluster_data['LON'], cluster_data['LAT'], label=f'Cluster {cluster_id}')
+    # for cluster_id, cluster_data in ship_data.groupby('cluster'):
+    #     ax.scatter(cluster_data['LON'], cluster_data['LAT'], label=f'Cluster {cluster_id}')
 
-    ax.coastlines()
-    ax.legend()
-    plt.show()
+    # ax.coastlines()
+    # ax.legend()
+    # plt.show()
     
     # Return clusters
     return clusters
