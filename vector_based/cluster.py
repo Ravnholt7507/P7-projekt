@@ -141,7 +141,7 @@ def linkage_clustering(ship_data):
     # Add clusters to ship_data as a new column
     ship_data['cluster'] = clusters
 
-    print(clusters)
+    # print(clusters)
 
     # Assuming 'ship_data' is a DataFrame with columns 'LAT', 'LON', and 'cluster'
     cluster_stats = ship_data.groupby('cluster').agg({
@@ -149,7 +149,7 @@ def linkage_clustering(ship_data):
         'LON': ['mean', 'std']
     })
 
-    print(cluster_stats)
+    # print(cluster_stats)
 
 
     # Assuming you have a DataFrame 'ship_data' with 'LAT', 'LON', and 'cluster' columns
