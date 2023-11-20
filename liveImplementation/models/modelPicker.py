@@ -3,7 +3,9 @@ import models.AIPredModels as AIModels
 
 def modelPicker(aisDataPoint):
         #if aisDataPoint[4]<10:
-        return traditionalModels.pointBasedModel(aisDataPoint)
+        print("MODELPICKER: Choosing model")
+        print("MODELPICKER: Choosing COGBasedModel")
+        return traditionalModels.COGBasedModel(aisDataPoint)
         #else:
                 #return traditionalModels.COGBasedModel
 

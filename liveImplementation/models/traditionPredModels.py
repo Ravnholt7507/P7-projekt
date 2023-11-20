@@ -20,28 +20,30 @@ class pointBasedModel:
     def runPredictionAlgorithm(self, predictedCoordinates):
         return self.thresholdCoordinates
     
-
-
 class COGBasedModel:
     def __init__(self, currentLocation) -> None:
+        print("COGBasedModel: Initializing model")
         self.COG = currentLocation [5]
         self.speed = currentLocation[4] * 1.852
      
     def determineThreshold(self, currentLocation):
+        print("COGBasedModel: Determining threshold")
         initialCoordinates = (currentLocation[2],currentLocation[3])
         self.COG = currentLocation[5]
         radiusThreshold = 0.5
         self.speed = currentLocation[4] * 1.852
         thresholdCoordinates = distance(kilometers=radiusThreshold).destination(initialCoordinates, self.COG)
+        print("COGBasedModel: Threshold determined as: ", thresholdCoordinates[0], thresholdCoordinates[1])
         return thresholdCoordinates, radiusThreshold
 
     def runPredictionAlgorithm(self, predictedCoordinates):
+        print("COGBasedModel: Running predictionAlgorithm")
         distanceTravelled = self.speed * (globals.timeIntervals / 3600)
         return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.COG)
     
 class vectorBasedModel:
     def __init__(self, currentLocation) -> None:
-        return self.determineThreshold(currentLocation)
+        self.determineThreshold(currentLocation)
     
 
     def determineThreshold(self, currentLocation):

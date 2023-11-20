@@ -24,15 +24,23 @@ class boatEntity:
         shoreEntity.recieveLocationUpdate(self.currentLocation)
 
     def updateBoat(self, currentLocation):
+        print("BOAT: UpdateBoat")
         self.current_model = mp.modelPicker(self.currentLocation)
         self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.currentLocation)
         self.predictedLocation = (self.currentLocation[2], self.currentLocation[3])
+        print("BOAT: new predictedLocation: ", self.predictedLocation[0], self.predictedLocation[1])
 
     def boatBehaviour(self, currentLocation, shoreEntity):
+        print("BOAT: Excecuting boat behaviour")
         self.currentLocation = currentLocation
+        print("BOAT: Actual position: ", self.currentLocation[2], self.currentLocation[3])
         self.predictedLocation = self.current_model.runPredictionAlgorithm(self.predictedLocation)
+        print("BOAT: New Predicted position: ", self.predictedLocation[0], self.predictedLocation[1])
 
         if self.exceedsThreshold():
+                print("Threshold exceeded")
                 self.updateShore(shoreEntity)
                 self.updateBoat(self.currentLocation)
+        else:
+             print("Threshold not exceeded")
 
