@@ -33,7 +33,7 @@ class AISTrajectoryDataset(Dataset):
         return src, trg
 
 # Usage
-def getDataLoaders(df, input_sequence_length = 10, output_sequence_length=3):
+def getDataLoaders(df, input_sequence_length, output_sequence_length):
     dataset = AISTrajectoryDataset(df, input_sequence_length, output_sequence_length)
 
     train_size = int(0.8*len(dataset))

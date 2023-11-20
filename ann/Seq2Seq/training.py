@@ -1,7 +1,7 @@
-from Dataloaders import getDataLoaders
-from transformerEncoder import getModel
-from haversine_loss import haversine
-from Preprocessing import GetMinMaxCoords
+from Seq2Seq.Dataloaders import getDataLoaders
+from Seq2Seq.transformerEncoder import getModel
+from Seq2Seq.haversine_loss import haversine
+from Seq2Seq.Preprocessing import GetMinMaxCoords
 import torch
 import torch.optim as optim
 import matplotlib.pyplot as plt
@@ -10,9 +10,9 @@ from tqdm import tqdm
 def train(df):
 
     model = getModel()
+    print(model)
     lat_max, lat_min, lon_max, lon_min = GetMinMaxCoords(df)
-    Train_AISDataLoader, Test_AISDataLoader = getDataLoaders(df, input_sequence_length=3, output_sequence_length=10)
-    
+    Train_AISDataLoader, Test_AISDataLoader = getDataLoaders(df, input_sequence_length=10, output_sequence_length=3)
 
     # Define an optimizer. You can use Adam, which is a good default choice for many applications.
     optimizer = optim.Adam(model.parameters(), lr=0.0003)
