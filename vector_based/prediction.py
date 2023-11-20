@@ -154,7 +154,6 @@ def find_dis_index(dist_intv, distance):
             return i
 
 def predict_intv(df):
-    print("penis")
     grouped = df.groupby('MMSI')
     grouped_list = list(df)
     num_dist_intv = 1
