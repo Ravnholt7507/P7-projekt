@@ -4,6 +4,10 @@ import numpy as np
 from evaluation import plot_data, Distance, Average
 from data_processing import data_loader, group_data_by_mmsi, data_normalizer, data_denomalizer, interpolater
 from models import cnn_and_lstm_model_maker, lstm_model_maker, big_cnn_and_lstm_model_maker, cnn_model_maker
+from Seq2Seq.training import train
+from Seq2Seq.Preprocessing import normalize
+from Seq2Seq.Dataloaders import getDataLoaders
+
 
 def read_data(file_path, n_rows):
     df = data_loader(file_path, n_rows)
@@ -102,11 +106,22 @@ def test_main():
     
     print("Average Distance Error: ", Average(distanceErrors), "km")
 
+def test_test_main():
+    # pull only specific columns out
 
+# 'MMSI', 'Timestamp', 'Latitude', 'Longitude', 'SOG', 'COG'
+    fields = [0, 1, 2, 3, 4, 5]
+    n_rows = 10000
+    df = pd.read_csv('C:\\Users\\mikkel\\Documents\\GitHub\\P7-projekt\\ann\\data\\interpolated_data.csv', skipinitialspace=True, usecols=fields, nrows=n_rows, on_bad_lines='skip')
+    print(len(df))
+    # get rid of nan rows (in speed and course) - could just set to -1
+    df = df.dropna()
+    df = df[df['SOG'] >= 3]
+    df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
 
-
-
+    df = normalize(df)
+    train(df)
 
 
 if __name__ == "__main__":
-    test_main()
+    test_test_main()
