@@ -46,34 +46,35 @@ def find_collisions(ship_data, num_clusters):
 
         for x in range(len(p1[0])):
             for y in range(x+1, len(p1[0])):
-                intersection = find_intersection(np.array([p1[0][x], p1[1][x]]),
-                                                np.array([v1[0][x]-p1[0][x], v1[1][x] - p1[1][x]]),
-                                                np.array([p1[0][y], p1[1][y]]),
-                                                np.array([v1[0][y]-p1[0][y], v1[1][y] - p1[1][y]]))
+                if cluster_data['MMSI'].iloc[x] != cluster_data['MMSI'].iloc[y]:
+                    intersection = find_intersection(np.array([p1[0][x], p1[1][x]]),
+                                                    np.array([v1[0][x]-p1[0][x], v1[1][x] - p1[1][x]]),
+                                                    np.array([p1[0][y], p1[1][y]]),
+                                                    np.array([v1[0][y]-p1[0][y], v1[1][y] - p1[1][y]]))
 
-                if intersection is not None:
-                    
-                    # Save intersection points and clusters and time diff between the two ships to a csv file
-                    # Convert 'BaseDateTime' to datetime format
-                    cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
-                    time_diff = abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y])
-                    
-                    with open('data/intersection_points.csv', 'a') as fp:
-                        fp.write(f"{intersection[0]},{intersection[1]},{cluster},{0},{time_diff}\n")
+                    if intersection is not None:
                         
-                    intersection_count += 1
-                    
-                    # Check if the time difference between the two ships is less than 3 minutes
-                    if abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y]) < pd.Timedelta(minutes=3):
-                        time_intersection += 1
+                        # Save intersection points and clusters and time diff between the two ships to a csv file
+                        # Convert 'BaseDateTime' to datetime format
+                        cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
+                        time_diff = abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y])
                         
                         with open('data/intersection_points.csv', 'a') as fp:
-                            fp.write(f"{intersection[0]},{intersection[1]},{cluster},{1}\n")
+                            fp.write(f"{intersection[0]},{intersection[1]},{cluster},{0},{time_diff}\n")
+                            
+                        intersection_count += 1
                         
-                        # print(f"Ship 1: {cluster_data['MMSI'][x]}")
-                        # print(f"Ship 2: {cluster_data['MMSI'][y]}")
-                        # print(f"Time of ship 1: {cluster_data['BaseDateTime'][x]}")
-                        # print(f"Time of ship 2: {cluster_data['BaseDateTime'][y]}")
+                        # Check if the time difference between the two ships is less than 3 minutes
+                        if abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y]) < pd.Timedelta(minutes=3):
+                            time_intersection += 1
+                            
+                            with open('data/intersection_points.csv', 'a') as fp:
+                                fp.write(f"{intersection[0]},{intersection[1]},{cluster},{1}\n")
+                            
+                            # print(f"Ship 1: {cluster_data['MMSI'][x]}")
+                            # print(f"Ship 2: {cluster_data['MMSI'][y]}")
+                            # print(f"Time of ship 1: {cluster_data['BaseDateTime'][x]}")
+                            # print(f"Time of ship 2: {cluster_data['BaseDateTime'][y]}")
 
         Total_intersections += intersection_count
         
@@ -117,5 +118,6 @@ def find_collisions(ship_data, num_clusters):
     for i in range(len(cluster_data['LON'])):
         plt.plot([cluster_data['LON'][i], cluster_data['pred_lon'][i]], [cluster_data['LAT'][i], cluster_data['pred_lat'][i]], color='green')
     plt.title(f"Cluster {max_cluster} - {max_intersection_count} intersections")
+    
     print('saving figure...')
     plt.savefig(f"figures/cluster_{max_cluster}_intersections.png")
