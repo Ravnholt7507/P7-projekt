@@ -4,7 +4,7 @@ from tkinter import filedialog as fd
 import tkinter.messagebox as msg
 import vector_based.prediction as prediction
 import vector_based.plot as plot
-import vector_based.map as map
+import all_collisions as all_collisions
 from PIL import ImageTk, Image 
 import pandas as pd
 import numpy as np
@@ -177,20 +177,24 @@ class plotFrame(Frame):
         self.imagebox = ttk.Label(self)
         self.imagebox.configure(background='black')
         self.toolBox = ttk.Frame(self)
-        self.drawActualBtt = ttk.Button(self.buttonFrame, text='Draw actual path', command=lambda: self.map.scatterActual())
-        self.zoomButton = ttk.Button(self.buttonFrame, text='Zoom to point', command=lambda: self.map.zoomToPred())
-        self.wholeMap = ttk.Button(self.buttonFrame, text='Whole map', command=lambda: self.map.noZoom())
-        self.drawPredBtt = ttk.Button(self.buttonFrame, text='Draw predicted path', command=lambda: self.map.drawPredictedPath())
+        self.drawActualBtt = ttk.Button(self.buttonFrame, text='Draw Actual Path', command=lambda: self.map.scatterActual())
+        self.drawPredBtt = ttk.Button(self.buttonFrame, text='Draw Predicted Path', command=lambda: self.map.drawPredictedPath())
         self.heatMapBtt = ttk.Button(self.buttonFrame, text='Heatmap', command=lambda: self.map.heatMap())
+        self.collisionsBtt = ttk.Button(self.buttonFrame, text='Collisions', command=lambda: self.map.collissions())
+        self.zoomPredBtt = ttk.Button(self.buttonFrame, text='Zoom to Point', command=lambda: self.map.zoomToPred())
+        self.resetMapBtt = ttk.Button(self.buttonFrame, text='Reset Map', command=lambda: self.map.reset())
+        self.liveDemoBtt = ttk.Button(self.buttonFrame, text='Live Demo', command=lambda: self.liveDemo())
         
         
         #Widget Placement        
         self.buttonFrame.grid(row=0, column=0, sticky=N, padx=10, pady=2)
         self.drawActualBtt.grid(row=0, column=0, sticky=W, padx=10, pady=2)
-        self.zoomButton.grid(row=0, column=1, sticky=W, padx=10, pady=2)
-        self.wholeMap.grid(row=0, column=2, sticky=W, padx=10, pady=2)
-        self.drawPredBtt.grid(row=0, column=3, sticky=W, padx=10, pady=2)
-        self.heatMapBtt.grid(row=0, column=4, sticky=W, padx=10, pady=2)
+        self.drawPredBtt.grid(row=0, column=1, sticky=W, padx=10, pady=2)
+        self.heatMapBtt.grid(row=0, column=2, sticky=W, padx=10, pady=2)
+        self.collisionsBtt.grid(row=0, column=3, sticky=W, padx=10, pady=2)       
+        self.zoomPredBtt.grid(row=0, column=4, sticky=W, padx=10, pady=2)
+        self.resetMapBtt.grid(row=0, column=5, sticky=W, padx=10, pady=2)
+        self.liveDemoBtt.grid(row=0, column=6, sticky=W, padx=10, pady=2)
         
         self.imagebox.grid(row=1, column=0, sticky=W, padx=10, pady=2)
         self.toolBox.grid(row=2, column=0, sticky=W, padx=10, pady=2)
@@ -208,7 +212,7 @@ class plotFrame(Frame):
                 )
             super().__init__(canvas, parent)
 
-    class worldMap2(Frame):
+    class worldMap(Frame):
         def __init__(self, parent, *args, **kwargs):
             self.parent = parent
             
@@ -217,7 +221,6 @@ class plotFrame(Frame):
             self.sns = sns
             
             self.ActDf = self.parent.parent.inputFrame.availShips
-            self.predDf = self.parent.parent.background.getData('data/predictions.csv')
             
             ccrs.PlateCarree()
             self.plt.axes(projection=ccrs.PlateCarree())
@@ -239,8 +242,14 @@ class plotFrame(Frame):
             self.remainder = None
             self.FLRhold = []
             self.predPath = None
+            self.hMap = None
+            self.max_cluster = 16
+            self.intSecPoints = []
             
             self.plt.tight_layout()
+            self.legendHandles = []
+            self.legendLabels = []
+            self.plt.legend()
             
             self.annotConId = None
             self.removeAnot = None
@@ -299,17 +308,21 @@ class plotFrame(Frame):
     
         def onPick(self, event):
             if event.mouseevent.button == 1:
+                print(event)
                 ind = None
                 if event.artist == self.first:
+                    print('first')
                     ind = event.ind[0]
                     mmsi = self.FLRhold[0].iloc[ind]['MMSI']
                 elif event.artist == self.last:
+                    print('last')
                     ind = event.ind[0]
                     mmsi = self.FLRhold[1].iloc[ind]['MMSI']
                 elif event.artist == self.remainder:
+                    print('remainder')
                     ind = event.ind[0]
                     mmsi = self.FLRhold[2].iloc[ind]['MMSI']
-                
+                print(mmsi)
                 self.parent.parent.inputFrame.mmsiEntryBox.delete(0, END)
                 self.parent.parent.inputFrame.mmsiEntryBox.insert(0, mmsi)
 
@@ -320,57 +333,119 @@ class plotFrame(Frame):
                 self.FLRhold.append(self.ActDf.groupby('MMSI', as_index=False).apply(lambda x: x.iloc[1:-1]))
                 self.first = plt.scatter(self.FLRhold[0]['LON'], self.FLRhold[0]['LAT'], marker='o', color='green', linewidth=3, transform=ccrs.PlateCarree(), picker=True)
                 self.last = plt.scatter(self.FLRhold[1]['LON'], self.FLRhold[1]['LAT'], marker='o', color='red', linewidth=3, transform=ccrs.PlateCarree(), picker = True)
-                self.remainder = plt.scatter(self.FLRhold[2]['LON'], self.FLRhold[2]['LAT'], s=0.1, c='grey', marker='*', linewidths=2, transform=ccrs.PlateCarree(), picker = True)    
+                self.remainder = plt.scatter(self.FLRhold[2]['LON'], self.FLRhold[2]['LAT'], s=0.1, c='purple', marker='*', linewidths=2, transform=ccrs.PlateCarree(), picker = True)
                 self.annotConId = mplcursors.cursor([self.first, self.last, self.remainder], hover=True)
                 self.annotConId.connect("add", self.annotate)
                 if self.predPath != None:
-                    self.predPath.remove()
-                    self.predPath = None
                     self.drawPredictedPath()
+                    self.drawPredictedPath()
+                self.legendHandles.append(self.first), self.legendLabels.append('First')
+                self.legendHandles.append(self.last), self.legendLabels.append('Last')
+                self.legendHandles.append(self.remainder), self.legendLabels.append('Remainder')
+                self.ax.legend(self.legendHandles, self.legendLabels)
                 self.plt.draw()
 
             else:
                 self.first.remove()
                 self.last.remove()
                 self.remainder.remove()
+                self.annotConId.remove()
+                self.fig.canvas.mpl_disconnect(self.annotConId)
+                self.legendHandles.remove(self.first), self.legendLabels.remove('First')
+                self.legendHandles.remove(self.last), self.legendLabels.remove('Last')
+                self.legendHandles.remove(self.remainder), self.legendLabels.remove('Remainder')
+                self.ax.legend(self.legendHandles, self.legendLabels)
                 self.first = None
                 self.last = None
                 self.remainder = None
-                self.annotConId.remove()
-                self.fig.canvas.mpl_disconnect(self.annotConId)
                 self.annotConId = None
                 self.plt.draw()
-            
-        def zoomToPred(self):
-            if self.predPath != None:
-                self.drawPredictedPath()
-                self.ax.margins(1,1)
-                #self.scatterActual()
-                self.plt.draw()
 
-        def noZoom(self):
-            self.__init__(self, self.parent)
-            self.plt.draw()
-            
         def drawPredictedPath(self):
             if self.predPath == None:
-                self.predPath = plt.scatter(self.predDf['LON'], self.predDf['LAT'], s=0.1, c='blue', marker='*', linewidths=5, transform=ccrs.PlateCarree())
+                predDf = self.parent.parent.background.getData('data/predictions.csv')
+                self.predPath = plt.scatter(predDf['LON'], predDf['LAT'], s=0.1, c='blue', marker='*', linewidths=5, transform=ccrs.PlateCarree())
+                self.legendHandles.append(self.predPath), self.legendLabels.append('Predicted')
+                self.ax.legend(self.legendHandles, self.legendLabels)
                 self.plt.draw()
             else:
                 self.predPath.remove()
+                self.legendHandles.remove(self.predPath), self.legendLabels.remove('Predicted')
+                self.ax.legend(self.legendHandles, self.legendLabels)
                 self.predPath = None
                 self.plt.draw()
 
         def heatMap(self):
-            #non functional
-            self.__init__(self)
-            df = self.parent.background.getData('data/boats.csv')
-            #self.map.ax.sns.kdeplot(df['LON'], df['LAT'], shade=True, cmap='Reds', transform=ccrs.PlateCarree())
-            self.sns.kdeplot(data = df, x="LON", y="LAT", fill=True, thresh=0, levels=100)
+            #semi functional
+            if self.hMap == None:
+                df = self.parent.parent.background.getData('data/boats.csv')
+                self.hMap = sns.kdeplot(data = df, x="LON", y="LAT", cmap='Reds', fill=True, bw_method=0.1)
+                self.hMap.collections[0].set_alpha(0)
+                self.hMap = sns.kdeplot(data = df, x="LON", y="LAT", cmap='Reds', fill=True, bw_method=0.1)
+                self.hMap.collections[0].set_alpha(0)
+                self.plt.draw()
+            else:
+                self.__init__(self.parent)
+        
+        def collissions(self):
+            if self.intSecPoints == []:
+                if self.max_cluster == None:
+                    self.max_cluster = all_collisions.all_collisions()            
+                ship_data = pd.read_csv('data/ship_data.csv')
+                cluster_data = ship_data[ship_data['cluster'] == self.max_cluster]
+                cluster_data = cluster_data.reset_index(drop=True)
+                self.intSecPoints.append(plt.scatter(cluster_data['LON'], cluster_data['LAT'], color='red', marker='*'))
+                self.intSecPoints.append(plt.scatter(cluster_data['pred_lon'], cluster_data['pred_lat'], color='green', marker='*'))
+
+                # Plot points from intersection_points.csv where the last column is 0
+                intersection_points = pd.read_csv('data/intersection_points.csv', header=None)
+                intersection_points.columns = ['LON', 'LAT', 'cluster', 'id','time_diff']
+                intersection_points = intersection_points[intersection_points['cluster'] == self.max_cluster]
+                intersection_points = intersection_points[intersection_points['id'] == 0]
+                self.intSecPoints.append(plt.scatter(intersection_points['LON'], intersection_points['LAT'], color='purple', marker='*'))
+                
+                # Plot points from intersection_points.csv where the last column is 1
+                intersection_points = pd.read_csv('data/intersection_points.csv', header=None)
+                intersection_points.columns = ['LON', 'LAT', 'cluster', 'id', 'time_diff']
+                intersection_points = intersection_points[intersection_points['cluster'] == self.max_cluster]
+                intersection_points = intersection_points[intersection_points['id'] == 1]
+                self.intSecPoints.append(plt.scatter(intersection_points['LON'], intersection_points['LAT'], color='black', marker='*'))
+                self.legendHandles.append(self.intSecPoints[0]), self.legendLabels.append('Actual')
+                self.legendHandles.append(self.intSecPoints[1]), self.legendLabels.append('Predicted')
+                self.legendHandles.append(self.intSecPoints[2]), self.legendLabels.append('Actual Collision')
+                self.legendHandles.append(self.intSecPoints[3]), self.legendLabels.append('Predicted Collision')
+                self.ax.legend(self.legendHandles, self.legendLabels)
+                self.plt.draw()
+            else:
+                for plot in self.intSecPoints:
+                    plot.remove()
+                self.legendHandles.remove(self.intSecPoints[0]), self.legendLabels.remove('Actual')
+                self.legendHandles.remove(self.intSecPoints[1]), self.legendLabels.remove('Predicted')
+                self.legendHandles.remove(self.intSecPoints[2]), self.legendLabels.remove('Actual Collision')
+                self.legendHandles.remove(self.intSecPoints[3]), self.legendLabels.remove('Predicted Collision')
+                self.ax.legend(self.legendHandles, self.legendLabels)
+                self.intSecPoints = []
+                self.plt.draw()
+        
+        def liveDemo(self):
+            blegh = 1
+        
+        def zoomToPred(self):
+            if self.predPath != None:
+                """ self.drawPredictedPath()
+                self.ax.margins(1,1)
+                #self.scatterActual()
+                self.plt.draw() """
+                self.plt.xlim(self.predDf['LON'].min(), self.predDf['LON'].max())
+                self.plt.ylim(self.predDf['LAT'].min(), self.predDf['LAT'].max())
+                self.plt.draw()
+
+        def reset(self):
+            self.__init__(self.parent)
             self.plt.draw()
-            
+    
     def ready(self):
-        self.map = self.worldMap2(self)
+        self.map = self.worldMap(self)
 
 class outputFrame(Frame):
     def __init__(self, parent, *args, **kwargs):
