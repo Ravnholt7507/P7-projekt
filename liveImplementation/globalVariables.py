@@ -1,0 +1,1 @@
+timeIntervals = 10
