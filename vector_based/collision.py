@@ -118,3 +118,5 @@ def find_collisions(ship_data, num_clusters):
         plt.plot([cluster_data['LON'][i], cluster_data['pred_lon'][i]], [cluster_data['LAT'][i], cluster_data['pred_lat'][i]], color='green')
     plt.title(f"Cluster {max_cluster} - {max_intersection_count} intersections")
     plt.savefig(f"figures/cluster_{max_cluster}_intersections.png")
+    
+    return max_cluster
