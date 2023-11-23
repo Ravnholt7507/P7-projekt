@@ -17,14 +17,15 @@ interpolated_data = pd.read_csv(os.path.join(os.getcwd(), 'liveImplementation' ,
 globals.output_CSV = interpolated_data.copy()
 globals.output_CSV['predictedLAT'] = None
 globals.output_CSV['predictedLON'] = None
-globals.output_CSV['locationThreshold'] = None
+globals.output_CSV['locationThresholdLAT'] = None
+globals.output_CSV['locationThresholdLON'] = None
 globals.output_CSV['radiusThreshold'] = None
 globals.output_CSV['thresholdExceeded'] = None
 globals.output_CSV['currentModel'] = None
 
 interpolated_data = interpolated_data.groupby('MMSI')
 
-simulationOutput = np.empty((0, 6))
+simulationOutput = np.empty((0, 7))
 
 #Run simulation for each unique boat
 for name, group in interpolated_data:

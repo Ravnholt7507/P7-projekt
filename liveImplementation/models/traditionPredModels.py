@@ -8,15 +8,18 @@ class pointBasedModel:
 
     def __init__(self, currentLocation) -> None:
         self.thresholdCoordinates = (currentLocation['LAT'], currentLocation['LON'])
-        #self.timeIntervals = main.timeIntervals
-        #print(self.timeIntervals)
-        #return self.determineThreshold(self, currentLocation)
+    
+    #Defines the behaviour when printing an instance of the class
+    def __str__(self):
+        return("pointBasedModel")
 
+    #Determines the threshold from which the area that confines the boat is determined
     def determineThreshold(self, currentLocation):
         radiusThreshold = 0.2
         thresholdCoordinates = (currentLocation['LAT'], currentLocation['LON'])
         return thresholdCoordinates, radiusThreshold
     
+    #Is responsible for the contious estimation of the boat location
     def runPredictionAlgorithm(self, predictedCoordinates):
         return self.thresholdCoordinates
     
@@ -25,7 +28,10 @@ class COGBasedModel:
         #print("COGBasedModel: Initializing model")
         self.COG = currentLocation ['COG']
         self.speed = currentLocation['SOG'] * 1.852
-     
+    
+    def __str__(self):
+        return("COGBasedModel")
+    
     def determineThreshold(self, currentLocation):
         #print("COGBasedModel: Determining threshold")
         initialCoordinates = (currentLocation['LAT'],currentLocation['LON'])
@@ -45,6 +51,8 @@ class vectorBasedModel:
     def __init__(self, currentLocation) -> None:
         self.determineThreshold(currentLocation)
     
+    def __str__(self):
+        return("vectorBasedModel")
 
     def determineThreshold(self, currentLocation):
         radiusThreshold = 0.5

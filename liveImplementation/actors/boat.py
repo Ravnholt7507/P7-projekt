@@ -44,6 +44,6 @@ class boatEntity:
                 self.thresholdExceeded = True
         
         #Collects simulation data for UI and collision
-        instanceInfo = np.array([self.predictedLocation[0], self.predictedLocation[1], self.locationThreshold, self.radiusThreshold, self.thresholdExceeded, self.current_model])
+        instanceInfo = np.array([self.predictedLocation[0], self.predictedLocation[1], self.locationThreshold[0], self.locationThreshold[1], self.radiusThreshold, self.thresholdExceeded, self.current_model])
         self.thresholdExceeded = False
         return instanceInfo

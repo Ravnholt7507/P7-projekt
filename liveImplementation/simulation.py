@@ -6,7 +6,7 @@ class simulation:
         self.boatEntity = BoatEntity
         self.group = group
         self.current_index = 0
-        self.completeOutput = np.empty((0, 6))
+        self.completeOutput = np.empty((0, 7))
     
     #Simulates single boat
     def run_simulation(self):
