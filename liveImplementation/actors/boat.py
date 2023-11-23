@@ -22,16 +22,18 @@ class boatEntity:
         predictedDistance = haversine(thresholdPoint, predictedPoint)
         return realDistance > self.radiusThreshold or predictedDistance > self.radiusThreshold
 
+    #Sends update to shore when locationThreshold has been exceeded
     def updateShore(self, shoreEntity) -> None:
         shoreEntity.recieveLocationUpdate(self.currentLocation)
 
+    #Updates internal models of boat when locationThreshold has been exceeded
     def updateBoat(self, currentLocation):
         #print("BOAT: UpdateBoat")
         self.current_model = mp.modelPicker(self.currentLocation)
         self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.currentLocation)
         self.predictedLocation = (self.currentLocation['LAT'], self.currentLocation['LON'])
-        #print("BOAT: new predictedLocation: ", self.predictedLocation[0], self.predictedLocation[1])
 
+    #Simulates normal boat behaviour
     def boatBehaviour(self, currentLocation, shoreEntity):
         self.currentLocation = currentLocation
         self.predictedLocation = self.current_model.runPredictionAlgorithm(self.predictedLocation)
@@ -41,6 +43,7 @@ class boatEntity:
                 self.updateBoat(self.currentLocation)
                 self.thresholdExceeded = True
         
+        #Collects simulation data for UI and collision
         instanceInfo = np.array([self.predictedLocation[0], self.predictedLocation[1], self.locationThreshold, self.radiusThreshold, self.thresholdExceeded, self.current_model])
         self.thresholdExceeded = False
         return instanceInfo

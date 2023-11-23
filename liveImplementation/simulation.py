@@ -8,8 +8,9 @@ class simulation:
         self.current_index = 0
         self.completeOutput = np.empty((0, 6))
     
+    #Simulates single boat
     def run_simulation(self):
-        #While-loop simulates time progression
+        #While-loop simulates time progression -> run simulation for each instance of the boat
         while self.current_index+1 <= len(self.group):
             instanceOutput = self.boatEntity.boatBehaviour(self.group.iloc[self.current_index], self.shoreEntity)
             self.shoreEntity.shoreBehaviour()

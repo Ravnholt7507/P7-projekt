@@ -8,26 +8,18 @@ class shoreEntity:
         self.predictedLocation = (currentLocation['LAT'], currentLocation['LON'])
         self.updateRecieved = False
 
-
+    #Updates current knowledge -> is called from boat when locationThreshold has been exceeded
     def recieveLocationUpdate(self, currentLocation):
-        #print("SHORE: RecieveLocationUpdate")
         self.lastKnownLocation = currentLocation
         self.current_model = mp.modelPicker(currentLocation)
         self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(currentLocation)
         self.predictedLocation = (currentLocation['LAT'], currentLocation['LON'])
-        #print("SHORE: New predicted location: ", self.predictedLocation[0], self.predictedLocation[1])
         self.updateRecieved = True
-        #print("SHORE: Update recieved = True")
 
-
+    #Simulates normal shore behaviour
     def shoreBehaviour(self):
-        #print("SHORE: Excecuting shore behaviour")
         #Are we sure it shouldn't run predictionAlgorithm when updateRecieved == True?
         if self.updateRecieved == False:
-            #print("SHORE:Update recieved == False")
             self.predictedLocation = self.current_model.runPredictionAlgorithm(self.predictedLocation)
-            #print("SHORE: New predicted location: ", self.predictedLocation[0], self.predictedLocation[1])
         else:
-            #print("SHORE: UpdateRecieved == True")
-            #print("SHORE: UpdateRecieved = False")
             self.updateRecieved = False
