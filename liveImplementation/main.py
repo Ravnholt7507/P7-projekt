@@ -14,14 +14,14 @@ timeIntervals = globals.timeIntervals
 
 #Initialize working data and output data
 interpolated_data = pd.read_csv(os.path.join(os.getcwd(), 'liveImplementation' , 'data', 'interpolated_data.csv'))
-globals.output_CSV = interpolated_data.copy()
-globals.output_CSV['predictedLAT'] = None
-globals.output_CSV['predictedLON'] = None
-globals.output_CSV['locationThresholdLAT'] = None
-globals.output_CSV['locationThresholdLON'] = None
-globals.output_CSV['radiusThreshold'] = None
-globals.output_CSV['thresholdExceeded'] = None
-globals.output_CSV['currentModel'] = None
+output_CSV = interpolated_data.copy()
+output_CSV['predictedLAT'] = None
+output_CSV['predictedLON'] = None
+output_CSV['locationThresholdLAT'] = None
+output_CSV['locationThresholdLON'] = None
+output_CSV['radiusThreshold'] = None
+output_CSV['thresholdExceeded'] = None
+output_CSV['currentModel'] = None
 
 interpolated_data = interpolated_data.groupby('MMSI')
 
@@ -35,8 +35,8 @@ for name, group in interpolated_data:
     simulationOutput =np.vstack((simulationOutput, simulation_instance.run_simulation())) 
 
 #Append output metrics to copy of working CSV file -> gives complete outputCSV
-for col_idx, col_name in enumerate(globals.output_CSV.columns[6:]):
-    globals.output_CSV[col_name] = [row[col_idx] for row in simulationOutput]
+for col_idx, col_name in enumerate(output_CSV.columns[6:]):
+    output_CSV[col_name] = [row[col_idx] for row in simulationOutput]
 
 #Save dataframe as CSV
-globals.output_CSV.to_csv(os.path.join(os.getcwd(), 'liveImplementation' , 'data', 'output.csv'))
+output_CSV.to_csv(os.path.join(os.getcwd(), 'liveImplementation' , 'data', 'output.csv'))

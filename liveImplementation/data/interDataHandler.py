@@ -30,7 +30,7 @@ def data_loader(file_path, n_rows):
     #sort by MMSI, then by time/date
 
     #remove all mmsi's with SOG > 5
-    df = df[df['SOG'] > 5.0]
+    #df = df[df['SOG'] > 5.0]
     
     # remove elements with only 1 mmsi entry
     counts = df.value_counts('MMSI')

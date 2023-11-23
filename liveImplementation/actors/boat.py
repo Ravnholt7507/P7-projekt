@@ -11,7 +11,6 @@ class boatEntity:
         self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.currentLocation)
         self.predictedLocation = (currentLocation['LAT'], currentLocation['LON'])
         self.thresholdExceeded = False
-        
         #self.last_known_locations = deque(maxlen=10)
 
     def exceedsThreshold(self) -> bool:

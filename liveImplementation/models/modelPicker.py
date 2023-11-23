@@ -2,10 +2,7 @@ import models.traditionPredModels as traditionalModels
 import models.AIPredModels as AIModels
 
 def modelPicker(aisDataPoint):
-        #print("MODELPICKER: Choosing model")
-        #print("MODELPICKER: Choosing COGBasedModel")
-        return traditionalModels.COGBasedModel(aisDataPoint)
-        #else:
-                #return traditionalModels.COGBasedModel
-
-#If COG is available
+        if aisDataPoint['SOG'] * 1.852 < 10:
+                return traditionalModels.pointBasedModel(aisDataPoint)
+        else:
+                return traditionalModels.COGBasedModel(aisDataPoint)
