@@ -1,7 +1,7 @@
 import models.modelPicker as mp
 from haversine import haversine
 from collections import deque
-
+import numpy as np
 
 class boatEntity:
     def __init__(self, currentLocation) -> None:
@@ -10,6 +10,8 @@ class boatEntity:
         self.current_model = mp.modelPicker(currentLocation)
         self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.currentLocation)
         self.predictedLocation = (currentLocation['LAT'], currentLocation['LON'])
+        self.thresholdExceeded = False
+        
         #self.last_known_locations = deque(maxlen=10)
 
     def exceedsThreshold(self) -> bool:
@@ -31,16 +33,14 @@ class boatEntity:
         #print("BOAT: new predictedLocation: ", self.predictedLocation[0], self.predictedLocation[1])
 
     def boatBehaviour(self, currentLocation, shoreEntity):
-        #print("BOAT: Excecuting boat behaviour")
         self.currentLocation = currentLocation
-        #print("BOAT: Actual position: ", self.currentLocation[2], self.currentLocation[3])
         self.predictedLocation = self.current_model.runPredictionAlgorithm(self.predictedLocation)
-        #print("BOAT: New Predicted position: ", self.predictedLocation[0], self.predictedLocation[1])
-
+     
         if self.exceedsThreshold():
-                #print("Threshold exceeded")
                 self.updateShore(shoreEntity)
                 self.updateBoat(self.currentLocation)
-        else:
-             #print("Threshold not exceeded")
-             return
+                self.thresholdExceeded = True
+        
+        instanceInfo = np.array([self.predictedLocation[0], self.predictedLocation[1], self.locationThreshold, self.radiusThreshold, self.thresholdExceeded, self.current_model])
+        self.thresholdExceeded = False
+        return instanceInfo
