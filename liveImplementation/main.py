@@ -12,6 +12,8 @@ import numpy as np
 #Intialize timeIntervals
 timeIntervals = globals.timeIntervals
 
+interpolated_data = dataImporter.cleanseData(timeIntervals)
+
 #Initialize working data and output data
 interpolated_data = pd.read_csv(os.path.join(os.getcwd(), 'liveImplementation' , 'data', 'interpolated_data.csv'))
 output_CSV = interpolated_data.copy()
