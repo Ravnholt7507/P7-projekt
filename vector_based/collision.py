@@ -27,6 +27,8 @@ def find_collisions(ship_data, num_clusters):
     # Clear intersection_points.csv
     with open('data/intersection_points.csv', 'w') as fp:
         fp.truncate()
+        # Write header
+        fp.write('LON,LAT,cluster,id,time_diff\n')
     
     Total_intersections = 0
     max_intersection_count = 0
@@ -58,23 +60,25 @@ def find_collisions(ship_data, num_clusters):
                         # Convert 'BaseDateTime' to datetime format
                         cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
                         time_diff = abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y])
-                        
-                        with open('data/intersection_points.csv', 'a') as fp:
-                            fp.write(f"{intersection[0]},{intersection[1]},{cluster},{0},{time_diff}\n")
-                            
-                        intersection_count += 1
-                        
+
                         # Check if the time difference between the two ships is less than 3 minutes
                         if abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y]) < pd.Timedelta(minutes=3):
                             time_intersection += 1
                             
                             with open('data/intersection_points.csv', 'a') as fp:
-                                fp.write(f"{intersection[0]},{intersection[1]},{cluster},{1}\n")
+                                fp.write(f"{intersection[0]},{intersection[1]},{cluster},{1},{time_diff}\n")
                             
                             # print(f"Ship 1: {cluster_data['MMSI'][x]}")
                             # print(f"Ship 2: {cluster_data['MMSI'][y]}")
                             # print(f"Time of ship 1: {cluster_data['BaseDateTime'][x]}")
                             # print(f"Time of ship 2: {cluster_data['BaseDateTime'][y]}")
+                        else:
+                            # print(f"Time difference between ship 1 and ship 2 is more than 3 minutes")
+                            intersection_count += 1
+                            
+                            with open('data/intersection_points.csv', 'a') as fp:
+                                fp.write(f"{intersection[0]},{intersection[1]},{cluster},{0},{time_diff}\n")
+                                
 
         Total_intersections += intersection_count
         
@@ -94,15 +98,13 @@ def find_collisions(ship_data, num_clusters):
     plt.scatter(cluster_data['pred_lon'], cluster_data['pred_lat'], color='green')
 
     # Plot points from intersection_points.csv where the last column is 0
-    intersection_points = pd.read_csv('data/intersection_points.csv', header=None)
-    intersection_points.columns = ['LON', 'LAT', 'cluster', 'id','time_diff']
+    intersection_points = pd.read_csv('data/intersection_points.csv')
     intersection_points = intersection_points[intersection_points['cluster'] == max_cluster]
     intersection_points = intersection_points[intersection_points['id'] == 0]
     plt.scatter(intersection_points['LON'], intersection_points['LAT'], color='purple')
     
     # Plot points from intersection_points.csv where the last column is 1
-    intersection_points = pd.read_csv('data/intersection_points.csv', header=None)
-    intersection_points.columns = ['LON', 'LAT', 'cluster', 'id', 'time_diff']
+    intersection_points = pd.read_csv('data/intersection_points.csv')
     intersection_points = intersection_points[intersection_points['cluster'] == max_cluster]
     intersection_points = intersection_points[intersection_points['id'] == 1]
     plt.scatter(intersection_points['LON'], intersection_points['LAT'], color='yellow')
@@ -118,6 +120,7 @@ def find_collisions(ship_data, num_clusters):
     for i in range(len(cluster_data['LON'])):
         plt.plot([cluster_data['LON'][i], cluster_data['pred_lon'][i]], [cluster_data['LAT'][i], cluster_data['pred_lat'][i]], color='green')
     plt.title(f"Cluster {max_cluster} - {max_intersection_count} intersections")
+    plt.show()
     plt.savefig(f"figures/cluster_{max_cluster}_intersections.png")
     
     return max_cluster

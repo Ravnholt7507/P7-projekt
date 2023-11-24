@@ -104,7 +104,7 @@ def predict2(MMSI, df, file_path):
             empty = True
 
     for i in range(length-1):
-        time = 60 # 1 minute
+        time = 180 # 1 minute
         
         # Calculating the speed in km/h
         speed = ship.iloc[i]['SOG'] * 1.852
@@ -142,7 +142,7 @@ def all_ships(df):
     MMSI = df['MMSI'].unique()
     ships = len(MMSI)
     for i in range(ships):
-        predict(MMSI[i],df,'data/predictions.csv')
+        predict2(MMSI[i],df,'data/predictions.csv')
 
 def check_range(distance, range_index):
     start, end = dist_intv[range_index]
