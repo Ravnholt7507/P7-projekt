@@ -115,9 +115,11 @@ def test_test_main():
 
 # 'MMSI', 'Timestamp', 'Latitude', 'Longitude', 'SOG', 'COG'
     fields = [0, 1, 2, 3, 4, 5]
-    n_rows = 20000
+    n_rows = 5000
     df = pd.read_csv('C:\\Users\\mikkel\\Documents\\GitHub\\P7-projekt\\ann\\data\\interpolated_complete.csv', skipinitialspace=True, usecols=fields, nrows=n_rows, on_bad_lines='skip')
     df = df[['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG', 'COG']]
+    # get rid of nan rows (in speed and course) - could just set to -1
+    df = df.dropna()
     df, scaler = normalize(df)
     modelname = 'Transformer'
     Train_Loader, Valid_Loader, Test_Loader = getDataLoaders(df, input_sequence_length=20, output_sequence_length=3)

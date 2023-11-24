@@ -32,8 +32,6 @@ def train(modelname, Train_AISDataLoader, Valid_AISDataLoader):
     valid_losses = []
     train_losses = []
 
-    # get rid of nan rows (in speed and course) - could just set to -1
-    df = df.dropna()
 
     for epoch in range(epochs):
         model.train()
@@ -43,7 +41,7 @@ def train(modelname, Train_AISDataLoader, Valid_AISDataLoader):
             inputs, targets = batch  # Assuming each batch returns inputs and targets
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
-            loss = criterion(outputs, targets) #RootMeanSquare
+            loss = torch.sqrt(criterion(outputs, targets)) #RootMeanSquare
             train_loss += loss.item()
             #haversine_loss_train += haversine(outputs, targets, lat_min, lat_max, lon_min, lon_max).item()
             optimizer.zero_grad()
@@ -60,7 +58,7 @@ def train(modelname, Train_AISDataLoader, Valid_AISDataLoader):
                 outputs = model(inputs)
 
                 #total_loss += haversine(outputs, targets, lat_min, lat_max, lon_min, lon_max).item()
-                valid_loss += criterion(outputs, targets).item()
+                valid_loss += torch.sqrt(criterion(outputs, targets)).item()
 
         avg_train_loss = train_loss / len(Train_AISDataLoader)
         avg_valid_loss = valid_loss / len(Valid_AISDataLoader)
