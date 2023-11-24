@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 
-def cleanseData(timeIntervals):
+def cleanseData(timeIntervals): 
 
-    file_path = 'liveImplementation/data/AIS_2023_01_01.csv'
+    print("Cleaning data...")
+    file_path = '../data/AIS_2023_01_01.csv'
     n_rows = 50000
-    df = data_loader(file_path, n_rows)
+    df = data_loader(file_path, n_rows)   
     df = interpolater(df, timeIntervals)
     dataAsDataFrame = pd.DataFrame(df)
     #group dataframe object by MMSI:
@@ -49,31 +51,36 @@ def data_loader(file_path, n_rows):
 
 def interpolater(df: np.ndarray, timeIntervals):
 
+    print("Interpolating data...")
+    
     timeIntervals = (str(timeIntervals) + "S")
     df = pd.DataFrame(df, columns=['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG', 'COG'])
     interpolated_dfs = []
     i = 0
 
-    while i < len(df)-1 :
+    length = len(df)-1
+    for i in tqdm(range(length)):
         group = df.iloc[i:i+2]
         
         #check if mmsi's are the same
         if group.iloc[0]['MMSI'] == group.iloc[1]['MMSI']:
             group.set_index('BaseDateTime', inplace=True)
             group.index = pd.to_timedelta(group.index, unit='s')
-            group = group.astype({'LAT': 'float32', 'LON': 'float32', 'SOG': 'float32', 'COG': 'float32'})
             group = group.infer_objects(copy=False)
             resampled_group = group.resample(timeIntervals).mean().interpolate(method='linear')
             resampled_group.reset_index(inplace=True)
             resampled_group['BaseDateTime'] = resampled_group['BaseDateTime'].dt.total_seconds()
             interpolated_dfs.append(resampled_group)
-        i += 1
     
     interpolated_df = pd.concat(interpolated_dfs)
+    # Convert mmsi and time back to int
+    interpolated_df['MMSI'] = interpolated_df['MMSI'].astype(int)
+    interpolated_df['BaseDateTime'] = interpolated_df['BaseDateTime'].astype(int)
+    
+    # Fill in missing values 
     interpolated_df = interpolated_df.ffill().bfill()
-    interpolated_df = interpolated_df[['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG', 'COG']]
-    interpolated_df.to_csv('liveImplementation/data/interpolated_data.csv', index=False, mode='w')
+    interpolated_df = interpolated_df[['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG', 'COG']]    
+    interpolated_df.to_csv('../data/interpolated_data.csv', index=False, mode='w')
     interpolated_data = interpolated_df.to_numpy()
 
     return interpolated_data
-

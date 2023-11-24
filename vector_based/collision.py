@@ -20,6 +20,11 @@ def find_intersection(p1, v1, p2, v2):
     else:
         # The vectors do not intersect within their segments
         return None
+    
+def find_radius(ship_data, cluster):
+    # Find the radius of the cluster
+    return 0
+    
 
 # Make another find_collisions function but using tqdm
 def find_collisions(ship_data, num_clusters):
@@ -56,6 +61,18 @@ def find_collisions(ship_data, num_clusters):
 
                     if intersection is not None:
                         
+                        #mmsi 1 time 12 true
+                        #mmsi 1 time 14 false
+                        #mmsi 1 time 16 false
+                        #mmsi 1 time 18 true
+                        
+                        #mmsi 2 time 11 true
+                        #mmsi 2 time 13 false
+                        #mmsi 2 time 15 true
+                        #mmsi 2 time 17 false
+                                            
+                        # mmsi 3 time 12 true
+                        
                         # Save intersection points and clusters and time diff between the two ships to a csv file
                         # Convert 'BaseDateTime' to datetime format
                         cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
@@ -67,6 +84,9 @@ def find_collisions(ship_data, num_clusters):
                             
                             with open('data/intersection_points.csv', 'a') as fp:
                                 fp.write(f"{intersection[0]},{intersection[1]},{cluster},{1},{time_diff}\n")
+                            
+                            
+                            print("update shore")
                             
                             # print(f"Ship 1: {cluster_data['MMSI'][x]}")
                             # print(f"Ship 2: {cluster_data['MMSI'][y]}")

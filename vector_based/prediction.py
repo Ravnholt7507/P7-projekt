@@ -117,12 +117,12 @@ def predict2(MMSI, df, file_path):
         lon = ship.iloc[i]['LON']
         bearing = ship.iloc[i]['COG']
         lat2, lon2 = get_point_at_distance(lat, lon, distance, bearing)
-
+        
         next_lat = ship.iloc[i+1]['LAT']
         next_lon = ship.iloc[i+1]['LON']
         dis = haversine((next_lat, next_lon),(lat2, lon2), unit=Unit.KILOMETERS)
         dis = round(dis, 4)
-        
+
         array = []
         array.append(ship.iloc[i]['MMSI'])
         array.append(ship.iloc[i]['BaseDateTime'])
