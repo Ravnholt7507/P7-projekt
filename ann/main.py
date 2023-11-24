@@ -1,12 +1,16 @@
 import pandas as pd
 import os
 import numpy as np
+import torch.nn as nn
+import torch.optim as optim
 from evaluation import plot_data, Distance, Average
 from data_processing import data_loader, group_data_by_mmsi, data_normalizer, data_denomalizer, interpolater
 from models import cnn_and_lstm_model_maker, lstm_model_maker, big_cnn_and_lstm_model_maker, cnn_model_maker
 from Seq2Seq.training import train
 from Seq2Seq.Preprocessing import normalize
 from Seq2Seq.Dataloaders import getDataLoaders
+from Seq2Seq.Models import getModel
+from Seq2Seq.testing import testing
 
 
 def read_data(file_path, n_rows):
@@ -111,17 +115,14 @@ def test_test_main():
 
 # 'MMSI', 'Timestamp', 'Latitude', 'Longitude', 'SOG', 'COG'
     fields = [0, 1, 2, 3, 4, 5]
-    n_rows = 10000
-    df = pd.read_csv('C:\\Users\\mikkel\\Documents\\GitHub\\P7-projekt\\ann\\data\\interpolated_data.csv', skipinitialspace=True, usecols=fields, nrows=n_rows, on_bad_lines='skip')
-    print(len(df))
-    # get rid of nan rows (in speed and course) - could just set to -1
-    df = df.dropna()
-    df = df[df['SOG'] >= 3]
-    df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
-
-    df = normalize(df)
-    train(df)
-
+    n_rows = 20000
+    df = pd.read_csv('C:\\Users\\mikkel\\Documents\\GitHub\\P7-projekt\\ann\\data\\interpolated_complete.csv', skipinitialspace=True, usecols=fields, nrows=n_rows, on_bad_lines='skip')
+    df = df[['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG', 'COG']]
+    df, scaler = normalize(df)
+    modelname = 'Transformer'
+    Train_Loader, Valid_Loader, Test_Loader = getDataLoaders(df, input_sequence_length=20, output_sequence_length=3)
+    train(modelname, Train_Loader, Valid_Loader)
+    testing(modelname, Test_Loader, df, scaler)
 
 if __name__ == "__main__":
     test_test_main()

@@ -3,43 +3,39 @@ from tqdm import tqdm
 import torch
 from torch.utils.data import Dataset, random_split
 
-class AISTrajectoryDataset(Dataset):
-    def __init__(self, df, input_sequence_length, output_sequence_length):
-        self.sequence_length = input_sequence_length + output_sequence_length
-        self.input_sequence_length = input_sequence_length
-        self.output_sequence_length = output_sequence_length
 
-        # Sort by MMSI and Timestamp to ensure continuity in sequences
-        df.sort_values(by=['MMSI', 'BaseDateTime'], inplace=True)
-
-        # Group by MMSI and create a list of sequences per MMSI
-        self.sequences = self.create_sequences(df, self.sequence_length)
-
-    def create_sequences(self, df, sequence_length):
-        sequences = []
-        for _, group in tqdm(df.groupby('MMSI'), desc="creating sequences"):
-            num_sequences = len(group) - sequence_length + 1
-            for i in range(num_sequences):
-                sequences.append(group[i:i + sequence_length][['LAT', 'LON', 'SOG', 'COG']].values.astype(np.float32))
-        return sequences
+class AISDataset(Dataset):
+    def __init__(self, dataframe, seq_len=20, pred_len=3):
+        self.mmsi = dataframe['MMSI'].values  # Store MMSI values
+        self.data = dataframe.iloc[:, 2:].values  # Excludes the 'MMSI' and 'BaseDateTime' column
+        self.seq_len = seq_len
+        self.pred_len = pred_len
 
     def __len__(self):
-        return len(self.sequences)
+        return len(self.data) - self.seq_len - self.pred_len + 1
 
     def __getitem__(self, idx):
-        sequence = self.sequences[idx]
-        src = torch.from_numpy(sequence[:self.input_sequence_length])
-        trg = torch.from_numpy(sequence[self.input_sequence_length:])
-        return src, trg
+        start_idx = idx
+        end_idx = idx + self.seq_len + self.pred_len
+
+        # Splitting the data into input and target sequences
+        input_seq = self.data[start_idx:start_idx + self.seq_len]
+        target_seq = self.data[start_idx + self.seq_len:end_idx]
+
+        return torch.tensor(input_seq, dtype=torch.float), torch.tensor(target_seq, dtype=torch.float) #, self.mmsi[start_idx]
 
 # Usage
 def getDataLoaders(df, input_sequence_length, output_sequence_length):
-    dataset = AISTrajectoryDataset(df, input_sequence_length, output_sequence_length)
 
-    train_size = int(0.8*len(dataset))
-    test_size = len(dataset) - train_size
-    train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+    dataset = AISDataset(df, input_sequence_length, output_sequence_length)
+    train_size = int(0.7 * len(dataset))
+    valid_size = int(0.15 * len(dataset))
+    test_size = len(dataset) - train_size - valid_size
+
+    train_dataset, valid_dataset, test_dataset = random_split(dataset, [train_size, valid_size, test_size])
 
     Train_AISDataLoader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=2)
     Test_AISDataLoader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=2)
-    return Train_AISDataLoader, Test_AISDataLoader
+    Valid_AISDataLoader = torch.utils.data.DataLoader(valid_dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=2)
+    
+    return Train_AISDataLoader, Valid_AISDataLoader, Test_AISDataLoader

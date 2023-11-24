@@ -43,9 +43,6 @@ def haversine(y_pred, y_true, lat_min, lat_max, lon_min, lon_max):
   preds_denorm = denormalize(y_pred, lat_min, lat_max, lon_min, lon_max)
   target_denorm = denormalize(y_true, lat_min, lat_max, lon_min, lon_max)
 
-  #print("preds_denormalized: ", preds_denorm)
-  #print("targets_denormalized: ", target_denorm)
-
   loss = haversine_distance(preds_denorm, target_denorm)
 
   return loss.mean()

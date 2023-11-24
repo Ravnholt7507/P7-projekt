@@ -1,21 +1,27 @@
 from Seq2Seq.Dataloaders import getDataLoaders
-from Seq2Seq.transformerEncoder import getModel
+from Seq2Seq.Models import getModel
 from Seq2Seq.haversine_loss import haversine
 from Seq2Seq.Preprocessing import GetMinMaxCoords
 import torch
-import torch.optim as optim
+import torch.nn as nn
+import torch.optim as opt
+import matplotlib.pyplot as plt
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-def train(df):
+def train(modelname, Train_AISDataLoader, Valid_AISDataLoader):
 
-    model = getModel()
-    print(model)
-    lat_max, lat_min, lon_max, lon_min = GetMinMaxCoords(df)
-    Train_AISDataLoader, Test_AISDataLoader = getDataLoaders(df, input_sequence_length=10, output_sequence_length=3)
+    model = getModel(modelname)
 
     # Define an optimizer. You can use Adam, which is a good default choice for many applications.
-    optimizer = optim.Adam(model.parameters(), lr=0.0003)
+    optimizer = opt.Adam(model.parameters(), lr=0.0005)
+    criterion = nn.MSELoss()
+    epochs = 20
+
+    # Initialize the scheduler
+    from torch.optim.lr_scheduler import ReduceLROnPlateau
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
 
     # Move the model to the GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -23,45 +29,58 @@ def train(df):
 
     # Initialize variables for plotting
     epoch_counts = []
-    test_losses = []
-    predicted_lat_lon = []
+    valid_losses = []
+    train_losses = []
 
-    for epoch in range(0, 31, 1):  # Running 10 epochs, incrementing by 10 each time
+    # get rid of nan rows (in speed and course) - could just set to -1
+    df = df.dropna()
+
+    for epoch in range(epochs):
         model.train()
+        loss = 0
+        train_loss = 0
         for batch in tqdm(Train_AISDataLoader, desc="Running"):
             inputs, targets = batch  # Assuming each batch returns inputs and targets
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
-            loss = haversine(outputs, targets, lat_min, lat_max, lon_min, lon_max)
-
+            loss = criterion(outputs, targets) #RootMeanSquare
+            train_loss += loss.item()
+            #haversine_loss_train += haversine(outputs, targets, lat_min, lat_max, lon_min, lon_max).item()
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
         # Evaluate on test data
         model.eval()
-        total_loss = 0
+        valid_loss = 0
         with torch.no_grad():
-            for batch in Test_AISDataLoader:
+            for batch in Valid_AISDataLoader:
                 inputs, targets = batch
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
 
-                total_loss += haversine(outputs, targets, lat_min, lat_max, lon_min, lon_max).item()
+                #total_loss += haversine(outputs, targets, lat_min, lat_max, lon_min, lon_max).item()
+                valid_loss += criterion(outputs, targets).item()
 
-                # Record the predicted lat and lon
-                predicted_lat_lon.append(outputs[:, :, :2].cpu().detach().numpy())  # Assuming first two features are lat and lon
-
-        avg_test_loss = total_loss / len(Test_AISDataLoader)
-        test_losses.append(avg_test_loss)
+        avg_train_loss = train_loss / len(Train_AISDataLoader)
+        avg_valid_loss = valid_loss / len(Valid_AISDataLoader)
+        valid_losses.append(avg_valid_loss)
+        train_losses.append(avg_train_loss)
         epoch_counts.append(epoch)
-        print(f"Epoch: {epoch}, Test Loss: {avg_test_loss}")
+        print(f"Epoch: {epoch}, Train Loss: {avg_train_loss}")
+        print(f"Epoch: {epoch}, Valid Loss: {avg_valid_loss}")
+        # Step the scheduler with the average loss
+        scheduler.step(avg_train_loss)
 
     # Plotting the test loss
-    plt.figure(figsize=(10, 4))
-    plt.plot(epoch_counts, test_losses, marker='o')
-    plt.title('Test Loss Over Epochs')
+    plt.figure(figsize=(5, 4))
+    plt.plot(epoch_counts, valid_losses, label='Valid Loss')
+    plt.plot(epoch_counts, train_losses, label='Train Loss')
+    plt.title('train and validation loss')
     plt.xlabel('Epochs')
-    plt.ylabel('Test Loss')
+    plt.ylabel('loss as rmse')
     plt.grid(True)
+    plt.legend()
     plt.show()
+
+    torch.save(model.state_dict(), f'ann/saved_models/{modelname}.pth')

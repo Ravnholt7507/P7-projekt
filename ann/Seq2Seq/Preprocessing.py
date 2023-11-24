@@ -1,21 +1,17 @@
 from sklearn.preprocessing import MinMaxScaler
 
 def normalize(df):
-    # We'll use MinMaxScaler for normalization, which will scale each feature to the range [0, 1]
     scaler = MinMaxScaler()
-    # We won't scale the 'MMSI' or 'Timestamp' columns
     features_to_scale = ['LAT', 'LON', 'SOG', 'COG']
     df[features_to_scale] = scaler.fit_transform(df[features_to_scale])
-    return df
+    return df, scaler
 
-def denormalize(scaler, df):
-    predictions_flat = df.reshape(-1, 4)  # Shape: (batch_size * timesteps, 2)
+def denormalize(scaler, tensor):
+    predictions_flat = tensor.reshape(-1, 4)  # Shape: (batch_size * timesteps, 2)
 
-    # Apply inverse_transform
     predictions_denorm = scaler.inverse_transform(predictions_flat)
 
-    # Reshape back to original shape if necessary
-    predictions_original_shape = predictions_denorm.reshape(df.shape)
+    predictions_original_shape = predictions_denorm.reshape(tensor.shape)
     return predictions_original_shape
 
 def GetMinMaxCoords(df):
