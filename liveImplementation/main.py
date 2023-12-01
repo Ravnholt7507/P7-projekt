@@ -32,9 +32,8 @@ def interpolater(df):
     return interpolated_df
 
 limit = 50000
-df = pd.read_csv("data/AIS_2023_01_01.csv", nrows=limit)
-df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
-                           'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+df = pd.read_csv("../data/AIS_2023_01_01.csv")
+# df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
 
 #Initialize working data and output data
