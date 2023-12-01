@@ -5,13 +5,19 @@ import numpy as np
 
 class boatEntity:
     def __init__(self, currentLocation) -> None:
-        self.currentLocation = currentLocation
+        self.last_known_locations = deque(maxlen=10)
+        self.last_known_locations.append(dict(currentLocation))
+        print("BEGIN TEST PRINTS")
+        print("self.last_known_locations: ", self.last_known_locations)
+        print("self.last_known_locations[-1]: ", self.last_known_locations[-1])
+        print("self.last_known_locations[-1]['COG']: ", self.last_known_locations[-1]['COG'])
+        print("END TEST PRINTS")
+
         self.current_index = 0
-        self.current_model = mp.modelPicker(currentLocation)
-        self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.currentLocation)
+        self.current_model = mp.modelPicker(self.last_known_locations)
+        self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.last_known_locations)
         self.predictedLocation = (currentLocation['LAT'], currentLocation['LON'])
         self.thresholdExceeded = False
-        #self.last_known_locations = deque(maxlen=10)
 
     def exceedsThreshold(self) -> bool:
         thresholdPoint = (self.locationThreshold[0], self.locationThreshold[1])
@@ -23,13 +29,14 @@ class boatEntity:
 
     #Sends update to shore when locationThreshold has been exceeded
     def updateShore(self, shoreEntity) -> None:
-        shoreEntity.recieveLocationUpdate(self.currentLocation)
+        shoreEntity.recieveLocationUpdate(self.last_known_locations)
 
     #Updates internal models of boat when locationThreshold has been exceeded
     def updateBoat(self, currentLocation):
-        #print("BOAT: UpdateBoat")
-        self.current_model = mp.modelPicker(self.currentLocation)
-        self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.currentLocation)
+        #("BOAT: UpdateBoat")
+        self.last_known_locations.append(dict(currentLocation))
+        self.current_model = mp.modelPicker(self.last_known_locations)
+        self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.last_known_locations)
         self.predictedLocation = (self.currentLocation['LAT'], self.currentLocation['LON'])
 
     #Simulates normal boat behaviour

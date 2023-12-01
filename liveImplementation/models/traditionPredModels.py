@@ -14,7 +14,8 @@ class pointBasedModel:
         return("pointBasedModel")
 
     #Determines the threshold from which the area that confines the boat is determined
-    def determineThreshold(self, currentLocation):
+    def determineThreshold(self, lastKnownLocations):
+        currentLocation = lastKnownLocations[-1]
         radiusThreshold = 0.2
         thresholdCoordinates = (currentLocation['LAT'], currentLocation['LON'])
         return thresholdCoordinates, radiusThreshold
@@ -24,15 +25,16 @@ class pointBasedModel:
         return self.thresholdCoordinates
     
 class COGBasedModel:
-    def __init__(self, currentLocation) -> None:
-        #print("COGBasedModel: Initializing model")
-        self.COG = currentLocation ['COG']
-        self.speed = currentLocation['SOG'] * 1.852
+    def __init__(self, lastKnownLocation) -> None:
+
+        self.COG = lastKnownLocation['COG']
+        self.speed = lastKnownLocation['SOG'] * 1.852
     
     def __str__(self):
         return("COGBasedModel")
     
-    def determineThreshold(self, currentLocation):
+    def determineThreshold(self, lastKnownLocations):
+        currentLocation = lastKnownLocations[-1]
         #print("COGBasedModel: Determining threshold")
         initialCoordinates = (currentLocation['LAT'],currentLocation['LON'])
         self.COG = currentLocation['COG']
@@ -48,16 +50,17 @@ class COGBasedModel:
         return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.COG)
     
 class vectorBasedModel:
-    def __init__(self, currentLocation) -> None:
-        self.determineThreshold(currentLocation)
+    def __init__(self, lastKnownLocations) -> None:
+        self.determineThreshold(lastKnownLocations)
     
     def __str__(self):
         return("vectorBasedModel")
 
-    def determineThreshold(self, currentLocation):
+    def determineThreshold(self, lastKnownLocations):
         radiusThreshold = 0.5
         #previousLocation = 
         return radiusThreshold
     
     def runPredictionAlgorithm(self):
         return
+    

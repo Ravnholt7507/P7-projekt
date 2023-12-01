@@ -13,7 +13,7 @@ start_time = time.time()
 
 #Intialize timeIntervals
 timeIntervals = globals.timeIntervals
-interpolated_data = dataImporter.cleanseData(timeIntervals)
+#interpolated_data = dataImporter.cleanseData(timeIntervals)
 
 #Initialize working data and output data
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
