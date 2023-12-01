@@ -18,10 +18,7 @@ def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     lon1 = radians(lon1)
     a = radians(bearing)
     lat2 = asin(sin(lat1) * cos(d/R) + cos(lat1) * sin(d/R) * cos(a))
-    lon2 = lon1 + atan2(
-        sin(a) * sin(d/R) * cos(lat1),
-        cos(d/R) - sin(lat1) * sin(lat2)
-    )
+    lon2 = lon1 + atan2(sin(a) * sin(d/R) * cos(lat1), cos(d/R) - sin(lat1) * sin(lat2))
     return (degrees(lat2), degrees(lon2))
 
 def predict(MMSI, df, file_path):

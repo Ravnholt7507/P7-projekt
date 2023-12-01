@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from haversine import haversine, Unit
 from tqdm import tqdm
+
 
 def find_intersection(p1, v1, p2, v2):
     cross_product = np.cross(v1, v2)
@@ -60,19 +62,7 @@ def find_collisions(ship_data, num_clusters):
                                                     np.array([v1[0][y]-p1[0][y], v1[1][y] - p1[1][y]]))
 
                     if intersection is not None:
-                        
-                        #mmsi 1 time 12 true
-                        #mmsi 1 time 14 false
-                        #mmsi 1 time 16 false
-                        #mmsi 1 time 18 true
-                        
-                        #mmsi 2 time 11 true
-                        #mmsi 2 time 13 false
-                        #mmsi 2 time 15 true
-                        #mmsi 2 time 17 false
-                                            
-                        # mmsi 3 time 12 true
-                        
+                                              
                         # Save intersection points and clusters and time diff between the two ships to a csv file
                         # Convert 'BaseDateTime' to datetime format
                         cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
@@ -144,3 +134,30 @@ def find_collisions(ship_data, num_clusters):
     plt.savefig(f"figures/cluster_{max_cluster}_intersections.png")
     
     return max_cluster
+
+def find_distance(ship_data, num_clusters):
+    margin = 0.2
+    collisions = 0
+    for cluster in tqdm(range(num_clusters)):
+
+        cluster_data = ship_data[ship_data['cluster'] == cluster]
+        cluster_data = cluster_data.reset_index(drop=True)
+        cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
+
+        p1 = (cluster_data['locationThresholdLON'].tolist(), cluster_data['locationThresholdLAT'].tolist(), cluster_data['radiusThreshold'].tolist())
+
+        for x in range(len(p1[0])):
+            for y in range(x+1, len(p1[0])):
+                if cluster_data['MMSI'].iloc[x] != cluster_data['MMSI'].iloc[y]:
+                    if abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y]) < pd.Timedelta(minutes=3):
+
+                        radius1 = p1[2][x]
+                        radius2 = p1[2][y]
+
+                        distance = haversine((p1[1][x],p1[0][x]),(p1[1][y],p1[0][y]), unit=Unit.KILOMETERS)
+
+                        if (radius1 + radius2 + margin) >= distance:
+                            collisions += 1
+    print(collisions)
+
+
