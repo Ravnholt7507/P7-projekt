@@ -7,6 +7,11 @@ class boatEntity:
     def __init__(self, currentLocation) -> None:
         self.last_known_locations = deque(maxlen=10)
         self.last_known_locations.append(dict(currentLocation))
+        # print("BEGIN TEST PRINTS")
+        # print("self.last_known_locations: ", self.last_known_locations)
+        # print("self.last_known_locations[-1]: ", self.last_known_locations[-1])
+        # print("self.last_known_locations[-1]['COG']: ", self.last_known_locations[-1]['COG'])
+        # print("END TEST PRINTS")
 
         self.current_index = 0
         self.current_model = mp.modelPicker(self.last_known_locations)

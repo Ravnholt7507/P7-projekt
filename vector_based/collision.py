@@ -136,7 +136,7 @@ def find_collisions(ship_data, num_clusters):
     return max_cluster
 
 def find_distance(ship_data, num_clusters):
-    margin = 0.2
+    margin = 0.5
     collisions = 0
     for cluster in tqdm(range(num_clusters)):
 
