@@ -8,7 +8,7 @@ def modelPicker(lastKnownLocations):
                 return traditionalModels.COGBasedModel(lastKnownLocations[-1])
         else:
                 return traditionalModels.vectorBasedModel(lastKnownLocations) """
-        if len(lastKnownLocations)>1:
+        if len(lastKnownLocations)>99999999:
                 return traditionalModels.vectorBasedModel(lastKnownLocations)
         else:
                 return traditionalModels.COGBasedModel(lastKnownLocations[-1])

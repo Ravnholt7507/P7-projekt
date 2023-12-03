@@ -2,42 +2,22 @@ import actors.shore as shore
 import actors.boat as boat
 import models.traditionPredModels as tradModels
 import models.AIPredModels as AIModels
+import interDataHandler as dataHandler
 import simulation as simulationClass
 import globalVariables as globals
 import pandas as pd
 import numpy as np
 import time
-from tqdm import tqdm
 
 start_time = time.time()
 
-def interpolater(df):
-    df['BaseDateTime'] = pd.to_datetime(df['BaseDateTime'])
-    df.sort_values(by=['MMSI', 'BaseDateTime'], inplace=True)
-
-    frequency = '2T' 
-
-    grouped = df.groupby('MMSI')
-    interpolated_data = []
-
-    for mmsi, group in tqdm(grouped, desc="Processing vessels"):
-        group.set_index('BaseDateTime', inplace=True)
-        resampled = group.resample(frequency).first()
-        resampled = resampled.infer_objects(copy=False)
-        interpolated = resampled.interpolate(method='linear')
-        interpolated['MMSI'] = mmsi
-        interpolated_data.append(interpolated)
-    interpolated_df = pd.concat(interpolated_data)
-    interpolated_df.reset_index(inplace=True)
-    return interpolated_df
-
-limit = 50000
-df = pd.read_csv("../data/AIS_2023_01_01.csv")
-# df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
-df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
-
 #Initialize working data and output data
-interpolated_data = interpolater(df)
+interpolated_data = dataHandler.interpolater()
+interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
+
+#DO NOT DELETE - COMMENT OUT IF NEEDED
+#interpolated_data = pd.read_csv('../data/interpolated_data.csv')
+
 output_CSV = interpolated_data.copy()
 output_CSV['predictedLAT'] = None
 output_CSV['predictedLON'] = None

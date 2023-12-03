@@ -1,8 +1,35 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+import globalVariables as globals
 
-def cleanseData(timeIntervals): 
+def interpolater():
+    df = pd.read_csv("../data/AIS_2023_01_01.csv", nrows=globals.readLimit)
+    df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
+    df['BaseDateTime'] = pd.to_datetime(df['BaseDateTime'])
+    df.sort_values(by=['MMSI', 'BaseDateTime'], inplace=True)
+    df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+
+    frequency = '2T' 
+
+    grouped = df.groupby('MMSI')
+    interpolated_data = []
+    #print(grouped.dtypes)
+
+    for mmsi, group in tqdm(grouped, desc="Processing vessels"):
+        group.set_index('BaseDateTime', inplace=True)
+        resampled = group.resample(frequency).first()
+        resampled = resampled.infer_objects(copy=False)
+        interpolated = resampled.interpolate(method='linear')
+        interpolated['MMSI'] = mmsi
+        interpolated_data.append(interpolated)
+    interpolated_df = pd.concat(interpolated_data)
+    interpolated_df.reset_index(inplace=True)
+    return interpolated_df
+
+
+#Old interpolater
+""" def cleanseData(timeIntervals): 
 
     print("Cleaning data...")
     file_path = '../data/AIS_2023_01_01.csv'
@@ -83,4 +110,4 @@ def interpolater(df: np.ndarray, timeIntervals):
     interpolated_df.to_csv('../data/interpolated_data.csv', index=False, mode='w')
     interpolated_data = interpolated_df.to_numpy()
 
-    return interpolated_data
+    return interpolated_data """
