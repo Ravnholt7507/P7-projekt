@@ -1,10 +1,6 @@
-import vector_based.cleanse_all_collisions as cleanse
-import vector_based.prediction as prediction
 import vector_based.cluster as cluster
 import vector_based.collision as collision
 import pandas as pd
-from haversine import haversine, Unit
-import time
 
 limit = 50000
 
