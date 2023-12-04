@@ -42,17 +42,10 @@ ship_data["pred_lon"] = preds_lon
 # Calculate distance traveled for each ship
 ship_data['distance'] = ship_data.apply(lambda row: haversine((row['LAT'], row['LON']), (row['pred_lat'], row['pred_lon']), unit=Unit.KILOMETERS), axis=1)
 
-# Print boat data for the 10 boats that have traveled the furthest distance in km using the Haversine formula
-# sorted_ship_data = ship_data.sort_values(by='distance', ascending=False)
-# print(sorted_ship_data[['MMSI', 'distance']].head(10),'km')
-
 print('Clustering ships...')
-# num_clusters = cluster.find_best_cluster(ship_data, 1000)
-# clusters = cluster.cluster_ships_kmeans(ship_data, 1)
 cluster_time = time.time()
 clusters = cluster.linkage_clustering(ship_data)
 print("in %s seconds" % (round_time(time.time() - cluster_time)))
-# print(clusters)
 
 # Calculate number of clusters
 num_clusters = len(pd.Series(clusters).value_counts())
@@ -60,9 +53,9 @@ print(f"Number of clusters: {num_clusters}")
 
 ship_data["cluster"] = clusters
 
-# Drop columns that are not needed (Heading, Vessel Name, IMO, Call Sign, Vessel Type, Status, Length, Width, Draft, Cargo
-ship_data = ship_data.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
-                           'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+# Drop columns that are not needed (Heading, Vessel Name, IMO, Call Sign, Vessel Type, Status, Length, Width, Draft, Cargo)
+# ship_data = ship_data.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
+                        #    'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
 # Save ship data to CSV file
 ship_data.to_csv('data/ship_data.csv', index=False)

@@ -22,7 +22,6 @@ def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
     return (degrees(lat2), degrees(lon2))
 
 def predict(MMSI, df, file_path):
-
     ship = df[df['MMSI'] == int(MMSI)]
     length = len(ship)
     empty = False
@@ -30,66 +29,39 @@ def predict(MMSI, df, file_path):
     with open(file_path, 'r') as file:
         csv_dict = [row for row in csv.DictReader(file)]
         if len(csv_dict) == 0:
-            # print('File is empty')
             empty = True
 
-    for i in range(length-1):
-        parsedPreTime = pd.to_datetime(ship.iloc[i]['BaseDateTime'])
-        parsedPostTime = pd.to_datetime(ship.iloc[i+1]['BaseDateTime'])
-        timeDiff = parsedPostTime - parsedPreTime
-        timeDiffFloat = timeDiff.total_seconds()
+    with open('data/predictions.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+        if empty:
+            field = ['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG']
+            writer.writerow(field)
 
-        # Calculating the speed in km/h
-        speed = ship.iloc[i]['SOG'] * 1.852
+        for i in range(length - 1):
+            parsedPreTime = pd.to_datetime(ship.iloc[i]['BaseDateTime'])
+            parsedPostTime = pd.to_datetime(ship.iloc[i + 1]['BaseDateTime'])
+            timeDiff = (parsedPostTime - parsedPreTime).total_seconds()
 
-        # Calculating the distance travelled in the time difference
-        distance = speed * timeDiffFloat / 3600
-        distance = round(distance, 2)
+            # Calculating the speed in km/h
+            speed = ship.iloc[i]['SOG'] * 1.852
 
-        lat = ship.iloc[i]['LAT']
-        lon = ship.iloc[i]['LON']
-        bearing = ship.iloc[i]['COG']
-        lat2, lon2 = get_point_at_distance(lat, lon, distance, bearing)
+            # Calculating the distance travelled in the time difference
+            distance = speed * timeDiff / 3600
+            distance = round(distance, 2)
 
-        # Print MMSI and time
-        # print('\n')
-        # print('MMSI: ', ship.iloc[i]['MMSI'])
-        # print('Time: ', ship.iloc[i]['BaseDateTime'])
+            lat = ship.iloc[i]['LAT']
+            lon = ship.iloc[i]['LON']
+            bearing = ship.iloc[i]['COG']
+            lat2, lon2 = get_point_at_distance(lat, lon, distance, bearing)
 
-        # print('Time difference: ', timeDiff.total_seconds(), ' seconds')
-        # print('Speed: ', speed, ' km/h')
-        # print('Distance travelled: ', distance, ' km')
-        # print('Initial position: ', lat, lon)
-        # print('Predicted position: ', lat2, lon2)
+            next_lat = ship.iloc[i + 1]['LAT']
+            next_lon = ship.iloc[i + 1]['LON']
+            dis = haversine((next_lat, next_lon), (lat2, lon2), unit=Unit.KILOMETERS)
+            dis = round(dis, 4)
 
-        # Print distance between initial and predicted position
-        # Round to 2 decimals
-        next_lat = ship.iloc[i+1]['LAT']
-        next_lon = ship.iloc[i+1]['LON']
-        dis = haversine((next_lat, next_lon),
-                        (lat2, lon2), unit=Unit.KILOMETERS)
-        dis = round(dis, 4)
-        # print('Distance between actual and predicted position: ', dis, ' km')
-
-        array = []
-        array.append(ship.iloc[i]['MMSI'])
-        array.append(ship.iloc[i]['BaseDateTime'])
-        array.append(lat2)
-        array.append(lon2)
-        array.append(ship.iloc[i]['SOG'])
-
-        with open('data/predictions.csv', 'a', newline='') as file:
-            writer = csv.writer(file)
-            if i == 0 and empty:
-                field = ['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG']
-                writer.writerow(field)
+            array = [ship.iloc[i]['MMSI'], ship.iloc[i]['BaseDateTime'], lat2, lon2, ship.iloc[i]['SOG']]
             writer.writerow(array)
 
-    # map.plot()
-    # plot.plot()
-    # plot.actualToPred()
-
-# Make new prediction function that takes in MMSI and returns a list of predictions, but instead of calculating time, use a predefined time interval.
 def predict2(MMSI, df, file_path):
     ship = df[df['MMSI'] == int(MMSI)]
     length = len(ship)
@@ -100,40 +72,34 @@ def predict2(MMSI, df, file_path):
         if len(csv_dict) == 0:
             empty = True
 
-    for i in range(length-1):
-        time = 180 # 1 minute
-        
-        # Calculating the speed in km/h
-        speed = ship.iloc[i]['SOG'] * 1.852
+    with open('data/predictions.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+        if empty:
+            field = ['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG']
+            writer.writerow(field)
 
-        # Calculating the distance travelled in the time difference
-        distance = speed * time / 3600
-        distance = round(distance, 2)
+        for i in range(length - 1):
+            time = 180  # 1 minute
 
-        lat = ship.iloc[i]['LAT']
-        lon = ship.iloc[i]['LON']
-        bearing = ship.iloc[i]['COG']
-        lat2, lon2 = get_point_at_distance(lat, lon, distance, bearing)
-        
-        next_lat = ship.iloc[i+1]['LAT']
-        next_lon = ship.iloc[i+1]['LON']
-        dis = haversine((next_lat, next_lon),(lat2, lon2), unit=Unit.KILOMETERS)
-        dis = round(dis, 4)
+            # Calculating the speed in km/h
+            speed = ship.iloc[i]['SOG'] * 1.852
 
-        array = []
-        array.append(ship.iloc[i]['MMSI'])
-        array.append(ship.iloc[i]['BaseDateTime'])
-        array.append(lat2)
-        array.append(lon2)
-        array.append(ship.iloc[i]['SOG'])
+            # Calculating the distance travelled in the time difference
+            distance = speed * time / 3600
+            distance = round(distance, 2)
 
-        with open('data/predictions.csv', 'a', newline='') as file:
-            writer = csv.writer(file)
-            if i == 0 and empty:
-                field = ['MMSI', 'BaseDateTime', 'LAT', 'LON', 'SOG']
-                writer.writerow(field)
+            lat = ship.iloc[i]['LAT']
+            lon = ship.iloc[i]['LON']
+            bearing = ship.iloc[i]['COG']
+            lat2, lon2 = get_point_at_distance(lat, lon, distance, bearing)
+
+            next_lat = ship.iloc[i + 1]['LAT']
+            next_lon = ship.iloc[i + 1]['LON']
+            dis = haversine((next_lat, next_lon), (lat2, lon2), unit=Unit.KILOMETERS)
+            dis = round(dis, 4)
+
+            array = [ship.iloc[i]['MMSI'], ship.iloc[i]['BaseDateTime'], lat2, lon2, ship.iloc[i]['SOG']]
             writer.writerow(array)
-
 
 def all_ships(df):
     MMSI = df['MMSI'].unique()
@@ -200,21 +166,4 @@ def predict_intv(df):
         print("Number of predictions: ", len(row))
         print("Avg. error: ", round(sum(row)/len(row),2))
         print("Mean error: ", round(statistics.median(row),2))
-        i = i+1
-
-    # output = []
-    # output.append('Total predictions: {}\n'.format(total_predictions))
-    # for row in stat_array:
-    #     output.append('\nFor distance interval: {}\n'.format(dist_intv[i]))
-    #     output.append('Number of predictions: {}\n'.format(len(row)))
-    #     output.append('Avg. error: {}\n'.format(round(sum(row)/len(row), 2)))
-    #     output.append('Mean error: {}\n'.format(
-    #         round(statistics.median(row), 2)))
-
-    #return output
-
-
-"""for row in stat_array:
-    for value in row:
-        print(value, end=' ')
-    print("\n")"""
+        i = i + 1

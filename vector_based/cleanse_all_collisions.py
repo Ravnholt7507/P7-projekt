@@ -1,9 +1,7 @@
 import pandas as pd
 
 def cleanse(save_to):
-     pd.set_option('display.max_columns', 20)
-
-     n = 150000  # number of records in file
+     
      # Read the CSV file
      df = pd.read_csv('data/AIS_2023_01_01.csv')
 

@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from haversine import haversine, Unit
 from tqdm import tqdm
 
-
 def find_intersection(p1, v1, p2, v2):
     cross_product = np.cross(v1, v2)
 
@@ -22,11 +21,6 @@ def find_intersection(p1, v1, p2, v2):
     else:
         # The vectors do not intersect within their segments
         return None
-    
-def find_radius(ship_data, cluster):
-    # Find the radius of the cluster
-    return 0
-    
 
 # Make another find_collisions function but using tqdm
 def find_collisions(ship_data, num_clusters):
@@ -71,27 +65,13 @@ def find_collisions(ship_data, num_clusters):
                         # Check if the time difference between the two ships is less than 3 minutes
                         if abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y]) < pd.Timedelta(minutes=3):
                             time_intersection += 1
-                            
                             with open('data/intersection_points.csv', 'a') as fp:
                                 fp.write(f"{intersection[0]},{intersection[1]},{cluster},{1},{time_diff}\n")
-                            
-                            
-                            print("update shore")
-                            
-                            # print(f"Ship 1: {cluster_data['MMSI'][x]}")
-                            # print(f"Ship 2: {cluster_data['MMSI'][y]}")
-                            # print(f"Time of ship 1: {cluster_data['BaseDateTime'][x]}")
-                            # print(f"Time of ship 2: {cluster_data['BaseDateTime'][y]}")
                         else:
-                            # print(f"Time difference between ship 1 and ship 2 is more than 3 minutes")
                             intersection_count += 1
-                            
                             with open('data/intersection_points.csv', 'a') as fp:
                                 fp.write(f"{intersection[0]},{intersection[1]},{cluster},{0},{time_diff}\n")
-                                
-
         Total_intersections += intersection_count
-        
         # Find the cluster with the most intersections
         if time_intersection > max_intersection_count:
             max_intersection_count = time_intersection
@@ -139,7 +119,6 @@ def find_distance(ship_data, num_clusters):
     margin = 0.5
     collisions = 0
     for cluster in tqdm(range(num_clusters)):
-
         cluster_data = ship_data[ship_data['cluster'] == cluster]
         cluster_data = cluster_data.reset_index(drop=True)
         cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
@@ -150,12 +129,9 @@ def find_distance(ship_data, num_clusters):
             for y in range(x+1, len(p1[0])):
                 if cluster_data['MMSI'].iloc[x] != cluster_data['MMSI'].iloc[y]:
                     if abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y]) < pd.Timedelta(minutes=3):
-
                         radius1 = p1[2][x]
                         radius2 = p1[2][y]
-
                         distance = haversine((p1[1][x],p1[0][x]),(p1[1][y],p1[0][y]), unit=Unit.KILOMETERS)
-
                         if (radius1 + radius2 + margin) >= distance:
                             collisions += 1
     print(collisions)
