@@ -8,7 +8,10 @@ def interpolater():
     df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
     df['BaseDateTime'] = pd.to_datetime(df['BaseDateTime'])
     df.sort_values(by=['MMSI', 'BaseDateTime'], inplace=True)
-    df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+    
+    # Check if Heading column exists
+    if 'Heading' in df.columns:
+        df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
     frequency = '2T' 
 

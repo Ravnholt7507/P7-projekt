@@ -1,9 +1,11 @@
 import vector_based.cluster as cluster
 import vector_based.collision as collision
 import pandas as pd
+import time
 
+def round_time(x):
+    return round(x, 2)
 
-# Read the data from the CSV file
 df2 = pd.read_csv('data/output.csv')
 df3 = df2.groupby('MMSI').first().reset_index()
 df4 = df2[df2['thresholdExceeded'] == True]
@@ -31,10 +33,19 @@ interpolated = interpolated.drop(columns=['time_seconds'])
 interpolated = interpolated.sort_values(by=['MMSI', 'BaseDateTime'])
 
 # Perform clustering
+start_time = time.time()
 clusters = cluster.linkage_clustering(interpolated)
 num_clusters = len(pd.Series(clusters).value_counts())
 print(f"Number of clusters: {num_clusters}")
 interpolated["cluster"] = clusters
+interpolated.to_csv('data/colission_interpolated.csv')
+
+# Print 5 largest clusters
+print(interpolated['cluster'].value_counts().nlargest(5))
+
+print(f"Clustering time: {round_time(time.time() - start_time)} seconds")
 
 # Find distances between points in each cluster
+start_time = time.time()
 collision.find_distance(interpolated, num_clusters)
+print(f"Distance calculation time: {round_time(time.time() - start_time)} seconds")
