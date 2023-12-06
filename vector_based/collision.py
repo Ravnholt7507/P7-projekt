@@ -129,8 +129,6 @@ def find_distance(ship_data, num_clusters):
 
         p1 = (cluster_data['locationThresholdLON'].tolist(), cluster_data['locationThresholdLAT'].tolist(), cluster_data['radiusThreshold'].tolist())
 
-
-
         for x in range(len(p1[0])):
             for y in range(x+1, len(p1[0])):
                 if cluster_data['MMSI'].iloc[x] != cluster_data['MMSI'].iloc[y]:
@@ -154,7 +152,7 @@ def find_vector_colission(ship_data, num_clusters):
     with open('data/vector_colissions.csv', 'w') as fp:
         fp.truncate()
         # Write header
-        fp.write('MMSI1,LON1,LAT1,vecLON1,vecLAT1,MMSI2,LON2,LAT2,vecLON2,vecLAT2,intersectionLON,intersectionLAT\n')
+        fp.write('MMSI1,Pos1,vec1,MMSI2,pos2,vec2,intersection,time_diff\n')
         
     for cluster in tqdm(range(num_clusters)):
         cluster_data = ship_data[ship_data['cluster'] == cluster]
@@ -177,9 +175,13 @@ def find_vector_colission(ship_data, num_clusters):
                     
                     if intersection is not None:
                         collisions += 1
+                        # Calculate time difference between the two ships
+                        time_diff = abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y])
+
+                                                
                         # Save MMSI, lat, lon and collision points between the two ships to a csv file
                         with open('data/vector_colissions.csv', 'a') as fp:
-                            fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1},{vec1},{cluster_data['MMSI'].iloc[y]},{pos2},{vec1},{intersection[0]},{intersection[1]}\n")
+                            fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1},{vec1},{cluster_data['MMSI'].iloc[y]},{pos2},{vec1},{intersection},{time_diff}\n")
                     
 
     print(collisions)
