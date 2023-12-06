@@ -10,18 +10,11 @@ import numpy as np
 import time
 from tqdm import tqdm
 
-<<<<<<< Updated upstream
 
-gv.tts = gv.TextToSpeech(voice_id=1, speed=170)
-gv.tts.toggle_speech(enable=True)
-gv.tts.speak("\nNarration is enabled to enhance program understanding. To run program normally, please pass False as boolean value to the toggle speech function found in main.\n\n")
-gv.tts.speak("Initiating program.\n\n")
-=======
-# gv.tts = # gv.TextToSpeech(voice_id=1, speed=170)
-# gv.tts.toggle_speech(enable=False)
+# gv.tts = gv.TextToSpeech(voice_id=1, speed=170)
+# gv.tts.toggle_speech(enable=True)
 # gv.tts.speak("\nNarration is enabled to enhance program understanding. To run program normally, please pass False as boolean value to the toggle speech function found in main.\n\n")
 # gv.tts.speak("Initiating program.\n\n")
->>>>>>> Stashed changes
 
 start_time = time.time()
 
