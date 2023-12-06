@@ -86,6 +86,7 @@ class vectorBasedModel:
 
 class AImodel:
     def __init__(self, Queue):
+        print("AImodel: Initializing")
         self.model = getModel("Seq2Seq")
         self.model.load_state_dict(torch.load('..\\ann\\saved_models\\Seq2Seq.pth', map_location=torch.device('cpu')))
         self.radiusThreshold = 0.5
@@ -114,6 +115,7 @@ class AImodel:
         return math.ceil(float(whole) * 0.1)
 
     def determineThreshold(self, Queue):
+        print("Queue: ")
         self.Queue = Queue
         # Iterate through each dictionary in the deque
         for record in Queue:
