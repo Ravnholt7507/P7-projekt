@@ -14,8 +14,8 @@ start_time = time.time()
 
 #Initialize working data and output data
 
-interpolated_data = dataHandler.interpolater()
-interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
+#interpolated_data = dataHandler.interpolater()
+#interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
 scaler = dataHandler.Fit_Scaler_To_Data(interpolated_data)
@@ -52,11 +52,29 @@ for col_idx, col_name in enumerate(output_CSV.columns[6:]):
 
 # Save dataframe as CSV
 output_CSV.to_csv('../data/output.csv')
-
-# Count all rows where the threshold was exceeded
-thresholdExceeded = output_CSV.loc[output_CSV['thresholdExceeded'] == True]
-print("Threshold exceeded in %s cases" % (len(thresholdExceeded)))
-
+output_df = pd.read_csv('../data/output.csv')
 
 print("Simulation complete!")
 print("in %s seconds" % (round(time.time() - start_time, 2)))
+
+#PRINT PERFORMANCE METRICS
+
+thresholdExceeded_Count = output_df.loc[output_df['thresholdExceeded'] == True]
+VectorModel_Count = output_df.loc[output_df['currentModel'] == 'vectorBasedModel']
+
+PointModel_Count = output_df.loc[output_df['currentModel'] == "pointBasedModel"]
+COGModel_Count = output_df.loc[output_df['currentModel'] == "COGBasedModel"]
+AIModelCount = output_df.loc[output_df['currentModel'] == "AImodel"]
+
+print("1",len(VectorModel_Count))
+print("2",len(PointModel_Count))
+print("3",len(COGModel_Count))
+print("4",len(AIModelCount))
+
+print("Total AIS updates: %s" % (len(thresholdExceeded_Count)))
+print("Reduced AIS updates by:",round((gv.readLimit-len(thresholdExceeded_Count))/gv.readLimit*100,1), "%\n\n")
+
+print("VectorBasedModel in use",round((len(VectorModel_Count)/len(simulationOutput))*100,1), "%")
+print("PointBasedModel in use",round((len(PointModel_Count)/len(simulationOutput))*100,1), "%")
+print("COGModel in use",round((len(COGModel_Count)/len(simulationOutput))*100,1), "%")
+print("AIModel in use",round((len(AIModelCount)/len(simulationOutput))*100,1), "%")
