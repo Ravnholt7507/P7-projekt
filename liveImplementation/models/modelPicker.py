@@ -1,5 +1,4 @@
 import models.traditionPredModels as traditionalModels
-import models.AIPredModels as AIModels
 
 def modelPicker(lastKnownLocations):
         '''
@@ -16,5 +15,5 @@ def modelPicker(lastKnownLocations):
                 return traditionalModels.COGBasedModel(lastKnownLocations[-1])
         elif len(lastKnownLocations) == 3:
                 return traditionalModels.vectorBasedModel(lastKnownLocations)
-        else:
-                return AIModels.AIPredictionModel(lastKnownLocations)
+        #else:
+        #        return traditionalModels.AIPredictionModel(lastKnownLocations)

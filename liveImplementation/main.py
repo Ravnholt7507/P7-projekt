@@ -10,6 +10,7 @@ import numpy as np
 import time
 from tqdm import tqdm
 import time
+import globalVariables as gv
 
 
 # gv.tts = gv.TextToSpeech(voice_id=1, speed=170)
@@ -26,14 +27,12 @@ start_time = time.time()
 # interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 # gv.tts.speak("Interpolation process completed.\n\n")
 
-interpolated_data = pd.read_csv('../data/interpolated_data.csv')
-
 #interpolated_data = dataHandler.interpolater()
 #interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
 scaler = dataHandler.Fit_Scaler_To_Data(interpolated_data)
-globals.scaler = scaler
+gv.scaler = scaler
 
 
 output_CSV = interpolated_data.copy()

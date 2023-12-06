@@ -7,6 +7,8 @@ class shoreEntity:
     def __init__(self, currentLocation) -> None:
         self.last_known_locations = deque(maxlen=10)
         self.last_known_locations.append(dict(currentLocation))   
+        #gv.tts.speak("     Shore initializing model.")     
+        self.last_known_locations.append(dict(currentLocation))    
         # gv.tts.speak("     Shore initializing model.")     
         self.current_model = mp.modelPicker(self.last_known_locations)
         # gv.tts.speak("     Shore initializing threshold.")
