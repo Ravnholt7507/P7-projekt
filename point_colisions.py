@@ -38,7 +38,10 @@ clusters = cluster.linkage_clustering(interpolated)
 num_clusters = len(pd.Series(clusters).value_counts())
 print(f"Number of clusters: {num_clusters}")
 interpolated["cluster"] = clusters
-interpolated.to_csv('data/colission_interpolated.csv')
+# Drop columns that are not needed (Heading, Vessel Name, IMO, Call Sign, Vessel Type, Status, Length, Width, Draft, Cargo)
+interpolated = interpolated.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
+                           'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+interpolated.to_csv('data/colission_interpolated.csv', index=False)
 
 # Print 5 largest clusters
 print(interpolated['cluster'].value_counts().nlargest(5))
@@ -47,5 +50,9 @@ print(f"Clustering time: {round_time(time.time() - start_time)} seconds")
 
 # Find distances between points in each cluster
 start_time = time.time()
+# If not vectorbased and COG is used, use this:
 collision.find_distance(interpolated, num_clusters)
+
+# If vectorbased and COG is used, use this:
+collision.find_collisions(interpolated, num_clusters)
 print(f"Distance calculation time: {round_time(time.time() - start_time)} seconds")
