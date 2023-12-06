@@ -24,11 +24,11 @@ def interpolater():
     
     # Check if Heading column exists
     if 'Heading' in df.columns:
-        df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+        df_dropped = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
     frequency = '2T' 
 
-    grouped = df.groupby('MMSI')
+    grouped = df_dropped.groupby('MMSI')
     interpolated_data = []
     #print(grouped.dtypes)
 
@@ -39,8 +39,15 @@ def interpolater():
         interpolated = resampled.interpolate(method='linear')
         interpolated['MMSI'] = mmsi
         interpolated_data.append(interpolated)
-    interpolated_df = pd.concat(interpolated_data)
+        interpolated_df = pd.concat(interpolated_data)
     interpolated_df.reset_index(inplace=True)
+    
+    #Re-inserts VesselName column
+    mapping_dict = df.set_index('MMSI')['VesselName'].to_dict()
+    print("Length of AIS_2023 dataframe: ", len(df))
+    print("Length of interpolated dataframe: ", len(interpolated_df))
+    interpolated_df['VesselName'] = interpolated_df['MMSI'].map(mapping_dict)
+
     return interpolated_df
 
 

@@ -14,8 +14,8 @@ start_time = time.time()
 
 #Initialize working data and output data
 
-#interpolated_data = dh.interpolater()
-#interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
+interpolated_data = dh.interpolater()
+interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
 scaler = dh.Fit_Scaler_To_Data(interpolated_data)
@@ -47,7 +47,7 @@ for name, group in tqdm(interpolated_data, desc="Running simulation"):
     i = i+1
 
 # Append output metrics to copy of working CSV file -> gives complete output_DF
-for col_idx, col_name in enumerate(output_DF.columns[6:]):
+for col_idx, col_name in enumerate(output_DF.columns[7:]):
     output_DF[col_name] = [row[col_idx] for row in simulationOutput]
 
 # Save dataframe as CSV
