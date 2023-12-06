@@ -16,7 +16,7 @@ interpolated = interpolated.drop_duplicates().drop(columns=['Unnamed: 0'])
 interpolated['BaseDateTime'] = pd.to_datetime(interpolated['BaseDateTime'])
 interpolated['BaseDateTime'] = interpolated['BaseDateTime'].dt.hour * 3600 + interpolated['BaseDateTime'].dt.minute * 60 + interpolated['BaseDateTime'].dt.second
 
-limit = 50000
+limit = 5000
 # Read the data from another CSV file with a limit of 'limit' rows
 df_time = pd.read_csv('data/AIS_2023_01_01.csv', nrows=limit)
 df_time = df_time.sort_values(by=['MMSI', 'BaseDateTime']).drop_duplicates(subset=['MMSI'], keep='first')
@@ -39,9 +39,11 @@ num_clusters = len(pd.Series(clusters).value_counts())
 print(f"Number of clusters: {num_clusters}")
 interpolated["cluster"] = clusters
 # Drop columns that are not needed (Heading, Vessel Name, IMO, Call Sign, Vessel Type, Status, Length, Width, Draft, Cargo)
-interpolated = interpolated.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
-                           'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
-interpolated.to_csv('data/colission_interpolated.csv', index=False)
+    # Check if Heading column exists
+if 'Heading' in interpolated.columns:
+    interpolated = interpolated.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+
+# interpolated.to_csv('data/colission_interpolated.csv', index=False)
 
 # Print 5 largest clusters
 print(interpolated['cluster'].value_counts().nlargest(5))
@@ -50,9 +52,16 @@ print(f"Clustering time: {round_time(time.time() - start_time)} seconds")
 
 # Find distances between points in each cluster
 start_time = time.time()
+print("Finding distances...")
 # If not vectorbased and COG is used, use this:
-collision.find_distance(interpolated, num_clusters)
+# collision.find_distance(interpolated, num_clusters)
 
 # If vectorbased and COG is used, use this:
-collision.find_collisions(interpolated, num_clusters)
+# collision.find_distance_vectorbased(interpolated, num_clusters)
+
+# Take all rows where currentModel is COGbased and save them to a new dataframe
+cogbased = interpolated[interpolated['currentModel'] == 'COGBasedModel']
+# cogbased.to_csv('data/colission_cogbased.csv', index=False)
+
+collision.find_vector_colission(cogbased, num_clusters)
 print(f"Distance calculation time: {round_time(time.time() - start_time)} seconds")
