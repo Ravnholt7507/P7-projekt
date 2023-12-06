@@ -2,7 +2,7 @@ from sklearn.preprocessing import MinMaxScaler
 import actors.shore as shore
 import actors.boat as boat
 import models.traditionPredModels as tradModels
-import interDataHandler as dataHandler
+import DataHandler as dh
 import simulation as simulationClass
 import globalVariables as gv
 import pandas as pd
@@ -14,22 +14,22 @@ start_time = time.time()
 
 #Initialize working data and output data
 
-#interpolated_data = dataHandler.interpolater()
+#interpolated_data = dh.interpolater()
 #interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
-scaler = dataHandler.Fit_Scaler_To_Data(interpolated_data)
+scaler = dh.Fit_Scaler_To_Data(interpolated_data)
 # gv.scaler = scaler
 
-output_CSV = interpolated_data.copy()
-output_CSV['predictedLAT'] = None
-output_CSV['predictedLON'] = None
+output_DF = interpolated_data.copy()
+output_DF['predictedLAT'] = None
+output_DF['predictedLON'] = None
 
-output_CSV['locationThresholdLAT'] = None
-output_CSV['locationThresholdLON'] = None
-output_CSV['radiusThreshold'] = None
-output_CSV['thresholdExceeded'] = None
-output_CSV['currentModel'] = None
+output_DF['locationThresholdLAT'] = None
+output_DF['locationThresholdLON'] = None
+output_DF['radiusThreshold'] = None
+output_DF['thresholdExceeded'] = None
+output_DF['currentModel'] = None
 
 interpolated_data = interpolated_data.groupby('MMSI')
 
@@ -46,35 +46,30 @@ for name, group in tqdm(interpolated_data, desc="Running simulation"):
     
     i = i+1
 
-# Append output metrics to copy of working CSV file -> gives complete outputCSV
-for col_idx, col_name in enumerate(output_CSV.columns[6:]):
-    output_CSV[col_name] = [row[col_idx] for row in simulationOutput]
+# Append output metrics to copy of working CSV file -> gives complete output_DF
+for col_idx, col_name in enumerate(output_DF.columns[6:]):
+    output_DF[col_name] = [row[col_idx] for row in simulationOutput]
 
 # Save dataframe as CSV
-output_CSV.to_csv('../data/output.csv')
+output_DF.to_csv('../data/output.csv', index=False)
 output_df = pd.read_csv('../data/output.csv')
-
-print("Simulation complete!")
-print("in %s seconds" % (round(time.time() - start_time, 2)))
 
 #PRINT PERFORMANCE METRICS
 
-thresholdExceeded_Count = output_df.loc[output_df['thresholdExceeded'] == True]
-VectorModel_Count = output_df.loc[output_df['currentModel'] == 'vectorBasedModel']
+print("\nSimulation complete!")
+print("in %s seconds\n" % (round(time.time() - start_time, 2)))
 
-PointModel_Count = output_df.loc[output_df['currentModel'] == "pointBasedModel"]
-COGModel_Count = output_df.loc[output_df['currentModel'] == "COGBasedModel"]
-AIModelCount = output_df.loc[output_df['currentModel'] == "AImodel"]
 
-print("1",len(VectorModel_Count))
-print("2",len(PointModel_Count))
-print("3",len(COGModel_Count))
-print("4",len(AIModelCount))
+thresholdExceeded_Count = dh.countInstances('thresholdExceeded', True, output_df)
+VectorModel_Count = dh.countInstances('currentModel', 'vectorBasedModel', output_df)
+PointModel_Count = dh.countInstances('currentModel', 'pointBasedModel', output_df)
+COGModel_Count = dh.countInstances('currentModel', 'COGBasedModel', output_df)
+AIModelCount = dh.countInstances('currentModel', 'AImodel', output_df)
 
 print("Total AIS updates: %s" % (len(thresholdExceeded_Count)))
-print("Reduced AIS updates by:",round((gv.readLimit-len(thresholdExceeded_Count))/gv.readLimit*100,1), "%\n\n")
+print("Reduced AIS updates by:",round((gv.readLimit-len(thresholdExceeded_Count))/gv.readLimit*100,1), "%\n")
 
-print("VectorBasedModel in use",round((len(VectorModel_Count)/len(simulationOutput))*100,1), "%")
-print("PointBasedModel in use",round((len(PointModel_Count)/len(simulationOutput))*100,1), "%")
-print("COGModel in use",round((len(COGModel_Count)/len(simulationOutput))*100,1), "%")
-print("AIModel in use",round((len(AIModelCount)/len(simulationOutput))*100,1), "%")
+print("VectorBasedModel in use",dh.calcPartPerc(VectorModel_Count, simulationOutput), "%")
+print("PointBasedModel in use",dh.calcPartPerc(PointModel_Count, simulationOutput), "%")
+print("COGModel in use",dh.calcPartPerc(COGModel_Count, simulationOutput), "%")
+print("AIModel in use",dh.calcPartPerc(AIModelCount, simulationOutput), "%")

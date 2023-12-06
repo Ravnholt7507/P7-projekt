@@ -4,6 +4,12 @@ from tqdm import tqdm
 import globalVariables as globals
 from sklearn.preprocessing import MinMaxScaler
 
+def countInstances(columnm, value, dataframe):
+    return dataframe.loc[dataframe[columnm] == value]
+
+def calcPartPerc(part, whole):
+    return round((len(part)/len(whole))*100)
+
 def Fit_Scaler_To_Data(df):
     scaler = MinMaxScaler()
     features_to_scale = ['LAT', 'LON', 'SOG', 'COG']
