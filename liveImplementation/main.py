@@ -20,7 +20,6 @@ import time
 start_time = time.time()
 
 #Initialize working data and output data
-<<<<<<< Updated upstream
 
 # gv.tts.speak("Interpolating data. Please wait.")
 # interpolated_data = dataHandler.interpolater()
@@ -28,14 +27,14 @@ start_time = time.time()
 # gv.tts.speak("Interpolation process completed.\n\n")
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
-=======
+
 #interpolated_data = dataHandler.interpolater()
 #interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
 scaler = dataHandler.Fit_Scaler_To_Data(interpolated_data)
 globals.scaler = scaler
->>>>>>> Stashed changes
+
 
 output_CSV = interpolated_data.copy()
 output_CSV['predictedLAT'] = None
