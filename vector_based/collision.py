@@ -118,12 +118,18 @@ def find_collisions(ship_data, num_clusters):
 def find_distance(ship_data, num_clusters):
     margin = 0.5
     collisions = 0
+    # Clear collisions.csv
+    with open('data/collisions.csv', 'w') as fp:
+        fp.truncate()
+        fp.write('MMSI1,LON1,LAT1,radius1,MMSI2,LON2,LAT2,radius2,\n')
     for cluster in tqdm(range(num_clusters)):
         cluster_data = ship_data[ship_data['cluster'] == cluster]
         cluster_data = cluster_data.reset_index(drop=True)
         cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
 
         p1 = (cluster_data['locationThresholdLON'].tolist(), cluster_data['locationThresholdLAT'].tolist(), cluster_data['radiusThreshold'].tolist())
+
+
 
         for x in range(len(p1[0])):
             for y in range(x+1, len(p1[0])):
@@ -134,6 +140,12 @@ def find_distance(ship_data, num_clusters):
                         distance = haversine((p1[1][x],p1[0][x]),(p1[1][y],p1[0][y]), unit=Unit.KILOMETERS)
                         if (radius1 + radius2 + margin) >= distance:
                             collisions += 1
+                            #save collisions and radius threshold to csv file aswell as the two mmsi that colide
+                            mmsi1 = cluster_data['MMSI'].iloc[x]
+                            mmsi2 = cluster_data['MMSI'].iloc[y]
+                            with open('data/collisions.csv', 'a') as fp:
+                                fp.write(f"{mmsi1},{p1[0][x]},{p1[1][x]},{radius1},{mmsi2},{p1[0][y]},{p1[1][y]},{radius2}\n")
+
     print(collisions)
 
 
