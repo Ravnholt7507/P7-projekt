@@ -1,9 +1,14 @@
 import pandas as pd
+<<<<<<< Updated upstream
 import pyttsx3
+=======
+from sklearn.preprocessing import MinMaxScaler
+>>>>>>> Stashed changes
 
 timeIntervals = 10
 readLimit = 50000
 output_CSV = pd.DataFrame()
+<<<<<<< Updated upstream
 tts = 0
 
 
@@ -35,3 +40,7 @@ class TextToSpeech:
             print(speech_text)
             self.engine.say(speech_text)
             self.engine.runAndWait()
+=======
+scaler = MinMaxScaler()
+has_normalized = False
+>>>>>>> Stashed changes
