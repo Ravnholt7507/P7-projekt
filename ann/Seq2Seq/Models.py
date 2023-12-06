@@ -39,7 +39,7 @@ class TransformerModel(nn.Module):
         return output
 
 
-
+"""
 class EncoderSimple(nn.Module):
     def __init__(self, input_size, hidden_size):
         super(EncoderSimple, self).__init__()
@@ -104,10 +104,103 @@ class Seq2SeqWithAttention(nn.Module):
 
 
 
+"""
+#lstmseq2seqatt
+import torch
+import torch.nn as nn
+import random
+
+# Encoder Class
+class Encoder(nn.Module):
+    def __init__(self, hidden_size):
+        super().__init__()
+        self.lstm = nn.LSTM(4, hidden_size, batch_first=True)
+        self.layer_norm = nn.LayerNorm(hidden_size)
+        self.dropout = nn.Dropout(0.1)
+
+    def forward(self, encoder_inputs):
+        outputs, (hidden, cell) = self.lstm(encoder_inputs)
+      #  outputs = self.layer_norm(outputs)
+        outputs = self.dropout(outputs)
+        return outputs, (hidden, cell)
+
+# Attention Class
+class Attention(nn.Module):
+    def __init__(self, hidden_size):
+        super().__init__()
+        self.initial_layer = nn.Linear(2 * hidden_size, hidden_size)
+        self.final_layer = nn.Linear(hidden_size, 1)
+        self.layer_norm = nn.LayerNorm(hidden_size)  # Layer normalization
+        self.dropout = nn.Dropout(0.1)  # Dropout
+
+    def forward(self, current_decoder_hidden, encoder_outputs):
+        batch_size = encoder_outputs.size(0)
+        seq_len = encoder_outputs.size(1)
+
+        decoder_hidden_stack = current_decoder_hidden.repeat(seq_len, 1, 1).transpose(0, 1)
+        energy = torch.tanh(self.initial_layer(torch.cat((encoder_outputs, decoder_hidden_stack), dim=2)))
+      #  energy = self.layer_norm(energy)  # Apply layer normalization
+      #  energy = self.dropout(energy)  # Apply dropout
+        energy = self.final_layer(energy).squeeze(2)
+
+        attention_weights = torch.softmax(energy, dim=1)
+        context_vector = torch.bmm(attention_weights.unsqueeze(1), encoder_outputs).squeeze(1)
+
+        return context_vector, attention_weights
+
+# Decoder with Attention Class
+class DecoderWithAttention(nn.Module):
+    def __init__(self, hidden_size):
+        super().__init__()
+        self.attention_module = Attention(hidden_size)
+        self.rnn = nn.LSTM(4 + hidden_size, hidden_size, batch_first=True)
+        self.out = nn.Linear(hidden_size, 4)
+      #  self.layer_norm = nn.LayerNorm(hidden_size)  # Layer normalization
+      #  self.dropout = nn.Dropout(0.1)  # Dropout
+
+    def forward(self, initial_input, encoder_outputs, hidden_cell, targets, teacher_force_probability):
+        decoder_sequence_length = targets.size(1)
+        batch_size = targets.size(0)
+        outputs = torch.zeros(batch_size, decoder_sequence_length, 4).to(initial_input.device)
+
+        input_at_t = initial_input
+        hidden, cell = hidden_cell
+
+        attention_weights_all_timesteps = []
+
+        for t in range(decoder_sequence_length):
+            context_vector, attention_weights = self.attention_module(hidden[0], encoder_outputs)
+            attention_weights_all_timesteps.append(attention_weights.unsqueeze(1))
+            rnn_input = torch.cat((input_at_t, context_vector), dim=1).unsqueeze(1)
+            output, (hidden, cell) = self.rnn(rnn_input, (hidden, cell))
+          #  output = self.layer_norm(output)  # Apply layer normalization
+          #  output = self.dropout(output)  # Apply dropout
+            output = self.out(output.squeeze(1))
+            outputs[:, t, :] = output
+
+            teacher_force = random.random() < teacher_force_probability
+            input_at_t = targets[:, t, :] if teacher_force else output
+
+        attention_weights_all = torch.cat(attention_weights_all_timesteps, dim=1)
+
+        return outputs, attention_weights_all
+
+# Seq2Seq Model
+class Seq2Seq(nn.Module):
+    def __init__(self, encoder, decoder):
+        super().__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+
+    def forward(self, encoder_inputs, targets, teacher_force_probability):
+        encoder_outputs, hidden_cell = self.encoder(encoder_inputs)
+        outputs, attention_weights = self.decoder(encoder_inputs[:, -1, :], encoder_outputs, hidden_cell, targets, teacher_force_probability)
+        return outputs
+
 
 def getModel(modelString):
     if modelString == 'Seq2Seq' or modelString == 'seq2Seq':
-        model = Seq2SeqWithAttention(input_size=4, hidden_size=100, output_size=4)
+        model = Seq2Seq(Encoder(hidden_size = 64), DecoderWithAttention(hidden_size = 64))
     if modelString == 'Transformer' or modelString == 'transformer':
         model = TransformerModel(feature_size=4, d_model=64, nhead=2, num_layers=3, output_timesteps=3, output_features=4)
     return model

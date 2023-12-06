@@ -1,10 +1,18 @@
+from datetime import datetime
 from math import radians, sin, cos, sqrt, atan2
+import math
+import sys
+sys.path.append('../../P7-projekt')
+from ann.Seq2Seq.Models import getModel
+import torch 
+from sklearn.preprocessing import MinMaxScaler
 import haversine as hv
 from haversine import haversine
 from geopy.distance import distance
 from geopy.point import Point
 import globalVariables as globals
 from geographiclib.geodesic import Geodesic
+
 
 class pointBasedModel:
 
@@ -75,4 +83,73 @@ class vectorBasedModel:
     def runPredictionAlgorithm(self, predictedCoordinates):
         distanceTravelled = self.speed * (globals.timeIntervals / 3600)
         return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.COG)
+
+class AImodel:
+    def __init__(self, Queue):
+        self.model = getModel("Seq2Seq")
+        self.model.load_state_dict(torch.load('..\\ann\\saved_models\\Seq2Seq.pth', map_location=torch.device('cpu')))
+        self.radiusThreshold = 0.5
+        self.Queue = Queue
+        self.output = torch.empty((0), dtype=torch.float32)
+        self.timesteps = 0
+        self.overshot_timesteps = 0
+
+    def __str__(self):
+        return "AImodel"
     
+    def normalize(self, tensor):
+        scaler = globals.scaler
+        tensor = scaler.transform(tensor)
+        return torch.from_numpy(tensor)
+
+    def denormalize(self, tensor):
+        scaler = globals.scaler
+        denorm_tensor = scaler.inverse_transform(tensor)
+        return torch.from_numpy(denorm_tensor)
+
+    def remove_gradient(self, tensors):
+        return
+    
+    def percentage(self, whole):
+        return math.ceil(float(whole) * 0.1)
+
+    def determineThreshold(self, Queue):
+        self.Queue = Queue
+        # Iterate through each dictionary in the deque
+        for record in Queue:
+            record.pop('MMSI', None)  # Remove 'MMSI', do nothing if the key doesn't exist
+            record.pop('BaseDateTime', None)  # Remove 'BaseDateTime', do nothing if the key doesn't exist
+        input = torch.tensor([list(item.values()) for item in Queue])
+        input = self.normalize(input)
+        input = input.unsqueeze(1)
+
+        SOG = Queue[-1]['SOG'] * 1.852
+        distanceTime = self.radiusThreshold / SOG
+        timesteps = math.floor((distanceTime*60*60) / globals.timeIntervals)
+        buffer = self.percentage(timesteps)
+        overshot_timesteps = timesteps * 2 + buffer #Overshoots 
+        self.timesteps = timesteps
+        self.overshot_timesteps = overshot_timesteps
+
+        print("WallaWallaWalla", overshot_timesteps+1)
+        target = torch.rand(1,overshot_timesteps+1,4) # will change this to only sequence length later
+        input = input.type(torch.float32)
+        output = self.model(input, target, 0.0)
+        output = output.squeeze(0) #Squeeze for at få [1, seq_len,features] = [seq_len, features] , 1 er fra batchsize 
+        output = output.cpu().detach().numpy() 
+        output = self.denormalize(output)
+
+        thresholdCoordinates = output[timesteps][0], output[timesteps][1]
+        self.output = output
+
+        print("HALOOO: ", thresholdCoordinates)
+        return thresholdCoordinates, self.radiusThreshold
+
+    def runPredictionAlgorithm(self, predictedCoordinates):
+        print("swaaaaaaaaaaaaaaaaaaaaaaaaaag")
+        predictedCoordinates = self.output[0][0], self.output[0][1]
+        # Delete the row where seq_len=0 (assuming it's the first row)
+        print(self.output[:,0])
+        self.output = self.output[1:]
+        print(self.output[:,0])
+        return predictedCoordinates

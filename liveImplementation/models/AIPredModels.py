@@ -1,2 +1,0 @@
-""" def AIBasedModel():
-    #test """

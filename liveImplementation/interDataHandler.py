@@ -2,6 +2,13 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 import globalVariables as globals
+from sklearn.preprocessing import MinMaxScaler
+
+def Fit_Scaler_To_Data(df):
+    scaler = MinMaxScaler()
+    features_to_scale = ['LAT', 'LON', 'SOG', 'COG']
+    return scaler.fit(df[features_to_scale])
+
 
 def interpolater():
     df = pd.read_csv("../data/AIS_2023_01_01.csv", nrows=globals.readLimit)

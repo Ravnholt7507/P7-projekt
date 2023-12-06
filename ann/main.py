@@ -11,6 +11,9 @@ from Seq2Seq.Preprocessing import normalize
 from Seq2Seq.Dataloaders import getDataLoaders
 from Seq2Seq.Models import getModel
 from Seq2Seq.testing import testing
+import sys
+sys.path.append('P7-projekt')
+import liveImplementation.globalVariables as gv
 
 
 def read_data(file_path, n_rows):
@@ -121,6 +124,7 @@ def test_test_main():
     # get rid of nan rows (in speed and course) - could just set to -1
     df = df.dropna()
     df, scaler = normalize(df)
+    gv.scaler = scaler 
     modelname = 'Transformer'
     Train_Loader, Valid_Loader, Test_Loader = getDataLoaders(df, input_sequence_length=20, output_sequence_length=3)
     train(modelname, Train_Loader, Valid_Loader)
