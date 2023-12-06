@@ -44,8 +44,6 @@ def interpolater():
     
     #Re-inserts VesselName column
     mapping_dict = df.set_index('MMSI')['VesselName'].to_dict()
-    print("Length of AIS_2023 dataframe: ", len(df))
-    print("Length of interpolated dataframe: ", len(interpolated_df))
     interpolated_df['VesselName'] = interpolated_df['MMSI'].map(mapping_dict)
 
     return interpolated_df
