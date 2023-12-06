@@ -43,7 +43,7 @@ def find_collisions(ship_data, num_clusters):
         cluster_data = cluster_data.reset_index(drop=True)
 
         p1 = (cluster_data['LON'].tolist(), cluster_data['LAT'].tolist())
-        v1 = (cluster_data['pred_lon'].tolist(), cluster_data['pred_lat'].tolist())
+        v1 = (cluster_data['predictedLON'].tolist(), cluster_data['predictedLAT'].tolist())
         intersection_count = 0
         time_intersection = 0
 
@@ -85,7 +85,7 @@ def find_collisions(ship_data, num_clusters):
     cluster_data = ship_data[ship_data['cluster'] == max_cluster]
     cluster_data = cluster_data.reset_index(drop=True)
     plt.scatter(cluster_data['LON'], cluster_data['LAT'], color='red')
-    plt.scatter(cluster_data['pred_lon'], cluster_data['pred_lat'], color='green')
+    plt.scatter(cluster_data['predictedLON'], cluster_data['predictedLAT'], color='green')
 
     # Plot points from intersection_points.csv where the last column is 0
     intersection_points = pd.read_csv('data/intersection_points.csv')
@@ -108,7 +108,7 @@ def find_collisions(ship_data, num_clusters):
     
     # Plot lines between p1 and v1
     for i in range(len(cluster_data['LON'])):
-        plt.plot([cluster_data['LON'][i], cluster_data['pred_lon'][i]], [cluster_data['LAT'][i], cluster_data['pred_lat'][i]], color='green')
+        plt.plot([cluster_data['LON'][i], cluster_data['predictedLON'][i]], [cluster_data['LAT'][i], cluster_data['predictedLAT'][i]], color='green')
     plt.title(f"Cluster {max_cluster} - {max_intersection_count} intersections")
     plt.show()
     plt.savefig(f"figures/cluster_{max_cluster}_intersections.png")
@@ -148,4 +148,38 @@ def find_distance(ship_data, num_clusters):
 
     print(collisions)
 
+def find_vector_colission(ship_data, num_clusters):
+    collisions = 0
+    
+    with open('data/vector_colissions.csv', 'w') as fp:
+        fp.truncate()
+        # Write header
+        fp.write('MMSI1,LON1,LAT1,vecLON1,vecLAT1,MMSI2,LON2,LAT2,vecLON2,vecLAT2,intersectionLON,intersectionLAT\n')
+        
+    for cluster in tqdm(range(num_clusters)):
+        cluster_data = ship_data[ship_data['cluster'] == cluster]
+        cluster_data = cluster_data.reset_index(drop=True)
+        cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
 
+        p1 = (cluster_data['locationThresholdLON'].tolist(), cluster_data['locationThresholdLAT'].tolist(), cluster_data['radiusThreshold'].tolist())
+        v1 = (cluster_data['predictedLON'].tolist(), cluster_data['predictedLAT'].tolist())
+
+        # Compare every vector with every other vector in the same cluster
+        for x in range(len(p1[0])):
+            for y in range(x+1, len(p1[0])):
+                if cluster_data['MMSI'].iloc[x] != cluster_data['MMSI'].iloc[y]:
+                    pos1 = np.array([p1[0][x], p1[1][x]])
+                    pos2 = np.array([p1[0][y], p1[1][y]])
+                    vec1 = np.array([v1[0][x]-p1[0][x], v1[1][x] - p1[1][x]])
+                    vec2 = np.array([v1[0][y]-p1[0][y], v1[1][y] - p1[1][y]])
+                    
+                    intersection = find_intersection(pos1, vec1, pos2, vec2)
+                    
+                    if intersection is not None:
+                        collisions += 1
+                        # Save MMSI, lat, lon and collision points between the two ships to a csv file
+                        with open('data/vector_colissions.csv', 'a') as fp:
+                            fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1},{vec1},{cluster_data['MMSI'].iloc[y]},{pos2},{vec1},{intersection[0]},{intersection[1]}\n")
+                    
+
+    print(collisions)
