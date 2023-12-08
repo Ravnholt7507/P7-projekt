@@ -82,6 +82,33 @@ class vectorBasedModel:
     def runPredictionAlgorithm(self, predictedCoordinates):
         distanceTravelled = self.speed * (globals.timeIntervals / 3600)
         return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.COG)
+    
+class HeadingBasedModel:
+    def __init__(self, lastKnownLocation) -> None:
+        #if called check heading != 511
+        self.Heading = lastKnownLocation['Heading']
+        self.speed = lastKnownLocation['SOG'] * 1.852
+    
+    def __str__(self):
+        return("HeadingBasedModel")
+    
+    def determineThreshold(self, lastKnownLocations):
+        if self.Heading != 511:
+            currentLocation = lastKnownLocations[-1]
+            #print("HeadingBasedModel: Determining threshold")
+            initialCoordinates = (currentLocation['LAT'],currentLocation['LON'])
+            self.Heading = currentLocation['Heading']
+            self.radiusThreshold = 0.5
+            self.speed = currentLocation['SOG'] * 1.852
+            thresholdCoordinates = distance(kilometers=self.radiusThreshold).destination(initialCoordinates, self.Heading)
+            #print("HeadingBasedModel: Threshold determined as: ", thresholdCoordinates[0], thresholdCoordinates[1])
+            return thresholdCoordinates, self.radiusThreshold
+
+    def runPredictionAlgorithm(self, predictedCoordinates):
+        #print("HeadingBasedModel: Running predictionAlgorithm")
+        distanceTravelled = self.speed * (globals.timeIntervals / 3600)
+        return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.Heading)
+
 
 class AIBasedModel:
     def __init__(self, Queue):

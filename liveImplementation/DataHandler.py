@@ -3,6 +3,7 @@ import numpy as np
 from tqdm import tqdm
 import globalVariables as globals
 from sklearn.preprocessing import MinMaxScaler
+import random
 
 def countInstances(columnm, value, dataframe):
     return dataframe.loc[dataframe[columnm] == value]
@@ -14,6 +15,21 @@ def Fit_Scaler_To_Data(df):
     scaler = MinMaxScaler()
     features_to_scale = ['LAT', 'LON', 'SOG', 'COG']
     return scaler.fit(df[features_to_scale])
+
+def Remove_Random_COG():
+    Limit = 50000
+
+    RNRN = random.sample(range(1, Limit-1), 10000)
+    print(np.sort(RNRN))
+    print(len(np.unique(RNRN)))
+
+    df = pd.read_csv('data/AIS_2023_01_01.csv', nrows=Limit)
+
+    for x in range(len(RNRN)):
+        df.iloc[RNRN[x], df.columns.get_loc('COG')] = None
+
+    df.to_csv('data/skovl.csv')
+
 
 def interpolater():
     df = pd.read_csv("../data/AIS_2023_01_01.csv", nrows=globals.readLimit)
