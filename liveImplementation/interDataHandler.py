@@ -4,16 +4,11 @@ from tqdm import tqdm
 import globalVariables as globals
 from sklearn.preprocessing import MinMaxScaler
 
-def countInstances(columnm, value, dataframe):
-    return dataframe.loc[dataframe[columnm] == value]
-
-def calcPartPerc(part, whole):
-    return round((len(part)/len(whole))*100)
-
 def Fit_Scaler_To_Data(df):
     scaler = MinMaxScaler()
     features_to_scale = ['LAT', 'LON', 'SOG', 'COG']
     return scaler.fit(df[features_to_scale])
+
 
 def interpolater():
     df = pd.read_csv("../data/AIS_2023_01_01.csv", nrows=globals.readLimit)
@@ -23,12 +18,11 @@ def interpolater():
     
     # Check if Heading column exists
     if 'Heading' in df.columns:
-        df_dropped = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+        df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
-    frequency = '10S' 
+    frequency = '2T' 
 
-    grouped = df_dropped.groupby('MMSI')
-    print(len(grouped))
+    grouped = df.groupby('MMSI')
     interpolated_data = []
     #print(grouped.dtypes)
 
@@ -41,11 +35,6 @@ def interpolater():
         interpolated_data.append(interpolated)
     interpolated_df = pd.concat(interpolated_data)
     interpolated_df.reset_index(inplace=True)
-    
-    #Re-inserts VesselName column
-    mapping_dict = df.set_index('MMSI')['VesselName'].to_dict()
-    interpolated_df['VesselName'] = interpolated_df['MMSI'].map(mapping_dict)
-
     return interpolated_df
 
 

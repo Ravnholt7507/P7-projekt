@@ -19,7 +19,7 @@ interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
 scaler = dh.Fit_Scaler_To_Data(interpolated_data)
-# gv.scaler = scaler
+gv.scaler = scaler
 
 output_DF = interpolated_data.copy()
 output_DF['predictedLAT'] = None

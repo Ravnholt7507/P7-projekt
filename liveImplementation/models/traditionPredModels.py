@@ -39,7 +39,6 @@ class pointBasedModel:
     
 class COGBasedModel:
     def __init__(self, lastKnownLocation) -> None:
-
         self.COG = lastKnownLocation['COG']
         self.speed = lastKnownLocation['SOG'] * 1.852
     
@@ -84,14 +83,14 @@ class vectorBasedModel:
         distanceTravelled = self.speed * (globals.timeIntervals / 3600)
         return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.COG)
 
-class AImodel:
+class AIBasedModel:
     def __init__(self, Queue):
         print("AImodel: Initializing")
         self.model = getModel("Seq2Seq")
         self.model.load_state_dict(torch.load('..\\ann\\saved_models\\Seq2Seq.pth', map_location=torch.device('cpu')))
         self.radiusThreshold = 0.5
         self.Queue = Queue
-        self.output = torch.empty((0), dtype=torch.float32)
+        self.output = torch.empty((0), dtype=torch.float32) #define placeholder until we get output
         self.timesteps = 0
         self.overshot_timesteps = 0
 
@@ -121,10 +120,17 @@ class AImodel:
         for record in Queue:
             record.pop('MMSI', None)  # Remove 'MMSI', do nothing if the key doesn't exist
             record.pop('BaseDateTime', None)  # Remove 'BaseDateTime', do nothing if the key doesn't exist
+            record.pop('VesselName', None)
+        
+
+        # Iterate through the deque
+        print(len(Queue))
+
         input = torch.tensor([list(item.values()) for item in Queue])
         input = self.normalize(input)
-        input = input.unsqueeze(1)
+        input = input.unsqueeze(0)
 
+        #Calculate the needed timesteps
         SOG = Queue[-1]['SOG'] * 1.852
         distanceTime = self.radiusThreshold / SOG
         timesteps = math.floor((distanceTime*60*60) / globals.timeIntervals)
@@ -133,9 +139,11 @@ class AImodel:
         self.timesteps = timesteps
         self.overshot_timesteps = overshot_timesteps
 
+        #Run the model 
         print("WallaWallaWalla", overshot_timesteps+1)
         target = torch.rand(1,overshot_timesteps+1,4) # will change this to only sequence length later
         input = input.type(torch.float32)
+        print("input shape: ", input.shape)
         output = self.model(input, target, 0.0)
         output = output.squeeze(0) #Squeeze for at få [1, seq_len,features] = [seq_len, features] , 1 er fra batchsize 
         output = output.cpu().detach().numpy() 
@@ -150,7 +158,6 @@ class AImodel:
     def runPredictionAlgorithm(self, predictedCoordinates):
         print("swaaaaaaaaaaaaaaaaaaaaaaaaaag")
         predictedCoordinates = self.output[0][0], self.output[0][1]
-        # Delete the row where seq_len=0 (assuming it's the first row)
         print(self.output[:,0])
         self.output = self.output[1:]
         print(self.output[:,0])
