@@ -28,18 +28,18 @@ def interpolater():
 
     frequency = '2T' 
 
-    df.set_index('BaseDateTime', inplace=True)
     grouped = df.groupby('MMSI')
     interpolated_data = []
 
     for mmsi, group in tqdm(grouped, desc="Processing vessels"):
+        group.set_index('BaseDateTime', inplace=True)
         resampled = group.resample(frequency).first()
-        resampled = resampled.infer_objects(copy=False)
+        resampled[['LAT', 'LON', 'SOG']] = resampled[['LAT', 'LON', 'SOG']].interpolate(method='linear')
         resampled = resampled.apply(pd.to_numeric, errors='coerce')
-        interpolated = resampled.interpolate(method='linear')
+        interpolated = resampled
+        interpolated['COG'] = interpolated['COG'].ffill()
         interpolated['MMSI'] = mmsi
         interpolated_data.append(interpolated)
-
     interpolated_df = pd.concat(interpolated_data)
     interpolated_df.reset_index(inplace=True)
     
