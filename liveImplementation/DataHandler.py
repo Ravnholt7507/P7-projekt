@@ -25,10 +25,10 @@ def interpolater():
     if 'Heading' in df.columns:
         df = df.drop(columns=['Heading', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
-    frequency = '10S' 
+    frequency = '2T' 
 
-    grouped = df_dropped.groupby('MMSI')
-    print(len(grouped))
+    df.set_index('BaseDateTime', inplace=True)
+    grouped = df.groupby('MMSI')
     interpolated_data = []
 
     for mmsi, group in tqdm(grouped, desc="Processing vessels"):
