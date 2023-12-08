@@ -112,7 +112,7 @@ class HeadingBasedModel:
 
 class AIBasedModel:
     def __init__(self, Queue):
-        print("AImodel: Initializing")
+        #print("AImodel: Initializing")
         self.model = getModel("Seq2Seq")
         self.model.load_state_dict(torch.load('..\\ann\\saved_models\\Seq2Seq.pth', map_location=torch.device('cpu')))
         self.radiusThreshold = 0.5
@@ -141,7 +141,7 @@ class AIBasedModel:
         return math.ceil(float(whole) * 0.1)
 
     def determineThreshold(self, Queue):
-        print("Queue: ")
+        #print("Queue: ")
         self.Queue = Queue
         # Iterate through each dictionary in the deque
         for record in Queue:
@@ -151,7 +151,7 @@ class AIBasedModel:
         
 
         # Iterate through the deque
-        print(len(Queue))
+        #print(len(Queue))
 
         input = torch.tensor([list(item.values()) for item in Queue])
         input = self.normalize(input)
@@ -167,10 +167,10 @@ class AIBasedModel:
         self.overshot_timesteps = overshot_timesteps
 
         #Run the model 
-        print("WallaWallaWalla", overshot_timesteps+1)
+        #print("WallaWallaWalla", overshot_timesteps+1)
         target = torch.rand(1,overshot_timesteps+1,4) # will change this to only sequence length later
         input = input.type(torch.float32)
-        print("input shape: ", input.shape)
+        #print("input shape: ", input.shape)
         output = self.model(input, target, 0.0)
         output = output.squeeze(0) #Squeeze for at få [1, seq_len,features] = [seq_len, features] , 1 er fra batchsize 
         output = output.cpu().detach().numpy() 
@@ -179,13 +179,13 @@ class AIBasedModel:
         thresholdCoordinates = output[timesteps][0], output[timesteps][1]
         self.output = output
 
-        print("HALOOO: ", thresholdCoordinates)
+        #print("HALOOO: ", thresholdCoordinates)
         return thresholdCoordinates, self.radiusThreshold
 
     def runPredictionAlgorithm(self, predictedCoordinates):
-        print("swaaaaaaaaaaaaaaaaaaaaaaaaaag")
+        #print("swaaaaaaaaaaaaaaaaaaaaaaaaaag")
         predictedCoordinates = self.output[0][0], self.output[0][1]
-        print(self.output[:,0])
+        #print(self.output[:,0])
         self.output = self.output[1:]
-        print(self.output[:,0])
+        #print(self.output[:,0])
         return predictedCoordinates

@@ -26,7 +26,7 @@ def modelPicker(lastKnownLocations):
             return traditionalModels.AIBasedModel(lastKnownLocations)
         
         else:
-            print("Default Case")
+            #print("Default Case")
             return traditionalModels.pointBasedModel(lastKnownLocations[-1])
 
 
