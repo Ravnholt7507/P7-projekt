@@ -181,7 +181,9 @@ def find_vector_colission(ship_data, num_clusters):
                                                 
                         # Save MMSI, lat, lon and collision points between the two ships to a csv file
                         with open('data/vector_colissions.csv', 'a') as fp:
-                            fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1},{vec1},{cluster_data['MMSI'].iloc[y]},{pos2},{vec1},{intersection},{time_diff}\n")
+                            fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1},{vec1},{cluster_data['BaseDateTime'][x]},{cluster_data['MMSI'].iloc[y]},{pos2},{vec1},{cluster_data['BaseDateTime'][y]},{intersection},{time_diff}\n")
+                            # add time to csv
+                            fp.write
                     
 
     print(collisions)
