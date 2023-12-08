@@ -152,7 +152,7 @@ def find_vector_colission(ship_data, num_clusters):
     with open('data/vector_colissions.csv', 'w') as fp:
         fp.truncate()
         # Write header
-        fp.write('MMSI1,Pos1,vec1,MMSI2,pos2,vec2,intersection,time_diff\n')
+        fp.write('MMSI1,Pos1,vec1,time1,MMSI2,pos2,vec2,time2,intersection,time_diff\n')
         
     for cluster in tqdm(range(num_clusters)):
         cluster_data = ship_data[ship_data['cluster'] == cluster]

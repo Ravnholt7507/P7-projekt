@@ -12,7 +12,6 @@ df4 = df2[df2['thresholdExceeded'] == True]
 df4 = pd.concat([df3, df4])
 
 interpolated = df4.sort_values(by=['MMSI', 'BaseDateTime'])
-interpolated = interpolated.drop_duplicates().drop(columns=['Unnamed: 0'])
 interpolated['BaseDateTime'] = pd.to_datetime(interpolated['BaseDateTime'])
 interpolated['BaseDateTime'] = interpolated['BaseDateTime'].dt.hour * 3600 + interpolated['BaseDateTime'].dt.minute * 60 + interpolated['BaseDateTime'].dt.second
 
@@ -41,7 +40,7 @@ interpolated["cluster"] = clusters
 # Drop columns that are not needed (Heading, Vessel Name, IMO, Call Sign, Vessel Type, Status, Length, Width, Draft, Cargo)
     # Check if Heading column exists
 if 'Heading' in interpolated.columns:
-    interpolated = interpolated.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+    interpolated = interpolated.drop(columns=['Heading', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
 # interpolated.to_csv('data/colission_interpolated.csv', index=False)
 
