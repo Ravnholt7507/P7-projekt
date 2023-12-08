@@ -14,7 +14,7 @@ start_time = time.time()
 
 #Initialize working data and output data
 
-interpolated_data = dh.interpolater()
+interpolated_data, mapping_dict = dh.interpolater()
 interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
@@ -31,14 +31,14 @@ output_DF['radiusThreshold'] = None
 output_DF['thresholdExceeded'] = None
 output_DF['currentModel'] = None
 
-interpolated_data = interpolated_data.groupby('MMSI')
+g_interpolated_data = interpolated_data.groupby('MMSI')
 
 simulationOutput = np.empty((0, 7))
 i = 1
 
-length = len(interpolated_data)
+length = len(g_interpolated_data)
 # Run simulation for each unique boat
-for name, group in tqdm(interpolated_data, desc="Running simulation"):
+for name, group in tqdm(g_interpolated_data, desc="Running simulation"):
     shore_instance = shore.shoreEntity(group.iloc[0])
     boat_instance = boat.boatEntity(group.iloc[0])
     simulation_instance = simulationClass.simulation(group, shore_instance, boat_instance)
@@ -51,6 +51,7 @@ for col_idx, col_name in enumerate(output_DF.columns[7:]):
     output_DF[col_name] = [row[col_idx] for row in simulationOutput]
 
 # Save dataframe as CSV
+output_DF['VesselName'] = interpolated_data['MMSI'].map(mapping_dict)
 output_DF.to_csv('../data/output.csv', index=False)
 output_df = pd.read_csv('../data/output.csv')
 

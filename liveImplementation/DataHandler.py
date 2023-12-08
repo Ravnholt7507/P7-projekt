@@ -40,6 +40,7 @@ def interpolater():
     # # Check if Heading column exists
     if 'Heading' in df.columns:
         df = df.drop(columns=['Heading', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+        mapping_dict = df.set_index('MMSI')['VesselName'].to_dict()
 
     frequency = '10S' 
 
@@ -58,11 +59,7 @@ def interpolater():
     interpolated_df = pd.concat(interpolated_data)
     interpolated_df.reset_index(inplace=True)
     
-    #Re-inserts VesselName column
-    #mapping_dict = df.set_index('MMSI')['VesselName'].to_dict()
-    #interpolated_df['VesselName'] = interpolated_df['MMSI'].map(mapping_dict)
-
-    return interpolated_df
+    return interpolated_df, mapping_dict
 
 
 #Old interpolater
