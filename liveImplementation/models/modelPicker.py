@@ -28,8 +28,8 @@ def modelPicker(lastKnownLocations):
         else:
             #print("Default Case")
             return traditionalModels.pointBasedModel(lastKnownLocations[-1]) """
-        
-        if len(lastKnownLocations)<=7:
+   
+        if len(lastKnownLocations)<=7 or lastKnownLocations[-1]['SOG'] * 1.852 < 0.1:
               return traditionalModels.pointBasedModel(lastKnownLocations[-1])
         else:
               return traditionalModels.AIBasedModel(lastKnownLocations)
