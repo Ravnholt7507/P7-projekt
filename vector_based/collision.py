@@ -159,7 +159,7 @@ def find_vector_colission(ship_data, num_clusters):
         cluster_data = cluster_data.reset_index(drop=True)
         cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
 
-        p1 = (cluster_data['locationThresholdLON'].tolist(), cluster_data['locationThresholdLAT'].tolist(), cluster_data['radiusThreshold'].tolist())
+        p1 = (cluster_data['locationThresholdLON'].tolist(), cluster_data['locationThresholdLAT'].tolist())
         v1 = (cluster_data['predictedLON'].tolist(), cluster_data['predictedLAT'].tolist())
 
         # Compare every vector with every other vector in the same cluster
@@ -181,7 +181,7 @@ def find_vector_colission(ship_data, num_clusters):
                                                 
                         # Save MMSI, lat, lon and collision points between the two ships to a csv file
                         with open('data/vector_colissions.csv', 'a') as fp:
-                            fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1},{vec1},{cluster_data['BaseDateTime'][x]},{cluster_data['MMSI'].iloc[y]},{pos2},{vec1},{cluster_data['BaseDateTime'][y]},{intersection},{time_diff}\n")
+                            fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1},{vec1},{cluster_data['BaseDateTime'][x]},{cluster_data['MMSI'].iloc[y]},{pos2},{vec2},{cluster_data['BaseDateTime'][y]},{intersection},{time_diff}\n")
                             # add time to csv
                     
 

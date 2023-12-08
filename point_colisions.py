@@ -15,9 +15,9 @@ interpolated = df4.sort_values(by=['MMSI', 'BaseDateTime'])
 interpolated['BaseDateTime'] = pd.to_datetime(interpolated['BaseDateTime'])
 interpolated['BaseDateTime'] = interpolated['BaseDateTime'].dt.hour * 3600 + interpolated['BaseDateTime'].dt.minute * 60 + interpolated['BaseDateTime'].dt.second
 
-limit = 5000
+limit = 100000
 # Read the data from another CSV file with a limit of 'limit' rows
-df_time = pd.read_csv('data/AIS_2023_01_01.csv', nrows=limit)
+df_time = pd.read_csv('data/AIS_2023_01_01.csv')
 df_time = df_time.sort_values(by=['MMSI', 'BaseDateTime']).drop_duplicates(subset=['MMSI'], keep='first')
 
 # Convert 'BaseDateTime' to seconds after midnight and rename the column to 'time_seconds'
