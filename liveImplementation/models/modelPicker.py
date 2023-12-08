@@ -11,6 +11,7 @@ def modelPicker(lastKnownLocations):
             - If Heading = 511, go to next case
         '''
         if lastKnownLocations[-1]['SOG'] * 1.852 < 0.1 or (lastKnownLocations[-1]['COG'] == None and len(lastKnownLocations) < 2 and lastKnownLocations[-1]['SOG'] * 1.852 < 0.1):
+            print("TEST", type(lastKnownLocations[-1]))
             return traditionalModels.pointBasedModel(lastKnownLocations[-1])
         
         elif lastKnownLocations[-1]['SOG'] * 1.852 > 0.3 and lastKnownLocations[-1]['COG'] == None:
@@ -27,7 +28,7 @@ def modelPicker(lastKnownLocations):
         
         else:
             print("Default Case")
-            return traditionalModels.pointBasedModel(lastKnownLocations)
+            return traditionalModels.pointBasedModel(lastKnownLocations[-1])
 
 
 def average_COG(Dataframe):
