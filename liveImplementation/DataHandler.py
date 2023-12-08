@@ -22,13 +22,13 @@ def interpolater():
     df['BaseDateTime'] = pd.to_datetime(df['BaseDateTime'])
     df.sort_values(by=['MMSI', 'BaseDateTime'], inplace=True)
     
-    # Check if Heading column exists
+    # # Check if Heading column exists
     if 'Heading' in df.columns:
-        df_dropped = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+        df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
     frequency = '2T' 
 
-    grouped = df_dropped.groupby('MMSI')
+    grouped = df.groupby('MMSI')
     interpolated_data = []
     #print(grouped.dtypes)
 
