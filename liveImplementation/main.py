@@ -34,7 +34,6 @@ output_DF['currentModel'] = None
 g_interpolated_data = interpolated_data.groupby('MMSI')
 
 simulationOutput = np.empty((0, 7))
-i = 1
 
 length = len(g_interpolated_data)
 # Run simulation for each unique boat
@@ -43,8 +42,6 @@ for name, group in tqdm(g_interpolated_data, desc="Running simulation"):
     boat_instance = boat.boatEntity(group.iloc[0])
     simulation_instance = simulationClass.simulation(group, shore_instance, boat_instance)
     simulationOutput = np.vstack((simulationOutput, simulation_instance.run_simulation()))
-    
-    i = i+1
 
 # Append output metrics to copy of working CSV file -> gives complete output_DF
 for col_idx, col_name in enumerate(output_DF.columns[7:]):
@@ -52,6 +49,8 @@ for col_idx, col_name in enumerate(output_DF.columns[7:]):
 
 # Save dataframe as CSV
 output_DF['VesselName'] = interpolated_data['MMSI'].map(mapping_dict)
+
+output_DF = dh.add_time(output_DF)
 output_DF.to_csv('../data/output.csv', index=False)
 output_df = pd.read_csv('../data/output.csv')
 

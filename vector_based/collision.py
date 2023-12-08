@@ -159,8 +159,8 @@ def find_vector_colission(ship_data, num_clusters):
         cluster_data = cluster_data.reset_index(drop=True)
         cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
 
-        p1 = (cluster_data['locationThresholdLON'].tolist(), cluster_data['locationThresholdLAT'].tolist())
-        v1 = (cluster_data['predictedLON'].tolist(), cluster_data['predictedLAT'].tolist())
+        p1 = (cluster_data['LON'].tolist(), cluster_data['LAT'].tolist())
+        v1 = (cluster_data['locationThresholdLON'].tolist(), cluster_data['locationThresholdLAT'].tolist())
 
         # Compare every vector with every other vector in the same cluster
         for x in range(len(p1[0])):
