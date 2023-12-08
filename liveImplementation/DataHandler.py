@@ -21,22 +21,22 @@ def interpolater():
     df['BaseDateTime'] = pd.to_datetime(df['BaseDateTime'])
     df.sort_values(by=['MMSI', 'BaseDateTime'], inplace=True)
     
-    # Check if Heading column exists
+    # # Check if Heading column exists
     if 'Heading' in df.columns:
-        df_dropped = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+        df = df.drop(columns=['Heading', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
     frequency = '10S' 
 
     grouped = df_dropped.groupby('MMSI')
     print(len(grouped))
     interpolated_data = []
-    #print(grouped.dtypes)
 
     for mmsi, group in tqdm(grouped, desc="Processing vessels"):
-        group.set_index('BaseDateTime', inplace=True)
         resampled = group.resample(frequency).first()
-        resampled = resampled.infer_objects(copy=False)
-        interpolated = resampled.interpolate(method='linear')
+        resampled[['LAT', 'LON', 'SOG']] = resampled[['LAT', 'LON', 'SOG']].interpolate(method='linear')
+        resampled = resampled.apply(pd.to_numeric, errors='coerce')
+        interpolated = resampled
+        interpolated['COG'] = interpolated['COG'].ffill()
         interpolated['MMSI'] = mmsi
         interpolated_data.append(interpolated)
     interpolated_df = pd.concat(interpolated_data)

@@ -53,11 +53,9 @@ print(f"Clustering time: {round_time(time.time() - start_time)} seconds")
 # Find distances between points in each cluster
 start_time = time.time()
 print("Finding distances...")
+
 # If not vectorbased and COG is used, use this:
 # collision.find_distance(interpolated, num_clusters)
-
-# If vectorbased and COG is used, use this:
-# collision.find_distance_vectorbased(interpolated, num_clusters)
 
 # Take all rows where currentModel is COGbased and save them to a new dataframe
 cogbased = interpolated[interpolated['currentModel'] == 'COGBasedModel']
