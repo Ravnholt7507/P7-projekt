@@ -25,7 +25,7 @@ def interpolater():
     if 'Heading' in df.columns:
         df = df.drop(columns=['Heading', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
-    frequency = '2T' 
+    frequency = '10S' 
 
     df.set_index('BaseDateTime', inplace=True)
     grouped = df.groupby('MMSI')
@@ -43,8 +43,8 @@ def interpolater():
     interpolated_df.reset_index(inplace=True)
     
     #Re-inserts VesselName column
-    mapping_dict = df.set_index('MMSI')['VesselName'].to_dict()
-    interpolated_df['VesselName'] = interpolated_df['MMSI'].map(mapping_dict)
+    #mapping_dict = df.set_index('MMSI')['VesselName'].to_dict()
+    #interpolated_df['VesselName'] = interpolated_df['MMSI'].map(mapping_dict)
 
     return interpolated_df
 
