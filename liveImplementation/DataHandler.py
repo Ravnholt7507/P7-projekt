@@ -50,7 +50,6 @@ def interpolater():
     interpolated_data = []
 
     for mmsi, group in tqdm(grouped, desc="Processing vessels"):
-        group.set_index('BaseDateTime', inplace=True)
         resampled = group.resample(frequency).first()
         resampled[['LAT', 'LON']] = resampled[['LAT', 'LON']].interpolate(method='linear')
         resampled['COG'] = resampled['COG'].fillna(method='ffill')
