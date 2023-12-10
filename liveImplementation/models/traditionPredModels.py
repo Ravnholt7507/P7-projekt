@@ -12,6 +12,8 @@ from geopy.distance import distance
 from geopy.point import Point
 import globalVariables as globals
 from geographiclib.geodesic import Geodesic
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class pointBasedModel:
