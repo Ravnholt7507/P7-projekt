@@ -18,7 +18,9 @@ interpolated_data, mapping_dict = dh.interpolater()
 interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
-scaler = dh.Fit_Scaler_To_Data(interpolated_data)
+
+all_data_for_fitting = pd.read_csv('../data/interpolated_complete.csv')
+scaler = dh.Fit_Scaler_To_Data(all_data_for_fitting)
 gv.scaler = scaler
 
 output_DF = interpolated_data.copy()
