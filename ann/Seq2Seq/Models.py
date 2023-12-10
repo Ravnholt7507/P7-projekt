@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+import torch.nn.init as init
 
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, max_length):
@@ -38,152 +39,110 @@ class TransformerModel(nn.Module):
         output = x[:, -self.output_timesteps:, :]
         return output
 
-
-"""
-class EncoderSimple(nn.Module):
-    def __init__(self, input_size, hidden_size):
-        super(EncoderSimple, self).__init__()
-        self.hidden_size = hidden_size
-        self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
-
-    def forward(self, x):
-        outputs, hidden = self.lstm(x)
-        return outputs, hidden
-
-
-class Attention(nn.Module):
-    def __init__(self, hidden_size):
-        super(Attention, self).__init__()
-        self.hidden_size = hidden_size
-
-    def forward(self, encoder_outputs, decoder_hidden):
-        # Attention mechanism to compute context vector
-        attn_weights = torch.bmm(encoder_outputs, decoder_hidden.unsqueeze(2)).squeeze(2)
-        attn_weights = F.softmax(attn_weights, dim=1)
-        context = torch.bmm(attn_weights.unsqueeze(1), encoder_outputs).squeeze(1)
-        return context
-
-class DecoderWithAttention(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
-        super(DecoderWithAttention, self).__init__()
-        self.hidden_size = hidden_size
-        self.input_transform = nn.Linear(input_size, hidden_size)
-        self.attention = Attention(hidden_size)
-        self.lstm = nn.LSTM(hidden_size + hidden_size, hidden_size, batch_first=True)  # Input size is doubled due to context vector
-        self.out = nn.Linear(hidden_size, output_size)
-
-    def forward(self, x, hidden, encoder_outputs):
-        x = self.input_transform(x)  # Transform the input to match hidden size
-        context = self.attention(encoder_outputs, hidden[0][-1])  # Get context vector from attention module
-        lstm_input = torch.cat((x, context.unsqueeze(1)), dim=2)  # Concatenate input with context
-        output, hidden = self.lstm(lstm_input, hidden)
-        output = self.out(output)
-        return output, hidden
-
-class Seq2SeqWithAttention(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
-        super(Seq2SeqWithAttention, self).__init__()
-        self.input_size = input_size
-        self.encoder = EncoderSimple(self.input_size, hidden_size)
-        self.decoder = DecoderWithAttention(self.input_size, hidden_size, output_size)
-
-    def forward(self, x, target_length=3):
-        encoder_outputs, hidden = self.encoder(x)
-
-        # Prepare the initial input for the decoder
-        decoder_input = torch.zeros(x.size(0), 1, self.input_size, device=x.device)
-
-        outputs = []
-        for t in range(target_length):
-            decoder_output, hidden = self.decoder(decoder_input, hidden, encoder_outputs)
-            outputs.append(decoder_output)
-            decoder_input = decoder_output
-
-        outputs = torch.cat(outputs, dim=1)
-        return outputs
-
-
-
-"""
 #lstmseq2seqatt
 import torch
 import torch.nn as nn
 import random
 
-# Encoder Class
-class Encoder(nn.Module):
+# Bahdanau Attention Mechanism
+class BahdanauAttention(nn.Module):
     def __init__(self, hidden_size):
         super().__init__()
-        self.lstm = nn.LSTM(4, hidden_size, batch_first=True)
-        self.layer_norm = nn.LayerNorm(hidden_size)
-        self.dropout = nn.Dropout(0.1)
+        self.fc_hidden = nn.Linear(hidden_size, hidden_size)
+        self.fc_encoder = nn.Linear(hidden_size, hidden_size)
+        self.fc_attention = nn.Linear(hidden_size, 1)
+
+    def forward(self, hidden, encoder_outputs):
+        seq_len = encoder_outputs.size(1)
+        hidden = hidden[-1]  # Take the last layer hidden state
+        hidden = hidden.unsqueeze(1).repeat(1, seq_len, 1)
+        energy = torch.tanh(self.fc_hidden(hidden) + self.fc_encoder(encoder_outputs))
+        attention = self.fc_attention(energy).squeeze(2)
+        return F.softmax(attention, dim=1)
+
+# Encoder with Bidirectional LSTM
+class Encoder(nn.Module):
+    def __init__(self, input_size, hidden_size, dropout=0, bidirectional=True):
+        super().__init__()
+        self.bidirectional = bidirectional
+        self.hidden_size = hidden_size * 2 if bidirectional else hidden_size
+        self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True, bidirectional=bidirectional)
+        self.dropout = nn.Dropout(dropout)
+        self.initialize_lstm_weights()
+
+    def initialize_lstm_weights(self):
+        for name, param in self.lstm.named_parameters():
+            if 'bias' in name:
+                with torch.no_grad():
+                    param.zero_()
+                    length = param.size(0) // 4
+                    param[length:2*length] = 1
+            elif 'weight_ih' in name:
+                init.xavier_uniform_(param)
+            elif 'weight_hh' in name:
+                init.orthogonal_(param)
 
     def forward(self, encoder_inputs):
         outputs, (hidden, cell) = self.lstm(encoder_inputs)
-      #  outputs = self.layer_norm(outputs)
         outputs = self.dropout(outputs)
+        
+        if self.bidirectional:
+            hidden = torch.cat([hidden[-2], hidden[-1]], dim=1).unsqueeze(0)
+            cell = torch.cat([cell[-2], cell[-1]], dim=1).unsqueeze(0)
+        
         return outputs, (hidden, cell)
 
-# Attention Class
-class Attention(nn.Module):
-    def __init__(self, hidden_size):
+# Decoder
+class Decoder(nn.Module):
+    def __init__(self, input_size, hidden_size, dropout=0):
         super().__init__()
-        self.initial_layer = nn.Linear(2 * hidden_size, hidden_size)
-        self.final_layer = nn.Linear(hidden_size, 1)
-        self.layer_norm = nn.LayerNorm(hidden_size)  # Layer normalization
-        self.dropout = nn.Dropout(0.1)  # Dropout
+        self.hidden_size = hidden_size
+        self.lstm = nn.LSTM(input_size + hidden_size, hidden_size, batch_first=True)
+        self.dropout = nn.Dropout(dropout)
+        #self.out = nn.Linear(hidden_size, input_size)
+        self.attention = BahdanauAttention(hidden_size)
+        self.initialize_lstm_weights()
+        self.mlp = nn.Sequential(
+          nn.Linear(hidden_size, hidden_size),
+          nn.ReLU(),
+          nn.Linear(hidden_size, input_size)
+          )
 
-    def forward(self, current_decoder_hidden, encoder_outputs):
-        batch_size = encoder_outputs.size(0)
-        seq_len = encoder_outputs.size(1)
+    def initialize_lstm_weights(self):
+        for name, param in self.lstm.named_parameters():
+            if 'bias' in name:
+                with torch.no_grad():
+                    param.zero_()
+                    length = param.size(0) // 4
+                    param[length:2*length] = 1
+            elif 'weight_ih' in name:
+                init.xavier_uniform_(param)
+            elif 'weight_hh' in name:
+                init.orthogonal_(param)
 
-        decoder_hidden_stack = current_decoder_hidden.repeat(seq_len, 1, 1).transpose(0, 1)
-        energy = torch.tanh(self.initial_layer(torch.cat((encoder_outputs, decoder_hidden_stack), dim=2)))
-      #  energy = self.layer_norm(energy)  # Apply layer normalization
-      #  energy = self.dropout(energy)  # Apply dropout
-        energy = self.final_layer(energy).squeeze(2)
-
-        attention_weights = torch.softmax(energy, dim=1)
-        context_vector = torch.bmm(attention_weights.unsqueeze(1), encoder_outputs).squeeze(1)
-
-        return context_vector, attention_weights
-
-# Decoder with Attention Class
-class DecoderWithAttention(nn.Module):
-    def __init__(self, hidden_size):
-        super().__init__()
-        self.attention_module = Attention(hidden_size)
-        self.rnn = nn.LSTM(4 + hidden_size, hidden_size, batch_first=True)
-        self.out = nn.Linear(hidden_size, 4)
-      #  self.layer_norm = nn.LayerNorm(hidden_size)  # Layer normalization
-      #  self.dropout = nn.Dropout(0.1)  # Dropout
-
-    def forward(self, initial_input, encoder_outputs, hidden_cell, targets, teacher_force_probability):
-        decoder_sequence_length = targets.size(1)
-        batch_size = targets.size(0)
-        outputs = torch.zeros(batch_size, decoder_sequence_length, 4).to(initial_input.device)
-
+    def forward(self, initial_input, encoder_outputs, hidden_cell, targets, teacher_force_probability, prediction_length):
         input_at_t = initial_input
         hidden, cell = hidden_cell
-
-        attention_weights_all_timesteps = []
+        batch_size = initial_input.size(0)
+        decoder_sequence_length = prediction_length if targets is None else targets.size(1)
+        outputs = torch.zeros(batch_size, decoder_sequence_length, 4)
 
         for t in range(decoder_sequence_length):
-            context_vector, attention_weights = self.attention_module(hidden[0], encoder_outputs)
-            attention_weights_all_timesteps.append(attention_weights.unsqueeze(1))
-            rnn_input = torch.cat((input_at_t, context_vector), dim=1).unsqueeze(1)
-            output, (hidden, cell) = self.rnn(rnn_input, (hidden, cell))
-          #  output = self.layer_norm(output)  # Apply layer normalization
-          #  output = self.dropout(output)  # Apply dropout
-            output = self.out(output.squeeze(1))
+            attention_weights = self.attention(hidden, encoder_outputs)
+            context = torch.bmm(attention_weights.unsqueeze(1), encoder_outputs).squeeze(1)
+            lstm_input = torch.cat((input_at_t, context), dim=1)
+            output, (hidden, cell) = self.lstm(lstm_input.unsqueeze(1), (hidden, cell))
+            output = self.dropout(output)
+            output = self.mlp(output.squeeze(1))
             outputs[:, t, :] = output
 
-            teacher_force = random.random() < teacher_force_probability
-            input_at_t = targets[:, t, :] if teacher_force else output
+            if teacher_force_probability is not None:
+                teacher_force = random.random() < teacher_force_probability
+                input_at_t = targets[:, t, :] if teacher_force else output
+            else:
+                input_at_t = output
 
-        attention_weights_all = torch.cat(attention_weights_all_timesteps, dim=1)
-
-        return outputs, attention_weights_all
+        return outputs
 
 # Seq2Seq Model
 class Seq2Seq(nn.Module):
@@ -192,15 +151,14 @@ class Seq2Seq(nn.Module):
         self.encoder = encoder
         self.decoder = decoder
 
-    def forward(self, encoder_inputs, targets, teacher_force_probability):
+    def forward(self, encoder_inputs=None, targets=None, teacher_force_probability=None, prediction_length=None):
         encoder_outputs, hidden_cell = self.encoder(encoder_inputs)
-        outputs, attention_weights = self.decoder(encoder_inputs[:, -1, :], encoder_outputs, hidden_cell, targets, teacher_force_probability)
+        outputs = self.decoder(encoder_inputs[:, -1, :], encoder_outputs, hidden_cell, targets, teacher_force_probability, prediction_length)
         return outputs
-
 
 def getModel(modelString):
     if modelString == 'Seq2Seq' or modelString == 'seq2Seq':
-        model = Seq2Seq(Encoder(hidden_size = 64), DecoderWithAttention(hidden_size = 64))
+        model = Seq2Seq(Encoder(input_size=4, hidden_size = 64), Decoder(input_size = 4, hidden_size = 64*2))
     if modelString == 'Transformer' or modelString == 'transformer':
         model = TransformerModel(feature_size=4, d_model=64, nhead=2, num_layers=3, output_timesteps=3, output_features=4)
     return model
