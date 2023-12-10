@@ -116,7 +116,7 @@ class AIBasedModel:
     def __init__(self, Queue):
         #print("AImodel: Initializing")
         self.model = getModel("Seq2Seq")
-        self.model.load_state_dict(torch.load('..\\ann\\saved_models\\Seq2Seq.pth', map_location=torch.device('cpu')))
+        self.model.load_state_dict(torch.load('..\\ann\\saved_models\\LSTMSeq2seqAtt.pth', map_location=torch.device('cpu')))
         self.radiusThreshold = 0.5
         self.Queue = Queue
         self.output = torch.empty((0), dtype=torch.float32) #define placeholder until we get output
@@ -135,9 +135,6 @@ class AIBasedModel:
         scaler = globals.scaler
         denorm_tensor = scaler.inverse_transform(tensor)
         return torch.from_numpy(denorm_tensor)
-
-    def remove_gradient(self, tensors):
-        return
     
     def percentage(self, whole):
         return math.ceil(float(whole) * 0.1)
@@ -149,15 +146,11 @@ class AIBasedModel:
         for record in Queue:
             record.pop('MMSI', None)  # Remove 'MMSI', do nothing if the key doesn't exist
             record.pop('BaseDateTime', None)  # Remove 'BaseDateTime', do nothing if the key doesn't exist
-            record.pop('VesselName', None)
-        
-
-        # Iterate through the deque
-        #print(len(Queue))
+#            record.pop('VesselName', None)
 
         input = torch.tensor([list(item.values()) for item in Queue])
         input = self.normalize(input)
-        input = input.unsqueeze(0)
+        input = input.unsqueeze(0) #This puts batch_size = 1 as the first element
 
         #Calculate the needed timesteps
         SOG = Queue[-1]['SOG'] * 1.852
@@ -169,11 +162,8 @@ class AIBasedModel:
         self.overshot_timesteps = overshot_timesteps
 
         #Run the model 
-        #print("WallaWallaWalla", overshot_timesteps+1)
-        target = torch.rand(1,overshot_timesteps+1,4) # will change this to only sequence length later
         input = input.type(torch.float32)
-        #print("input shape: ", input.shape)
-        output = self.model(input, target, 0.0)
+        output = self.model(encoder_inputs = input, prediction_length=10)
         output = output.squeeze(0) #Squeeze for at få [1, seq_len,features] = [seq_len, features] , 1 er fra batchsize 
         output = output.cpu().detach().numpy() 
         output = self.denormalize(output)

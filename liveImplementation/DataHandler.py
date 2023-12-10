@@ -40,8 +40,9 @@ def interpolater():
     
     # # Check if Heading column exists
     if 'Heading' in df.columns:
-        df = df.drop(columns=['Heading', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
         mapping_dict = df.set_index('MMSI')['VesselName'].to_dict()
+        df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+        
 
     frequency = '10S' 
 
