@@ -41,6 +41,7 @@ class boatEntity:
         self.predictedLocation = self.current_model.runPredictionAlgorithm(self.predictedLocation)
      
         if self.exceedsThreshold():
+                print("threshold exceeded")
                 self.updateShore(shoreEntity)
                 self.updateBoat(self.currentLocation)
                 self.thresholdExceeded = True

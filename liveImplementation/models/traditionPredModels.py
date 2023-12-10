@@ -146,7 +146,6 @@ class AIBasedModel:
         for record in Queue:
             record.pop('MMSI', None)  # Remove 'MMSI', do nothing if the key doesn't exist
             record.pop('BaseDateTime', None)  # Remove 'BaseDateTime', do nothing if the key doesn't exist
-#            record.pop('VesselName', None)
 
         input = torch.tensor([list(item.values()) for item in Queue])
         input = self.normalize(input)
@@ -163,21 +162,26 @@ class AIBasedModel:
 
         #Run the model 
         input = input.type(torch.float32)
-        output = self.model(encoder_inputs = input, prediction_length=10)
-        output = output.squeeze(0) #Squeeze for at få [1, seq_len,features] = [seq_len, features] , 1 er fra batchsize 
+        output = self.model(encoder_inputs = input, prediction_length=timesteps)
+        output = output.squeeze(0) #Squeeze for at få [seq_len,features]
         output = output.cpu().detach().numpy() 
         output = self.denormalize(output)
 
-        thresholdCoordinates = output[timesteps][0], output[timesteps][1]
+        # output har shape [timesteps, 4]
+
+        #print(output.shape)
+        #print(output)
+
+        thresholdCoordinates = output[timesteps-1][0], output[timesteps-1][1]
+        print(output[timesteps-1][0], output[timesteps-1][1])
+
         self.output = output
 
-        #print("HALOOO: ", thresholdCoordinates)
         return thresholdCoordinates, self.radiusThreshold
+    
+
 
     def runPredictionAlgorithm(self, predictedCoordinates):
-        #print("swaaaaaaaaaaaaaaaaaaaaaaaaaag")
         predictedCoordinates = self.output[0][0], self.output[0][1]
-        #print(self.output[:,0])
         self.output = self.output[1:]
-        #print(self.output[:,0])
         return predictedCoordinates

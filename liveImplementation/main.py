@@ -14,11 +14,12 @@ start_time = time.time()
 
 #Initialize working data and output data
 
-interpolated_data, mapping_dict = dh.interpolater()
-interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
+#interpolated_data, mapping_dict = dh.interpolater()
+#interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
 
+#These three lines are only for fitting data to our normalizer for AIBased prediction
 all_data_for_fitting = pd.read_csv('../data/interpolated_complete.csv')
 scaler = dh.Fit_Scaler_To_Data(all_data_for_fitting)
 gv.scaler = scaler
@@ -50,7 +51,7 @@ for col_idx, col_name in enumerate(output_DF.columns[7:]):
     output_DF[col_name] = [row[col_idx] for row in simulationOutput]
 
 # Save dataframe as CSV
-output_DF['VesselName'] = interpolated_data['MMSI'].map(mapping_dict)
+#output_DF['VesselName'] = interpolated_data['MMSI'].map(mapping_dict)
 
 output_DF = dh.add_time(output_DF)
 output_DF.to_csv('../data/output.csv', index=False)
