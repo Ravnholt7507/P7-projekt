@@ -17,9 +17,11 @@ df2 = df2.drop(columns=['Heading', 'IMO', 'CallSign','VesselType', 'Status', 'Le
 
 # Perform clustering
 start_time = time.time()
+
 print('lenght b4:',len(interpolated))
 interpolated = interpolated.sample(frac=0.2, random_state=1)
 print('thanosed',len(interpolated))
+
 print('Clustering...')
 clusters = cluster.linkage_clustering(interpolated)
 num_clusters = len(pd.Series(clusters).value_counts())
