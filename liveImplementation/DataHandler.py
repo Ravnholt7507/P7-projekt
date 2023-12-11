@@ -53,7 +53,7 @@ def interpolater():
     for mmsi, group in tqdm(grouped, desc="Processing vessels"):
         resampled = group.resample(frequency).first()
         resampled[['LAT', 'LON']] = resampled[['LAT', 'LON']].interpolate(method='linear')
-        resampled['COG'] = resampled['COG'].fillna(method='ffill')
+        resampled['COG'] = resampled['COG'].ffill()
 
         # Calculate speeds for original data points
         speeds = []
@@ -76,7 +76,8 @@ def interpolater():
 
     interpolated_df = pd.concat(interpolated_data)
     interpolated_df.reset_index(inplace=True)
-        
+    print(len(interpolated_df[interpolated_df['SOG']>500]))
+
     return interpolated_df, mapping_dict
 
 def add_time(output_df):

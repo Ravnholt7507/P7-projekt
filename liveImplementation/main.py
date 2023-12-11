@@ -51,7 +51,7 @@ for col_idx, col_name in enumerate(output_DF.columns[6:]):
     output_DF[col_name] = [row[col_idx] for row in simulationOutput]
 
 # Save dataframe as CSV
-output_DF['VesselName'] = interpolated_data['MMSI'].map(mapping_dict)
+#output_DF['VesselName'] = interpolated_data['MMSI'].map(mapping_dict)
 
 #output_DF = dh.add_time(output_DF)
 output_DF.to_csv('../data/output.csv', index=False)

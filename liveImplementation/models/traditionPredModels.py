@@ -154,6 +154,7 @@ class AIBasedModel:
         #Calculate the needed timesteps
         SOG = Queue[-1]['SOG'] * 1.852
         distanceTime = self.radiusThreshold / SOG
+        print("SOG in AI determine threshold: ", SOG)
         timesteps = math.floor((distanceTime*60*60) / globals.timeIntervals)
         buffer = self.percentage(timesteps)
         overshot_timesteps = timesteps * 2 + buffer #Overshoots 
@@ -182,6 +183,7 @@ class AIBasedModel:
 
 
     def runPredictionAlgorithm(self, predictedCoordinates):
+
         predictedCoordinates = self.output[0][0], self.output[0][1]
         self.output = self.output[1:]
         return predictedCoordinates
