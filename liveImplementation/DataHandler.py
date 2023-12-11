@@ -53,7 +53,8 @@ def interpolater():
     for mmsi, group in tqdm(grouped, desc="Processing vessels"):
         resampled = group.resample(frequency).first()
         resampled[['LAT', 'LON']] = resampled[['LAT', 'LON']].interpolate(method='linear')
-        resampled['COG'] = resampled['COG'].fillna(method='ffill')
+        #resampled['COG'] = resampled['COG'].fillna(method='ffill')
+        resampled['COG'] = resampled['COG'].ffill()
 
         # Calculate speeds for original data points
         speeds = []
@@ -102,4 +103,9 @@ def add_time(output_df):
     output_df = output_df.sort_values(by=['MMSI', 'BaseDateTime'])
     # Convert seconds after midnight to datetime format starting from 2023-01-01
     output_df['BaseDateTime'] = pd.to_datetime(output_df['BaseDateTime'], unit='s', origin='2023-01-01')
+    # drop Heading,VesselName_y,IMO,CallSign,VesselType,Status,Length,Width,Draft,Cargo,TransceiverClass from output_df
+    output_df = output_df.drop(columns=['Heading', 'VesselName_y', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+    #rename VesselName_x to VesselName
+    output_df = output_df.rename(columns={'VesselName_x': 'VesselName'})
+    
     return output_df
