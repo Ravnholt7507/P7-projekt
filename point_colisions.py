@@ -48,10 +48,6 @@ start_time = time.time()
 print('Calculating colisions...')
 # Take all rows where currentModel is COGbased and save them to a new dataframe
 cogbased = interpolated[interpolated['currentModel'] == 'COGBasedModel']
-print('lenght',len(cogbased))
-# Delete 50% of data by random
-cogbased = cogbased.sample(frac=0.5, random_state=1)
-print('thanosed',len(cogbased))
 
 collision.find_vector_colission(cogbased, num_clusters)
 print(f"Distance calculation time: {round_time(time.time() - start_time)} seconds")
