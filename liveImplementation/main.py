@@ -47,13 +47,13 @@ for name, group in tqdm(g_interpolated_data, desc="Running simulation"):
     simulationOutput = np.vstack((simulationOutput, simulation_instance.run_simulation()))
 
 # Append output metrics to copy of working CSV file -> gives complete output_DF
-for col_idx, col_name in enumerate(output_DF.columns[7:]):
+for col_idx, col_name in enumerate(output_DF.columns[6:]):
     output_DF[col_name] = [row[col_idx] for row in simulationOutput]
 
 # Save dataframe as CSV
 #output_DF['VesselName'] = interpolated_data['MMSI'].map(mapping_dict)
 
-output_DF = dh.add_time(output_DF)
+#output_DF = dh.add_time(output_DF)
 output_DF.to_csv('../data/output.csv', index=False)
 output_df = pd.read_csv('../data/output.csv')
 
