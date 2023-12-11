@@ -14,8 +14,8 @@ start_time = time.time()
 
 #Initialize working data and output data
 
-#interpolated_data, mapping_dict = dh.interpolater()
-#interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
+interpolated_data = dh.interpolater()
+interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
 

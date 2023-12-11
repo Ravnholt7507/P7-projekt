@@ -77,7 +77,7 @@ def interpolater():
     interpolated_df = pd.concat(interpolated_data)
     interpolated_df.reset_index(inplace=True)
         
-    return interpolated_df, mapping_dict
+    return interpolated_df
 
 def add_time(output_df):
     # Read the data from another CSV file with a limit of 'limit' rows
