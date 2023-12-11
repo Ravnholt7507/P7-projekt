@@ -12,9 +12,13 @@ df4 = df2[df2['thresholdExceeded'] == True]
 df4 = pd.concat([df3, df4])
 df4 = df4.drop_duplicates(subset=['MMSI', 'BaseDateTime'], keep='first')
 interpolated = df4.sort_values(by=['MMSI', 'BaseDateTime'])
-print('lenght',len(interpolated))
+
+df2 = df2.drop(columns=['Heading', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+
 # Perform clustering
 start_time = time.time()
+print('lenght b4:',len(interpolated))
+print('thanosed',len(interpolated.sample(frac=0.2, random_state=1)))
 print('Clustering...')
 clusters = cluster.linkage_clustering(interpolated)
 num_clusters = len(pd.Series(clusters).value_counts())
@@ -41,6 +45,10 @@ start_time = time.time()
 print('Calculating colisions...')
 # Take all rows where currentModel is COGbased and save them to a new dataframe
 cogbased = interpolated[interpolated['currentModel'] == 'COGBasedModel']
+print('lenght',len(cogbased))
+# Delete 50% of data by random
+cogbased = cogbased.sample(frac=0.5, random_state=1)
+print('thanosed',len(cogbased))
 
 collision.find_vector_colission(cogbased, num_clusters)
 print(f"Distance calculation time: {round_time(time.time() - start_time)} seconds")
