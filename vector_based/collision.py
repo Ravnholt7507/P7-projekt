@@ -182,9 +182,4 @@ def find_vector_colission(ship_data, num_clusters):
                         with open('data/vector_colissions.csv', 'a') as fp:
                             fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1},{vec1},{cluster_data['BaseDateTime'][x]},{cluster_data['MMSI'].iloc[y]},{pos2},{vec2},{cluster_data['BaseDateTime'][y]},{intersection},{time_diff}\n")
     
-    # remove duplicate rows from vector_colissions.csv
-    df = pd.read_csv('data/vector_colissions.csv')
-    df = df.drop_duplicates()
-    df.to_csv('data/vector_colissions.csv', index=False)
-    
     print(collisions)
