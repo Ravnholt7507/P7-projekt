@@ -2,7 +2,7 @@ import pandas as pd
 from geopy.distance import geodesic
 
 df = pd.read_csv("../data/AIS_2023_01_01.csv", nrows=50000)
-df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
+# df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
 df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
 
 
@@ -54,7 +54,8 @@ df = df.drop(df[(df['distance'] > 5) & (df['SOG'] < 0.3)].index)
 # Drop MMSI where distance == 0
 df = df.drop(df[df['distance'] == 0].index)
 
-# Drop MMSI 
+# Drop rows where heading == 511.0
+df = df.drop(df[df['Heading'] == 511.0].index)
 
 # Drop whole MMSI where sog == 102.3
 df = df.drop(df[df['SOG'] == 102.3].index)
@@ -63,7 +64,7 @@ df = df.drop(df[df['SOG'] == 102.3].index)
 df = df.drop(df[abs(df['diff']) > 10].index)
 
 # remove distance,time,speed,diff
-# df = df.drop(columns=['distance', 'time', 'speed', 'diff'])
+df = df.drop(columns=['distance', 'time', 'speed', 'diff'])
 
 df.to_csv('../data/filtered.csv', index=False)
 
