@@ -32,8 +32,9 @@ def Remove_Random_COG():
     df.to_csv('data/skovl.csv')
 
 
+
 def interpolater():
-    df = pd.read_csv("../data/AIS_2023_01_01.csv", nrows=globals.readLimit)
+    df = pd.read_csv("../data/filtered.csv", nrows=globals.readLimit)
     df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
     df['BaseDateTime'] = pd.to_datetime(df['BaseDateTime'])
     df.sort_values(by=['MMSI', 'BaseDateTime'], inplace=True)
@@ -44,7 +45,7 @@ def interpolater():
         df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
         
 
-    frequency = '10S' 
+    frequency = '10S'
 
     df.set_index('BaseDateTime', inplace=True)
     grouped = df.groupby('MMSI')
@@ -76,14 +77,17 @@ def interpolater():
 
     interpolated_df = pd.concat(interpolated_data)
     interpolated_df.reset_index(inplace=True)
-    print(len(interpolated_df[interpolated_df['SOG']>500]))
+    # print mmsi of the fastest ship
+    print(interpolated_df.loc[interpolated_df['SOG'].idxmax()]['MMSI'])
+    # print fastest speed
+    print(interpolated_df['SOG'].max())
 
     return interpolated_df, mapping_dict
 
 def add_time(output_df):
     # Read the data from another CSV file with a limit of 'limit' rows
     limit = 50000
-    df_time = pd.read_csv('../data/AIS_2023_01_01.csv',nrows=limit)
+    df_time = pd.read_csv('../data/filtered.csv',nrows=limit)
     df_time = df_time.sort_values(by=['MMSI', 'BaseDateTime']).drop_duplicates(subset=['MMSI'], keep='first')
 
     # Convert 'BaseDateTime' to seconds after midnight and rename the column to 'time_seconds'
@@ -104,7 +108,7 @@ def add_time(output_df):
     # Convert seconds after midnight to datetime format starting from 2023-01-01
     output_df['BaseDateTime'] = pd.to_datetime(output_df['BaseDateTime'], unit='s', origin='2023-01-01')
     # drop Heading,VesselName_y,IMO,CallSign,VesselType,Status,Length,Width,Draft,Cargo,TransceiverClass from output_df
-    output_df = output_df.drop(columns=['Heading', 'VesselName_y', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+    output_df = output_df.drop(columns=['Heading', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
     #rename VesselName_x to VesselName
     output_df = output_df.rename(columns={'VesselName_x': 'VesselName'})
     
