@@ -43,8 +43,7 @@ def interpolater():
     if 'Heading' in df.columns:
         mapping_dict = df.set_index('MMSI')['VesselName'].to_dict()
         df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
-        
-
+    
     frequency = '10S'
 
     df.set_index('BaseDateTime', inplace=True)
@@ -77,10 +76,13 @@ def interpolater():
 
     interpolated_df = pd.concat(interpolated_data)
     interpolated_df.reset_index(inplace=True)
+
     # print mmsi of the fastest ship
     print(interpolated_df.loc[interpolated_df['SOG'].idxmax()]['MMSI'])
-    # print fastest speed
     print(interpolated_df['SOG'].max())
+
+    print('Boats: ',len(interpolated_df['MMSI']))
+    print('Unique boats: ',len(interpolated_df['MMSI'].unique()))
 
     return interpolated_df, mapping_dict
 

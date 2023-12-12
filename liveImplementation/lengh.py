@@ -1,10 +1,9 @@
 import pandas as pd
 from geopy.distance import geodesic
 
-df = pd.read_csv("../data/AIS_2023_01_01.csv", nrows=50000)
-# df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
+df = pd.read_csv("../data/AIS_2023_01_01.csv")
+df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
 df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
-
 
 # Data is on the form:
 # MMSI, BaseDateTime, LAT, LON, SOG, COG, Heading, VesselName, IMO, CallSign, VesselType, Status, Length, Width, Draft, Cargo, TransceiverClass
