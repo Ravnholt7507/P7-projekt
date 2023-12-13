@@ -1,5 +1,4 @@
 import pandas as pd
-from tqdm import tqdm
 
 df = pd.read_csv("../data/AIS_2023_01_01.csv")
 
