@@ -47,6 +47,7 @@ simulationOutput = np.empty((0, 7))
 length = len(g_interpolated_data)
 # Run simulation for each unique boat
 for name, group in tqdm(g_interpolated_data, desc="Running simulation"):
+    print("\n \n Group by mmsi: ", name)
     shore_instance = shore.shoreEntity(group.iloc[0])
     boat_instance = boat.boatEntity(group.iloc[0])
     simulation_instance = simulationClass.simulation(group, shore_instance, boat_instance)

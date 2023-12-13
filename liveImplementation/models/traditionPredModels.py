@@ -32,7 +32,7 @@ class pointBasedModel:
     #Determines the threshold from which the area that confines the boat is determined
     def determineThreshold(self, lastKnownLocations):
         currentLocation = lastKnownLocations[-1]
-        radiusThreshold = 0.2
+        radiusThreshold = 0.05
         thresholdCoordinates = (currentLocation['LAT'], currentLocation['LON'])
         return thresholdCoordinates, radiusThreshold
     
@@ -119,7 +119,7 @@ class AIBasedModel:
         #print("AImodel: Initializing")
         self.model = getModel("Seq2Seq")
         self.model.load_state_dict(torch.load('..\\ann\\saved_models\\LSTMSeq2seqAtt.pth', map_location=torch.device('cpu')))
-        self.radiusThreshold = 0.5
+        self.radiusThreshold = 0.150
         self.Queue = Queue
         self.output = torch.empty((0), dtype=torch.float32) #define placeholder until we get output
         self.timesteps = 0
@@ -164,9 +164,6 @@ class AIBasedModel:
         overshot_timesteps = timesteps * 2 + buffer #Overshoots 
         self.timesteps = timesteps
         self.overshot_timesteps = overshot_timesteps
-       # print("SOG: ", SOG)
-       # print("Timesteps: ", timesteps)
-        print("Determining new threshold")
 
         #Run the model 
         input = input.type(torch.float32)
@@ -177,24 +174,22 @@ class AIBasedModel:
 
         self.output = output
 
-        thresholdCoordinates = 0 
+        thresholdCoordinates = 0, 0
 
         for timestep_int in range(overshot_timesteps):
             contender = output[timestep_int][0], output[timestep_int][1] #lat og long
             distance = geodesic(currentLocation, contender).kilometers
             if (distance > self.radiusThreshold):
                 thresholdCoordinates = (output[timestep_int-1][0], output[timestep_int-1][1])
-                print("ACTUAL THRESHOLD COORDS: ", thresholdCoordinates)
                 break
             timestep_int += 1
 
         return thresholdCoordinates, self.radiusThreshold
 
+    # Husk at tjekke index på output
     def runPredictionAlgorithm(self, predictedCoordinates):
-        print("Jeg er i run prediction algorithm")
-        lat, long = self.output[0][0], self.output[0][1] #lat, long
+        lat, long = self.output[1][0], self.output[1][1] #lat, long
         CurrentPredictedCoordinates = lat, long
-        print(self.output.shape)
         self.output = self.output[1:]
 
         return CurrentPredictedCoordinates
