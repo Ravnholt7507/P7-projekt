@@ -6,7 +6,6 @@ import globalVariables as gv
 class shoreEntity:
     def __init__(self, currentLocation) -> None:
         self.last_known_locations = deque(maxlen=10)
-        self.last_known_locations.append(dict(currentLocation))   
         self.last_known_locations.append(dict(currentLocation))    
         self.current_model = mp.modelPicker(self.last_known_locations)
         self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.last_known_locations)
@@ -17,6 +16,8 @@ class shoreEntity:
     def recieveLocationUpdate(self, lastKnownLocations):
         self.last_known_locations = lastKnownLocations
         self.current_model = mp.modelPicker(self.last_known_locations)
+        print("Shore queue length", len(self.last_known_locations))
+        print("Shore: \n", self.last_known_locations)
         self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.last_known_locations)
         self.predictedLocation = (self.last_known_locations[-1]['LAT'], self.last_known_locations[-1]['LON'])
         self.updateRecieved = True

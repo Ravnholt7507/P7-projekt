@@ -103,9 +103,9 @@ class Decoder(nn.Module):
         self.attention = BahdanauAttention(hidden_size)
         self.initialize_lstm_weights()
         self.mlp = nn.Sequential(
-          nn.Linear(hidden_size, hidden_size),
+          nn.Linear(hidden_size, hidden_size*2),
           nn.ReLU(),
-          nn.Linear(hidden_size, input_size)
+          nn.Linear(hidden_size*2, input_size)
           )
 
     def initialize_lstm_weights(self):
@@ -158,7 +158,7 @@ class Seq2Seq(nn.Module):
 
 def getModel(modelString):
     if modelString == 'Seq2Seq' or modelString == 'seq2Seq':
-        model = Seq2Seq(Encoder(input_size=4, hidden_size = 64), Decoder(input_size = 4, hidden_size = 64*2))
+        model = Seq2Seq(Encoder(input_size=4, hidden_size = 512), Decoder(input_size = 4, hidden_size = 512*2))
     if modelString == 'Transformer' or modelString == 'transformer':
         model = TransformerModel(feature_size=4, d_model=64, nhead=2, num_layers=3, output_timesteps=3, output_features=4)
     return model

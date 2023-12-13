@@ -10,17 +10,15 @@ def modelPicker(lastKnownLocations):
             - AI based
             - If Heading = 511, go to next case
         '''
+        '''
         if lastKnownLocations[-1]['SOG'] * 1.852 < 0.1 or (lastKnownLocations[-1]['COG'] == None and len(lastKnownLocations) < 2 and lastKnownLocations[-1]['SOG'] * 1.852 < 0.1):
             if lastKnownLocations[-1]['SOG']>200:
                 print(lastKnownLocations[-1]['SOG'])
-            return traditionalModels.pointBasedModel(lastKnownLocations[-1])
-
-        
+            return traditionalModels.pointBasedModel(lastKnownLocations[-1])        
         else:
             if lastKnownLocations[-1]['SOG']>200:
                 print(lastKnownLocations[-1]['SOG'])            
             return traditionalModels.COGBasedModel(lastKnownLocations[-1])
-        """
         elif len(lastKnownLocations) >= 2 and lastKnownLocations[-1]['SOG'] * 1.852 > 0.3:
             return traditionalModels.vectorBasedModel(lastKnownLocations)
         
@@ -32,14 +30,16 @@ def modelPicker(lastKnownLocations):
         
         else:
             #print("Default Case")
-            return traditionalModels.pointBasedModel(lastKnownLocations[-1]) """
+            return traditionalModels.pointBasedModel(lastKnownLocations[-1]) 
+
+        '''
    
-        """ if len(lastKnownLocations)<=7 or lastKnownLocations[-1]['SOG'] * 1.852 < 0.1:
+        if len(lastKnownLocations)<=7 or lastKnownLocations[-1]['SOG'] * 1.852 < 0.1:
             return traditionalModels.pointBasedModel(lastKnownLocations[-1])
         else:
-            for locations in range(len(lastKnownLocations)):	
-                print("SOG in ModelPicker: ", lastKnownLocations[locations]['SOG'])
-            return traditionalModels.AIBasedModel(lastKnownLocations) """
+         #   for locations in range(len(lastKnownLocations)):	
+            #    print("SOG in ModelPicker: ", lastKnownLocations[locations]['SOG'])
+            return traditionalModels.AIBasedModel(lastKnownLocations) 
 
 
 

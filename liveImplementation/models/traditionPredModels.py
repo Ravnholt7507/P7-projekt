@@ -1,7 +1,9 @@
 from datetime import datetime
 from math import radians, sin, cos, sqrt, atan2
+from geopy.distance import geodesic
 import math
 import sys
+import time  
 sys.path.append('../../P7-projekt')
 from ann.Seq2Seq.Models import getModel
 import torch 
@@ -140,8 +142,10 @@ class AIBasedModel:
         return math.ceil(float(whole) * 0.1)
 
     def determineThreshold(self, Queue):
+        start_time = time.time()
         #print("Queue: ")
         self.Queue = Queue
+        currentLocation = (Queue[-1]['LAT'], Queue[-1]['LON'])
         # Iterate through each dictionary in the deque
         for record in Queue:
             record.pop('MMSI', None)  # Remove 'MMSI', do nothing if the key doesn't exist
@@ -149,41 +153,48 @@ class AIBasedModel:
 
         input = torch.tensor([list(item.values()) for item in Queue])
         input = self.normalize(input)
-        input = input.unsqueeze(0) #This puts batch_size = 1 as the first element
+        input = input.unsqueeze(0) #This puts batch_size = 1 as the first element [1, seq_len, features]
 
         #Calculate the needed timesteps
         SOG = Queue[-1]['SOG'] * 1.852
         distanceTime = self.radiusThreshold / SOG
-        print("SOG in AI determine threshold: ", SOG)
-        timesteps = math.floor((distanceTime*60*60) / globals.timeIntervals)
+
+        timesteps = math.ceil((distanceTime*60*60) / globals.timeIntervals)
         buffer = self.percentage(timesteps)
         overshot_timesteps = timesteps * 2 + buffer #Overshoots 
         self.timesteps = timesteps
         self.overshot_timesteps = overshot_timesteps
+       # print("SOG: ", SOG)
+       # print("Timesteps: ", timesteps)
+        print("Determining new threshold")
 
         #Run the model 
         input = input.type(torch.float32)
-        output = self.model(encoder_inputs = input, prediction_length=timesteps)
+        output = self.model(encoder_inputs = input, prediction_length=overshot_timesteps)
         output = output.squeeze(0) #Squeeze for at få [seq_len,features]
         output = output.cpu().detach().numpy() 
         output = self.denormalize(output)
 
-        # output har shape [timesteps, 4]
-
-        #print(output.shape)
-        #print(output)
-
-        thresholdCoordinates = output[timesteps-1][0], output[timesteps-1][1]
-        print(output[timesteps-1][0], output[timesteps-1][1])
-
         self.output = output
 
-        return thresholdCoordinates, self.radiusThreshold
-    
+        thresholdCoordinates = 0 
 
+        for timestep_int in range(overshot_timesteps):
+            contender = output[timestep_int][0], output[timestep_int][1] #lat og long
+            distance = geodesic(currentLocation, contender).kilometers
+            if (distance > self.radiusThreshold):
+                thresholdCoordinates = (output[timestep_int-1][0], output[timestep_int-1][1])
+                print("ACTUAL THRESHOLD COORDS: ", thresholdCoordinates)
+                break
+            timestep_int += 1
+
+        return thresholdCoordinates, self.radiusThreshold
 
     def runPredictionAlgorithm(self, predictedCoordinates):
-
-        predictedCoordinates = self.output[0][0], self.output[0][1]
+        print("Jeg er i run prediction algorithm")
+        lat, long = self.output[0][0], self.output[0][1] #lat, long
+        CurrentPredictedCoordinates = lat, long
+        print(self.output.shape)
         self.output = self.output[1:]
-        return predictedCoordinates
+
+        return CurrentPredictedCoordinates
