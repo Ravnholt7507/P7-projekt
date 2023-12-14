@@ -1,4 +1,6 @@
 import pandas as pd
+# remove duplicates
+from math import radians, sin, cos, sqrt, atan2
 
 df = pd.read_csv("../data/AIS_2023_01_01.csv")
 # sort = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
@@ -29,9 +31,6 @@ df['BaseDateTime_shifted'] = df.groupby('MMSI')['BaseDateTime'].shift()
 # Time in hours
 df['time'] = (pd.to_datetime(df['BaseDateTime']) - pd.to_datetime(df['BaseDateTime_shifted'])).dt.total_seconds() / 3600
 df = df.drop(columns=['BaseDateTime_shifted'])
-
-# remove duplicates
-from math import radians, sin, cos, sqrt, atan2
 
 # Define a function to calculate distance between two points
 def calculate_distance(lat1, lon1, lat2, lon2):
