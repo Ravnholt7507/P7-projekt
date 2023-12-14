@@ -83,11 +83,3 @@ print("VectorBasedModel in use",dh.calcPartPerc(VectorModel_Count, simulationOut
 print("PointBasedModel in use",dh.calcPartPerc(PointModel_Count, simulationOutput), "%")
 print("COGModel in use",dh.calcPartPerc(COGModel_Count, simulationOutput), "%")
 print("AIModel in use",dh.calcPartPerc(AIModelCount, simulationOutput), "%")
-# Allow all columns to be printed
-pd.set_option('display.max_columns', None)
-print('simulationOutput: ', simulationOutput.shape)
-# Print 5 rows of simulationOutput
-print(pd.DataFrame(simulationOutput).head())
-
-print('cog model count: ', COGModel_Count.shape)
-print(pd.DataFrame(COGModel_Count).head())
