@@ -22,6 +22,16 @@ for mmsi, group in df.groupby('MMSI'):
         COGresult = Geodesic.WGS84.Inverse(group.loc[i, 'LAT'], group.loc[i, 'LON'], group.loc[i+1, 'LAT'], group.loc[i+1, 'LON'])
         traveled = (group.loc[i, 'SOG']* 1.852) * ((pd.to_datetime(group.loc[i+2, 'BaseDateTime']) - pd.to_datetime(group.loc[i+1, 'BaseDateTime'])).total_seconds() / 3600)
 
+        time_diff = (pd.to_datetime(group.loc[i+2, 'BaseDateTime']) - pd.to_datetime(group.loc[i+1, 'BaseDateTime'])).total_seconds()
+        df.loc[i+1, 'time_diff'] = time_diff
+        # Save traveled to df
+        df.loc[i+1, 'traveled'] = traveled
+        print('time1', group.loc[i+1, 'BaseDateTime'])
+        print('time2', group.loc[i+2, 'BaseDateTime'])
+        print('time_diff', time_diff)
+        print('----')
+        
+        
         prediction = geodesic(kilometers=traveled).destination((group.loc[i+1, 'LAT'], group.loc[i+1, 'LON']), COGresult['azi1'])
         act = (group.loc[i+2, 'LAT'], group.loc[i+2, 'LON'])
         pred = ([prediction.latitude, prediction.longitude])
@@ -30,6 +40,7 @@ for mmsi, group in df.groupby('MMSI'):
 
         tally += distance
         count += 1
+    break
 
 # Print results
 print('boats', len(df))
@@ -38,3 +49,4 @@ print('total', tally)
 print('count', count)
 print('avg distance: ', (tally / count) * 1000, 'meters')
 print('time', time.time() - start_time, 'seconds')
+df.to_csv('../data/test2.csv', index=False)

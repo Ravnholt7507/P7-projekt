@@ -32,6 +32,5 @@ print(len(df['MMSI'].unique()))
 print('total', tally)
 print('count', count)
 print('avg distance: ', (tally / count) * 1000, 'meters')
-print('time', time.time() - start_time, 'seconds')
 
 
