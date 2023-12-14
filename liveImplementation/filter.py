@@ -1,5 +1,6 @@
 import pandas as pd
 from math import radians, sin, cos, sqrt, atan2
+import DataHandler as dh
 
 df = pd.read_csv("../data/AIS_2023_01_01.csv")
 
@@ -26,24 +27,7 @@ df['BaseDateTime_shifted'] = df.groupby('MMSI')['BaseDateTime'].shift()
 df['time'] = (pd.to_datetime(df['BaseDateTime']) - pd.to_datetime(df['BaseDateTime_shifted'])).dt.total_seconds() / 3600
 df = df.drop(columns=['BaseDateTime_shifted'])
 
-# Define a function to calculate distance between two points
-def calculate_distance(lat1, lon1, lat2, lon2):
-  # approximate radius of earth in km
-  R = 6371.0
 
-  lat1_rad = radians(lat1)
-  lon1_rad = radians(lon1)
-  lat2_rad = radians(lat2)
-  lon2_rad = radians(lon2)
-
-  dlon = lon2_rad - lon1_rad
-  dlat = lat2_rad - lat1_rad
-
-  a = sin(dlat / 2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2)**2
-  c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-  distance = R * c
-  return distance
 
 # Calculate change in latitude and longitude for each row per MMSI
 df['LAT_change'] = df.groupby('MMSI')['LAT'].diff()
@@ -51,7 +35,7 @@ df['LON_change'] = df.groupby('MMSI')['LON'].diff()
 
 # Calculate distance for each row
 # Distance in km
-df['distance'] = df.apply(lambda row: calculate_distance(row['LAT'], row['LON'], row['LAT'] + row['LAT_change'], row['LON'] + row['LON_change']), axis=1)
+df['distance'] = df.apply(lambda row: dh.calculate_distance(row['LAT'], row['LON'], row['LAT'] + row['LAT_change'], row['LON'] + row['LON_change']), axis=1)
 
 # Print largest distances to check and their corresponding MMS
 print(df.nlargest(10, 'distance')[['distance', 'MMSI']])

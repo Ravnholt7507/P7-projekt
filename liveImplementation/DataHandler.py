@@ -5,6 +5,7 @@ import globalVariables as globals
 from geopy.distance import geodesic
 from sklearn.preprocessing import MinMaxScaler
 import random
+from math import radians, sin, cos, sqrt, atan2
 
 def countInstances(columnm, value, dataframe):
     return dataframe.loc[dataframe[columnm] == value]
@@ -30,6 +31,24 @@ def Remove_Random_COG():
         df.iloc[RNRN[x], df.columns.get_loc('COG')] = None
 
     df.to_csv('data/skovl.csv')
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+  # approximate radius of earth in km
+  R = 6371.0
+
+  lat1_rad = radians(lat1)
+  lon1_rad = radians(lon1)
+  lat2_rad = radians(lat2)
+  lon2_rad = radians(lon2)
+
+  dlon = lon2_rad - lon1_rad
+  dlat = lat2_rad - lat1_rad
+
+  a = sin(dlat / 2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2)**2
+  c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+  distance = R * c
+  return distance
 
 def interpolater(datapath):
     df = pd.read_csv(datapath, nrows=globals.readLimit)
