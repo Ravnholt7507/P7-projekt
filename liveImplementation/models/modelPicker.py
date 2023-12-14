@@ -34,14 +34,10 @@ def modelPicker(lastKnownLocations):
 
         '''
    
-        if len(lastKnownLocations)<=7 or lastKnownLocations[-1]['SOG'] * 1.852 < 0.5:
+        if lastKnownLocations[-1]['SOG'] * 1.852 < 0.1:
             return traditionalModels.pointBasedModel(lastKnownLocations[-1])
-        elif lastKnownLocations[-1]['SOG'] * 1.852 < 0.5 and lastKnownLocations[-1]['SOG'] * 1.852 > 3 and len(lastKnownLocations) <= 9:
-            return traditionalModels.COGBasedModel(lastKnownLocations[-1])
-        elif lastKnownLocations[-1]['SOG']>3:
-            return traditionalModels.AIBasedModel(lastKnownLocations) 
         else:
-            return traditionalModels.pointBasedModel(lastKnownLocations[-1])
+            return traditionalModels.COGBasedModel(lastKnownLocations[-1]) 
 
 
 

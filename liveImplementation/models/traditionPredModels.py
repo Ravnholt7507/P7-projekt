@@ -21,7 +21,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class pointBasedModel:
 
     def __init__(self, currentLocation) -> None:
-        self.thresholdCoordinates = (currentLocation['LAT'], currentLocation['LON'])
+        self.radiusThreshold = 0.05
     
     #REPEATING
     #Defines the behaviour when printing an instance of the class
@@ -32,9 +32,8 @@ class pointBasedModel:
     #Determines the threshold from which the area that confines the boat is determined
     def determineThreshold(self, lastKnownLocations):
         currentLocation = lastKnownLocations[-1]
-        radiusThreshold = 0.05
-        thresholdCoordinates = (currentLocation['LAT'], currentLocation['LON'])
-        return thresholdCoordinates, radiusThreshold
+        self.thresholdCoordinates = (currentLocation['LAT'], currentLocation['LON'])
+        return self.radiusThreshold
     
     #REPEATING
     #Is responsible for the contious estimation of the boat location
@@ -52,13 +51,11 @@ class COGBasedModel:
     def determineThreshold(self, lastKnownLocations):
         currentLocation = lastKnownLocations[-1]
         #print("COGBasedModel: Determining threshold")
-        initialCoordinates = (currentLocation['LAT'],currentLocation['LON'])
         self.COG = currentLocation['COG']
         self.radiusThreshold = 0.5
         self.speed = currentLocation['SOG'] * 1.852
-        thresholdCoordinates = distance(kilometers=self.radiusThreshold).destination(initialCoordinates, self.COG)
         #print("COGBasedModel: Threshold determined as: ", thresholdCoordinates[0], thresholdCoordinates[1])
-        return thresholdCoordinates, self.radiusThreshold
+        return self.radiusThreshold
 
     def runPredictionAlgorithm(self, predictedCoordinates):
         #print("COGBasedModel: Running predictionAlgorithm")
@@ -80,8 +77,7 @@ class vectorBasedModel:
         #Calculates COG based on two last positions
         COGresult = Geodesic.WGS84.Inverse(previousCoordinates[0], previousCoordinates[1], initialCoordinates[0], initialCoordinates[1])
         self.COG = COGresult['azi1']
-        thresholdCoordinates = distance(kilometers=self.radiusThreshold).destination(initialCoordinates, self.COG)
-        return thresholdCoordinates, self.radiusThreshold
+        return self.radiusThreshold
     
     def runPredictionAlgorithm(self, predictedCoordinates):
         distanceTravelled = self.speed * (globals.timeIntervals / 3600)
@@ -100,13 +96,12 @@ class HeadingBasedModel:
         if self.Heading != 511:
             currentLocation = lastKnownLocations[-1]
             #print("HeadingBasedModel: Determining threshold")
-            initialCoordinates = (currentLocation['LAT'],currentLocation['LON'])
             self.Heading = currentLocation['Heading']
             self.radiusThreshold = 0.5
             self.speed = currentLocation['SOG'] * 1.852
-            thresholdCoordinates = distance(kilometers=self.radiusThreshold).destination(initialCoordinates, self.Heading)
             #print("HeadingBasedModel: Threshold determined as: ", thresholdCoordinates[0], thresholdCoordinates[1])
-            return thresholdCoordinates, self.radiusThreshold
+            print ("HALLO", self.radiusThreshold)
+            return self.radiusThreshold
 
     def runPredictionAlgorithm(self, predictedCoordinates):
         #print("HeadingBasedModel: Running predictionAlgorithm")
@@ -143,6 +138,7 @@ class AIBasedModel:
         return math.ceil(float(whole) * 0.1)
 
     def determineThreshold(self, Queue):
+        print("MAKING NEW THRESHOLD")
         start_time = time.time()
         print("how many timesteps did we use: ", self.timestep_counter)
         self.Queue = Queue
@@ -178,21 +174,28 @@ class AIBasedModel:
 
         thresholdCoordinates = 0, 0
 
+        
         for timestep_int in range(overshot_timesteps):
             contender = output[timestep_int][0], output[timestep_int][1] #lat og long
             distance = geodesic(currentLocation, contender).kilometers
+            print("DISTANCE CHECK TIMESTEP TO THRESHOLD CONTENDER: ", distance)
             if (distance > self.radiusThreshold):
-                thresholdCoordinates = (output[timestep_int-1][0], output[timestep_int-1][1])
+                print("TIMESTEP_INT: ", timestep_int)
+                print("ALL OUTPUTS: ", output)
+                print("Chosen threshold: ", output[timestep_int-1][0].item(), output[timestep_int-1][1].item())
+                thresholdCoordinates = (output[timestep_int-1][0].item(), output[timestep_int-1][1].item())
+                print("DISTANCE exceeded: ", distance)
                 print("Timestep_int: ", timestep_int)
+                
                 break
-            timestep_int += 1
+            #timestep_int += 1
 
         return thresholdCoordinates, self.radiusThreshold
 
     # Husk at tjekke index på output
     def runPredictionAlgorithm(self, predictedCoordinates):
         lat, long = self.output[1][0], self.output[1][1] #lat, long
-        CurrentPredictedCoordinates = lat, long
+        CurrentPredictedCoordinates = lat.item(), long.item()
         self.output = self.output[1:]
         self.timestep_counter =+ 1
 

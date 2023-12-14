@@ -12,21 +12,20 @@ class boatEntity:
 
         self.current_index = 0
         self.current_model = mp.modelPicker(self.last_known_locations)
-        self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.last_known_locations)
+        self.radiusThreshold = self.current_model.determineThreshold(self.last_known_locations)
         self.predictedLocation = (currentLocation['LAT'], currentLocation['LON'])
         #print("Predicted_location: ", self.predictedLocation)
         #print("target_location: ", gv.targetValues)
         self.thresholdExceeded = False
 
     def exceedsThreshold(self) -> bool:
-        thresholdPoint = (self.locationThreshold[0], self.locationThreshold[1])
         actualLocationPoint = (self.currentLocation['LAT'], self.currentLocation['LON'])
         predictedPoint = (self.predictedLocation[0], self.predictedLocation[1])
-        realDistance = haversine(thresholdPoint, actualLocationPoint)
-        predictedDistance = haversine(thresholdPoint, predictedPoint)
-        print("Distance between actual and threshold: ", realDistance, self.current_model)
-        print("Distance between predicted and threshold: ", predictedDistance, self.current_model)        
-        return realDistance > self.radiusThreshold or predictedDistance > self.radiusThreshold
+        realDistance = haversine(predictedPoint, actualLocationPoint)
+        print("Distance between actual and predicted: ", realDistance, self.current_model)
+        print(self.current_model)
+        print(realDistance, self.radiusThreshold)
+        return realDistance > self.radiusThreshold
 
     #Sends update to shore when locationThreshold has been exceeded
     def updateShore(self, shoreEntity) -> None:
@@ -37,8 +36,7 @@ class boatEntity:
         #("BOAT: UpdateBoat")
         self.last_known_locations.append(dict(currentLocation))
         self.current_model = mp.modelPicker(self.last_known_locations)
-        self.locationThreshold, self.radiusThreshold = self.current_model.determineThreshold(self.last_known_locations)
-        print("Actual Threshold coords: ", self.locationThreshold)
+        self.radiusThreshold = self.current_model.determineThreshold(self.last_known_locations)
         self.predictedLocation = (self.currentLocation['LAT'], self.currentLocation['LON'])
 
     #Simulates normal boat behaviour
@@ -52,7 +50,8 @@ class boatEntity:
             # Calculate distance
             distance = geodesic(self.predictedLocation, gv.targetValues).kilometers
             print(f"error distance: {distance} km")
-        
+        print("LIGE FØR IF, RADIUSTHRES: ", self.radiusThreshold)
+
         if self.exceedsThreshold():
                 print("Determining new threshold")
                 self.updateBoat(self.currentLocation)
@@ -62,6 +61,6 @@ class boatEntity:
                 self.thresholdExceeded = True
         
         #Collects simulation data for UI and collision
-        instanceInfo = np.array([self.predictedLocation[0], self.predictedLocation[1], self.locationThreshold[0], self.locationThreshold[1], self.radiusThreshold, self.thresholdExceeded, self.current_model])
+        instanceInfo = np.array([self.predictedLocation[0], self.predictedLocation[1], self.radiusThreshold, self.thresholdExceeded, self.current_model])
         self.thresholdExceeded = False
-        return instanceInfo
+        return instanceInfo 

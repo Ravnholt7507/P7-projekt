@@ -25,16 +25,13 @@ all_data_for_fitting = pd.read_csv('../data/interpolated_complete.csv')
 scaler = dh.Fit_Scaler_To_Data(all_data_for_fitting)
 gv.scaler = scaler
 
-print("Hvor mange AIS punkter: ", len(interpolated_data))
+""" print("Hvor mange AIS punkter: ", len(interpolated_data))
 interpolated_data = interpolated_data[0:100]
-print("Hvor mange AIS punkter: ", len(interpolated_data))
+print("Hvor mange AIS punkter: ", len(interpolated_data)) """
 
 output_DF = interpolated_data.copy()
 output_DF['predictedLAT'] = None
 output_DF['predictedLON'] = None
-
-output_DF['locationThresholdLAT'] = None
-output_DF['locationThresholdLON'] = None
 output_DF['radiusThreshold'] = None
 output_DF['thresholdExceeded'] = None
 output_DF['currentModel'] = None
@@ -42,7 +39,7 @@ output_DF['currentModel'] = None
 
 g_interpolated_data = interpolated_data.groupby('MMSI')
 
-simulationOutput = np.empty((0, 7))
+simulationOutput = np.empty((0, 5))
 
 length = len(g_interpolated_data)
 # Run simulation for each unique boat
