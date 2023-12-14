@@ -7,7 +7,7 @@ df = pd.read_csv("../data/AIS_2023_01_01.csv")
 print("length of AIS data: ", len(df))
 init = len(df)
 
-limit = False
+limit = True
 if limit:
     df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
     print('Area is limited between 23 and 24 lat and -82 and -80 lon')

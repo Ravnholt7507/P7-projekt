@@ -52,7 +52,7 @@ class COGBasedModel:
         currentLocation = lastKnownLocations[-1]
         #print("COGBasedModel: Determining threshold")
         self.COG = currentLocation['COG']
-        self.radiusThreshold = 0.5
+        self.radiusThreshold = 0.057
         self.speed = currentLocation['SOG'] * 1.852
         #print("COGBasedModel: Threshold determined as: ", thresholdCoordinates[0], thresholdCoordinates[1])
         return self.radiusThreshold
@@ -138,9 +138,7 @@ class AIBasedModel:
         return math.ceil(float(whole) * 0.1)
 
     def determineThreshold(self, Queue):
-        print("MAKING NEW THRESHOLD")
         start_time = time.time()
-        print("how many timesteps did we use: ", self.timestep_counter)
         self.Queue = Queue
         currentLocation = (Queue[-1]['LAT'], Queue[-1]['LON'])
         # Iterate through each dictionary in the deque
@@ -178,14 +176,8 @@ class AIBasedModel:
         for timestep_int in range(overshot_timesteps):
             contender = output[timestep_int][0], output[timestep_int][1] #lat og long
             distance = geodesic(currentLocation, contender).kilometers
-            print("DISTANCE CHECK TIMESTEP TO THRESHOLD CONTENDER: ", distance)
             if (distance > self.radiusThreshold):
-                print("TIMESTEP_INT: ", timestep_int)
-                print("ALL OUTPUTS: ", output)
-                print("Chosen threshold: ", output[timestep_int-1][0].item(), output[timestep_int-1][1].item())
                 thresholdCoordinates = (output[timestep_int-1][0].item(), output[timestep_int-1][1].item())
-                print("DISTANCE exceeded: ", distance)
-                print("Timestep_int: ", timestep_int)
                 
                 break
             #timestep_int += 1

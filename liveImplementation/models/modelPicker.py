@@ -33,7 +33,6 @@ def modelPicker(lastKnownLocations):
             return traditionalModels.pointBasedModel(lastKnownLocations[-1]) 
 
         '''
-   
         if lastKnownLocations[-1]['SOG'] * 1.852 < 0.1:
             return traditionalModels.pointBasedModel(lastKnownLocations[-1])
         else:
