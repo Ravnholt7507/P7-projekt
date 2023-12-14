@@ -11,7 +11,7 @@ df = pd.read_csv("../data/AIS_2023_01_01.csv")
 print("length of df: ", len(df))
 init = len(df)
 
-limit = True
+limit = False
 if limit:
     df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
     print('Area is limited between 23 and 24 lat and -82 and -80 lon')
@@ -108,4 +108,10 @@ df = df.drop(columns=['LAT_change','LON_change','speed', 'diff', 'distance', 'ti
 after = len(df)
 print("length of df: ", len(df))
 print('rows dropped: ', (init - after) / init * 100, '%')
-df.to_csv('../data/filtered.csv', index=False)
+
+if limit:
+    print('saved to filtered_limited.csv')
+    df.to_csv('../data/filtered_limited.csv', index=False)
+else:
+  print('saved to filtered_unlimited.csv')
+  df.to_csv('../data/filtered_unlimited.csv', index=False)
