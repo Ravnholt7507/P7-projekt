@@ -18,8 +18,8 @@ if limit:
 
 # Drop rows where heading == 511.0
 df = df[df['Heading'] != 511.0]
-df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
-              'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo','TransceiverClass'])
+# df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
+              # 'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo','TransceiverClass'])
 
 # Drop whole MMSI where sog == 102.3
 df = df[df['SOG'] != 102.3]
@@ -104,7 +104,7 @@ failing_mmsi = df[(df['LAT_change'].abs() > 0.014) & (df['time'] < 30/3600) |
 # Drop all records with failing MMSI values
 df = df[~df['MMSI'].isin(failing_mmsi)]
 # remove extra columns
-df = df.drop(columns=['LAT_change','LON_change','speed', 'diff'])
+df = df.drop(columns=['LAT_change','LON_change','speed', 'diff', 'distance', 'time'])
 after = len(df)
 print("length of df: ", len(df))
 print('rows dropped: ', (init - after) / init * 100, '%')
