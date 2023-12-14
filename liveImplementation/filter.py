@@ -1,5 +1,4 @@
 import pandas as pd
-# remove duplicates
 from math import radians, sin, cos, sqrt, atan2
 
 df = pd.read_csv("../data/AIS_2023_01_01.csv")
@@ -15,7 +14,7 @@ if limit:
 # Drop rows where heading == 511.0
 df = df[df['Heading'] != 511.0]
 
-# Drop whole MMSI where sog == 102.3
+# Drop rows where sog == 102.3
 df = df[df['SOG'] != 102.3]
 
 df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
@@ -54,16 +53,20 @@ df['LON_change'] = df.groupby('MMSI')['LON'].diff()
 # Distance in km
 df['distance'] = df.apply(lambda row: calculate_distance(row['LAT'], row['LON'], row['LAT'] + row['LAT_change'], row['LON'] + row['LON_change']), axis=1)
 
+# Print largest distances to check and their corresponding MMS
+print(df.nlargest(10, 'distance')[['distance', 'MMSI']])
+
 # Calculate speed
-# Speed in knots
+# Speed is in knots
 df['speed'] = (df['distance'] / df['time']) / 1.852
+print(df.nlargest(10, 'speed')[['speed', 'MMSI']])
 
 # Calculate difference between SOG and speed
 df['diff'] = df['SOG'] - df['speed']
 
 # Drop rows based on conditions
 # 0.014 degrees per second corresponds to ~50 knots
-# Drop rows where latitude change is greater than 0.014 degrees per second and time is less than 5 seconds
+# Drop rows where latitude change is greater than 0.014 degrees per second and time is less than 30 seconds
 # Identify MMSI values that have any failing records
 failing_mmsi = df[(df['LAT_change'].abs() > 0.014) & (df['time'] < 30/3600) |
                   (df['LON_change'].abs() > 0.014) & (df['time'] < 30/3600) |
