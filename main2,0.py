@@ -3,14 +3,15 @@ from tkinter import ttk
 from tkinter import filedialog as fd
 import tkinter.messagebox as msg
 import vector_based.prediction as prediction
-import vector_based.plot as plot
-import all_collisions as all_collisions
+#import all_collisions as all_collisions
 from PIL import ImageTk, Image 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.figure import Figure
+from matplotlib.collections import LineCollection
+import matplotlib.collections
 import seaborn as sns
 import mplcursors
 import datetime
@@ -82,7 +83,7 @@ class inputFrame(Frame):
 
     def ready(self):
             self.parent.background.loadSettings()
-            self.availShips = self.parent.background.getData('data/boats.csv')
+            self.availShips = self.parent.background.getData('data/output.csv')
             self.nerualNetworkChoices(self.nnVar.get())
             self.constructTree()
 
@@ -180,23 +181,26 @@ class plotFrame(Frame):
         self.drawActualBtt = ttk.Button(self.buttonFrame, text='Draw Actual Path', command=lambda: self.map.scatterActual())
         self.drawPredBtt = ttk.Button(self.buttonFrame, text='Draw Predicted Path', command=lambda: self.map.drawPredictedPath())
         self.heatMapBtt = ttk.Button(self.buttonFrame, text='Heatmap', command=lambda: self.map.heatMap())
-        self.collisionsBtt = ttk.Button(self.buttonFrame, text='Collisions', command=lambda: self.map.collissions())
+        #self.collisionsBtt = ttk.Button(self.buttonFrame, text='Collisions', command=lambda: self.map.collissions())
         self.zoomPredBtt = ttk.Button(self.buttonFrame, text='Zoom to Point', command=lambda: self.map.zoomToPred())
         self.resetMapBtt = ttk.Button(self.buttonFrame, text='Reset Map', command=lambda: self.map.reset())
-        self.liveDemoBtt = ttk.Button(self.buttonFrame, text='Live Demo', command=lambda: self.liveDemo())
-        
+        self.demo2btt = ttk.Button(self.buttonFrame, text='Live Demo', command=lambda: self.map.liveDemoClassBased())
+        self.updateLiveDemoBtt = ttk.Button(self.buttonFrame, text='Update Live Demo', command=lambda: self.map.updateLiveDemo())        
         
         #Widget Placement        
         self.buttonFrame.grid(row=0, column=0, sticky=N, padx=10, pady=2)
         self.drawActualBtt.grid(row=0, column=0, sticky=W, padx=10, pady=2)
         self.drawPredBtt.grid(row=0, column=1, sticky=W, padx=10, pady=2)
         self.heatMapBtt.grid(row=0, column=2, sticky=W, padx=10, pady=2)
-        self.collisionsBtt.grid(row=0, column=3, sticky=W, padx=10, pady=2)       
+        #self.collisionsBtt.grid(row=0, column=3, sticky=W, padx=10, pady=2)       
         self.zoomPredBtt.grid(row=0, column=4, sticky=W, padx=10, pady=2)
         self.resetMapBtt.grid(row=0, column=5, sticky=W, padx=10, pady=2)
-        self.liveDemoBtt.grid(row=0, column=6, sticky=W, padx=10, pady=2)
+        self.demo2btt.grid(row=0, column=7, sticky=W, padx=10, pady=2)
+        self.updateLiveDemoBtt.grid(row=1, column=7, sticky=W, padx=10, pady=2)
         
         self.imagebox.grid(row=1, column=0, sticky=W, padx=10, pady=2)
+        self.imagebox.columnconfigure(0, weight=1)
+        self.imagebox.rowconfigure(0, weight=1)
         self.toolBox.grid(row=2, column=0, sticky=W, padx=10, pady=2)
 
     class CustomToolbar(NavigationToolbar2Tk):    
@@ -206,7 +210,7 @@ class plotFrame(Frame):
                 #('Back', 'Back to previous view', 'back', 'back'),
                 #('Forward', 'Forward to next view', 'forward', 'forward'),
                 ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
-                #('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
+                ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
                 (None, None, None, None),
                 ('Save', 'Save the figure', 'filesave', 'save_figure'),
                 )
@@ -245,6 +249,27 @@ class plotFrame(Frame):
             self.hMap = None
             self.max_cluster = 16
             self.intSecPoints = []
+            self.liveData = None
+            self.collissionsData = None
+            self.demoStep = 0
+            self.liveDemoCurrent = None
+            self.liveDemoCurrentPred = None
+            self.liveDemoThresholdCicles = []
+            self.boats = []
+            self.boatLocations = [[],[]]
+            self.predictedBoatLocations = [[],[]]
+            self.patches = []
+            self.patchCollection = None
+            self.lineCollection = None
+            self.paths = []
+            self.pathCollection = None
+            self.demoDF = pd.DataFrame(columns=['BaseDateTime','MMSI','LAT','LON','SOG','COG','VesselName','predictedLAT','predictedLON','locationThresholdLAT','locationThresholdLON','radiusThreshold','thresholdExceeded','currentModel'])
+            self.intersections = []
+            self.intersectionsScatter = None
+            self.intersectionsLines = []
+            self.collisionCircles = []
+            self.patchCollection2 = None
+            self.pathCollection2 = None
             
             self.plt.tight_layout()
             self.legendHandles = []
@@ -252,6 +277,7 @@ class plotFrame(Frame):
             self.plt.legend()
             
             self.annotConId = None
+            self.liveDemoAnnotConId = None
             self.removeAnot = None
             self.zoomConId = self.fig.canvas.mpl_connect('scroll_event',self.zoom_factory(self.ax, 1.5))
             self.pickConId = self.fig.canvas.mpl_connect('pick_event', self.onPick)
@@ -262,7 +288,7 @@ class plotFrame(Frame):
             self.toolbar_frame.grid(row=0, column=0)
             self.figure.get_tk_widget().grid(row=0, column=0)
             
-        def annotate(self, sel):
+        """ def annotate(self, sel):
             index = sel.index
             text = None
             if sel.artist == self.first:
@@ -271,6 +297,17 @@ class plotFrame(Frame):
                 text = 'Vessel: {}'.format(self.FLRhold[1].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[1].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[1].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[1].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[1].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[1].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[1].iloc[index]['COG']) + '\n' + 'Heading: {}'.format(self.FLRhold[1].iloc[index]['Heading'])
             elif sel.artist == self.remainder:
                 text = 'Vessel: {}'.format(self.FLRhold[2].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[2].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[2].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[2].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[2].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[2].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[2].iloc[index]['COG']) + '\n' + 'Heading: {}'.format(self.FLRhold[2].iloc[index]['Heading'])
+            sel.annotation.set_text(text) """
+            
+        def annotate(self, sel):
+            index = sel.index
+            text = None
+            if sel.artist == self.first:
+                text = 'Vessel: {}'.format(self.FLRhold[0].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[0].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[0].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[0].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[0].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[0].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[0].iloc[index]['COG'])
+            elif sel.artist == self.last:
+                text = 'Vessel: {}'.format(self.FLRhold[1].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[1].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[1].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[1].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[1].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[1].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[1].iloc[index]['COG'])
+            elif sel.artist == self.remainder:
+                text = 'Vessel: {}'.format(self.FLRhold[2].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[2].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[2].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[2].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[2].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[2].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[2].iloc[index]['COG'])
             sel.annotation.set_text(text)
 
         def zoom_factory(self, ax,base_scale = 2.):
@@ -378,7 +415,7 @@ class plotFrame(Frame):
         def heatMap(self):
             #semi functional
             if self.hMap == None:
-                df = self.parent.parent.background.getData('data/boats.csv')
+                df = self.parent.parent.background.getData('data/output.csv')
                 self.hMap = sns.kdeplot(data = df, x="LON", y="LAT", cmap='Reds', fill=True, bw_method=0.1)
                 self.hMap.collections[0].set_alpha(0)
                 self.hMap = sns.kdeplot(data = df, x="LON", y="LAT", cmap='Reds', fill=True, bw_method=0.1)
@@ -427,9 +464,147 @@ class plotFrame(Frame):
                 self.intSecPoints = []
                 self.plt.draw()
         
-        def liveDemo(self):
-            blegh = 1
+        def liveDemoClassBased(self):
+            if self.liveDemoCurrent == None:
+                self.liveData = self.parent.parent.background.getData('data/output.csv')
+                self.collissionsData = self.parent.parent.background.getData('data/vector_colissions.csv')
+                self.liveData = self.liveData.groupby('MMSI', as_index=False)
+                templist = []
+                for name, group in self.liveData:
+                    boat = self.Boat(self, group)
+                    self.boats.append(boat)    
+                    for i in range (len(boat.actualPoints)):
+                        self.boatLocations[0].append(boat.actualPoints[i][0])
+                        self.boatLocations[1].append(boat.actualPoints[i][1])
+                        self.predictedBoatLocations[0].append(boat.predPoints[i][0])
+                        self.predictedBoatLocations[1].append(boat.predPoints[i][1])
+                        templist.append(boat.group.iloc[0])    
+                    circlePlt = plt.Circle(boat.circle[0], boat.circle[1])
+                    self.patches.append(circlePlt)
+                    mmsi_value = boat.group.iloc[0]['MMSI']
+                    filtered_data1 = self.collissionsData.query("`time1` < `time2` and `MMSI1` == @mmsi_value")
+                    filtered_data2 = self.collissionsData.query("`time1` > `time2` and `MMSI2` == @mmsi_value")                
+                    boat.collisions = pd.concat([filtered_data1, filtered_data2])
+                    if boat.collisions.empty == False:
+                        time = boat.group.iloc[boat.demoStep-1]['BaseDateTime']
+                        filtered_df = boat.collisions[(boat.collisions['time1'] == time) | (boat.collisions['time2'] == time)]
+                        line_segments1 = list(zip(zip(boat.collisions['lat1'], boat.collisions['lon1']), zip(boat.collisions['vlat1'], boat.collisions['vlon1'])))
+                        line_segments2 = list(zip(zip(boat.collisions['lat2'], boat.collisions['lon2']), zip(boat.collisions['vlat2'], boat.collisions['vlon2'])))
+                        self.intersectionsLines.extend(line_segments1 + line_segments2)
+                        intersection_points = list(zip(filtered_df['intersectionLat'], filtered_df['intersectionLon']))
+                        self.intersections.extend(intersection_points)
+                self.demoDF = pd.DataFrame(templist)                
+                coll = matplotlib.collections.PatchCollection(self.patches, facecolors='none', edgecolors='black')
+                self.patchCollection = self.ax.add_collection(coll)
+                self.liveDemoCurrent = plt.scatter(self.boatLocations[0], self.boatLocations[1], color='red', marker='.', linewidths=1)
+                self.liveDemoCurrentPred = plt.scatter(self.predictedBoatLocations[0], self.predictedBoatLocations[1], color='green', marker='.', linewidths=1)
+                interSecLc = LineCollection(self.intersectionsLines, colors='purple', linewidths=1)
+                self.pathCollection2 = self.ax.add_collection(interSecLc)
+                self.intersectionsScatter = plt.scatter([x[0] for x in self.intersections], [x[1] for x in self.intersections], color='purple', marker='*', linewidths=1)
+
+                self.legendHandles.append(self.liveDemoCurrent), self.legendLabels.append('Actual')
+                self.legendHandles.append(self.liveDemoCurrentPred), self.legendLabels.append('Predicted')
+                self.legendHandles.append(self.intersectionsScatter), self.legendLabels.append('Collisions')
+                self.ax.legend(self.legendHandles, self.legendLabels)
+                self.liveDemoAnnotConId = mplcursors.cursor([self.liveDemoCurrent, self.liveDemoCurrentPred], hover=True)
+                self.liveDemoAnnotConId.connect("add", self.annotateLiveDemo)
+                self.plt.draw()
         
+        def updateLiveDemo(self):
+            self.liveDemoCurrent.remove()
+            self.boatLocations = [[],[]]
+            self.predictedBoatLocations = [[],[]]
+            self.patches = []
+            self.patchCollection.remove()
+            self.liveDemoCurrentPred.remove()
+            self.liveDemoAnnotConId.remove()
+            self.liveDemoAnnotConId = None
+            if self.pathCollection != None:
+                self.paths = []
+                self.pathCollection.remove()
+            if self.pathCollection2 != None:
+                self.intersectionsLines = []
+                self.pathCollection2.remove()
+                self.intersectionsScatter.remove()
+                self.intersections = []
+            for boat in self.boats:
+                boat.update()
+                for i in range (len(boat.actualPoints)):
+                    self.boatLocations[0].append(boat.actualPoints[i][0])
+                    self.boatLocations[1].append(boat.actualPoints[i][1])
+                    self.predictedBoatLocations[0].append(boat.predPoints[i][0])
+                    self.predictedBoatLocations[1].append(boat.predPoints[i][1])
+                circlePlt = plt.Circle(boat.circle[0], boat.circle[1])
+                self.patches.append(circlePlt)
+                self.paths.append(boat.actualPoints)
+                if boat.collisions.empty == False:
+                    time = boat.group.iloc[boat.demoStep-1]['BaseDateTime']
+                    filtered_df = boat.collisions[(boat.collisions['time1'] == time) | (boat.collisions['time2'] == time)]
+                    line_segments1 = list(zip(zip(boat.collisions['lat1'], boat.collisions['lon1']), zip(boat.collisions['vlat1'], boat.collisions['vlon1'])))
+                    line_segments2 = list(zip(zip(boat.collisions['lat2'], boat.collisions['lon2']), zip(boat.collisions['vlat2'], boat.collisions['vlon2'])))
+                    self.intersectionsLines.extend(line_segments1 + line_segments2)
+                    intersection_points = list(zip(filtered_df['intersectionLat'], filtered_df['intersectionLon']))
+                    self.intersections.extend(intersection_points)
+            coll = matplotlib.collections.PatchCollection(self.patches, facecolors='none', edgecolors='black')
+            self.patchCollection = self.ax.add_collection(coll)
+            lc = matplotlib.collections.LineCollection(self.paths, colors='red', linewidths=1)
+            self.pathCollection = self.ax.add_collection(lc)
+            self.liveDemoCurrent = plt.scatter(self.boatLocations[0], self.boatLocations[1], color='red', marker='.', linewidths=1)
+            self.liveDemoCurrentPred = plt.scatter(self.predictedBoatLocations[0], self.predictedBoatLocations[1], color='green', marker='.', linewidths=1)
+            interSecLc = LineCollection(self.intersectionsLines, colors='purple', linewidths=1)
+            self.pathCollection2 = self.ax.add_collection(interSecLc)
+            self.intersectionsScatter = plt.scatter([x[0] for x in self.intersections], [x[1] for x in self.intersections], color='purple', marker='*', linewidths=1)
+            self.liveDemoAnnotConId = mplcursors.cursor([self.liveDemoCurrent, self.liveDemoCurrentPred], hover=True)
+            self.liveDemoAnnotConId.connect("add", self.annotateLiveDemo)
+            self.plt.draw()
+        
+        class Boat():
+            def __init__(self, parent, group):
+                self.parent = parent
+                self.group = group
+                self.collisions = []
+                self.demoStep = 0
+                self.circle = None
+                self.circlePlot = None
+                self.actualPoints = []
+                self.predPoints = []
+                self.group["radiusThreshold"] = self.group["radiusThreshold"] / 111.32
+                self.circle = ([[self.group.iloc[self.demoStep]["locationThresholdLON"], self.group.iloc[self.demoStep]["locationThresholdLAT"]], self.group.iloc[self.demoStep]["radiusThreshold"]])
+                self.circlePlot = self.parent.plt.Circle(self.circle[0], self.circle[1])
+                self.firstPoint = [self.group.iloc[self.demoStep]["LON"], self.group.iloc[self.demoStep]["LAT"]]
+                self.firstPredPoint = [self.group.iloc[self.demoStep]["predictedLON"], self.group.iloc[self.demoStep]["predictedLAT"]]
+                self.actualPoints.append(self.firstPoint)
+                self.predPoints.append(self.firstPredPoint)
+                self.demoStep = self.demoStep + 1
+            
+            def update(self):
+                if self.demoStep < len(self.group):
+                    if self.group.iloc[self.demoStep]["thresholdExceeded"] == False:
+                        point = [self.group.iloc[self.demoStep]["LON"], self.group.iloc[self.demoStep]["LAT"]]
+                        predPoint = [self.group.iloc[self.demoStep]["predictedLON"], self.group.iloc[self.demoStep]["predictedLAT"]]
+                        self.actualPoints.append(point)
+                        self.predPoints.append(predPoint)
+                        self.demoStep = self.demoStep + 1
+                    else:
+                        self.actualPoints = []
+                        self.predPoints = []
+                        point = [self.group.iloc[self.demoStep]["LON"], self.group.iloc[self.demoStep]["LAT"]]
+                        predPoint = [self.group.iloc[self.demoStep]["predictedLON"], self.group.iloc[self.demoStep]["predictedLAT"]]
+                        self.actualPoints.append(point)
+                        self.predPoints.append(predPoint)
+                        if self.circle != ([[self.group.iloc[self.demoStep]["locationThresholdLON"], self.group.iloc[self.demoStep]["locationThresholdLAT"]], self.group.iloc[self.demoStep]["radiusThreshold"]]):
+                            self.circle = ([[self.group.iloc[self.demoStep]["locationThresholdLON"], self.group.iloc[self.demoStep]["locationThresholdLAT"]], self.group.iloc[self.demoStep]["radiusThreshold"]])
+                        self.demoStep = self.demoStep + 1
+
+        def annotateLiveDemo(self, sel):
+            index = sel.index
+            text = None
+            if sel.artist == self.liveDemoCurrent:
+                text = 'Vessel: {}'.format(self.demoDF.iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.demoDF.iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.demoDF.iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.demoDF.iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.demoDF.iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.demoDF.iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.demoDF.iloc[index]['COG'])
+            elif sel.artist == self.liveDemoCurrentPred:
+                text = 'Predicted point' + '\n' + 'Vessel: {}'.format(self.demoDF.iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.demoDF.iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.demoDF.iloc[index]['predictedLAT']) + '\n' + 'Longitude: {}'.format(self.demoDF.iloc[index]['predictedLON']) + '\n' + 'BaseDateTime: {}'.format(self.demoDF.iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.demoDF.iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.demoDF.iloc[index]['COG'])
+            sel.annotation.set_text(text)
+  
         def zoomToPred(self):
             if self.predPath != None:
                 """ self.drawPredictedPath()
@@ -443,7 +618,7 @@ class plotFrame(Frame):
         def reset(self):
             self.__init__(self.parent)
             self.plt.draw()
-    
+
     def ready(self):
         self.map = self.worldMap(self)
 
