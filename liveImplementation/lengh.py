@@ -1,8 +1,9 @@
 import pandas as pd
 
 df = pd.read_csv("../data/AIS_2023_01_01.csv")
-
-df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
+print("length of df: ", len(df))
+init = len(df)
+# df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
 
 # Drop rows where heading == 511.0
 df = df[df['Heading'] != 511.0]
@@ -37,13 +38,14 @@ failing_mmsi = df[(df['LAT_change'].abs() > 0.014) & (df['time'] < 5) |
                   (df['LON_change'].abs() > 0.014) & (df['time'] < 5) |
                   (df['LAT_change'].abs() > 0.014) & (df['SOG'] < 0.3) |
                   (df['LON_change'].abs() > 0.014) & (df['SOG'] < 0.3) |
-                  (df['LAT_change'] == 0) |
-                  (df['LON_change'] == 0) |
+                  (df['LAT_change'] == 0) & (df['LON_change'] == 0) |
                   (df['diff'].abs() > 10)]['MMSI'].unique()
 
 # Drop all records with failing MMSI values
 df = df[~df['MMSI'].isin(failing_mmsi)]
 # remove extra columns
 df = df.drop(columns=['LAT_change', 'LON_change', 'BaseDateTime_shifted', 'time', 'speed', 'diff'])
-
+after = len(df)
+print("length of df: ", len(df))
+print('rows dropped: ', (init - after) / init * 100, '%')
 df.to_csv('../data/filtered.csv', index=False)
