@@ -118,8 +118,9 @@ class AIBasedModel:
     def __init__(self, Queue):
         #print("AImodel: Initializing")
         self.model = getModel("Seq2Seq")
+        self.timestep_counter = 0
         self.model.load_state_dict(torch.load('..\\ann\\saved_models\\LSTMSeq2seqAtt.pth', map_location=torch.device('cpu')))
-        self.radiusThreshold = 0.150
+        self.radiusThreshold = 0.5
         self.Queue = Queue
         self.output = torch.empty((0), dtype=torch.float32) #define placeholder until we get output
         self.timesteps = 0
@@ -143,7 +144,7 @@ class AIBasedModel:
 
     def determineThreshold(self, Queue):
         start_time = time.time()
-        #print("Queue: ")
+        print("how many timesteps did we use: ", self.timestep_counter)
         self.Queue = Queue
         currentLocation = (Queue[-1]['LAT'], Queue[-1]['LON'])
         # Iterate through each dictionary in the deque
@@ -157,9 +158,10 @@ class AIBasedModel:
 
         #Calculate the needed timesteps
         SOG = Queue[-1]['SOG'] * 1.852
-        distanceTime = self.radiusThreshold / SOG
+        distanceTime = self.radiusThreshold / SOG 
 
         timesteps = math.ceil((distanceTime*60*60) / globals.timeIntervals)
+        print("timesteps:", timesteps)
         buffer = self.percentage(timesteps)
         overshot_timesteps = timesteps * 2 + buffer #Overshoots 
         self.timesteps = timesteps
@@ -181,6 +183,7 @@ class AIBasedModel:
             distance = geodesic(currentLocation, contender).kilometers
             if (distance > self.radiusThreshold):
                 thresholdCoordinates = (output[timestep_int-1][0], output[timestep_int-1][1])
+                print("Timestep_int: ", timestep_int)
                 break
             timestep_int += 1
 
@@ -191,5 +194,6 @@ class AIBasedModel:
         lat, long = self.output[1][0], self.output[1][1] #lat, long
         CurrentPredictedCoordinates = lat, long
         self.output = self.output[1:]
+        self.timestep_counter =+ 1
 
         return CurrentPredictedCoordinates
