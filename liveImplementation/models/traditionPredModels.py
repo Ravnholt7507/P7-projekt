@@ -8,6 +8,7 @@ sys.path.append('../../P7-projekt')
 from ann.Seq2Seq.Models import getModel
 import torch 
 from sklearn.preprocessing import MinMaxScaler
+from collections import deque
 import haversine as hv
 from haversine import haversine
 from geopy.distance import distance
@@ -111,15 +112,14 @@ class HeadingBasedModel:
 
 class AIBasedModel:
     def __init__(self, Queue):
-        #print("AImodel: Initializing")
         self.model = getModel("Seq2Seq")
-        self.timestep_counter = 0
         self.model.load_state_dict(torch.load('..\\ann\\saved_models\\LSTMSeq2seqAtt.pth', map_location=torch.device('cpu')))
         self.radiusThreshold = 0.5
         self.Queue = Queue
+        self.potentialInput = deque(maxlen=10)
+        self.input = deque(maxlen=10)
         self.output = torch.empty((0), dtype=torch.float32) #define placeholder until we get output
         self.timesteps = 0
-        self.overshot_timesteps = 0
 
     def __str__(self):
         return "AImodel"
@@ -133,62 +133,44 @@ class AIBasedModel:
         scaler = globals.scaler
         denorm_tensor = scaler.inverse_transform(tensor)
         return torch.from_numpy(denorm_tensor)
-    
-    def percentage(self, whole):
-        return math.ceil(float(whole) * 0.1)
 
-    def determineThreshold(self, Queue):
-        start_time = time.time()
-        self.Queue = Queue
-        currentLocation = (Queue[-1]['LAT'], Queue[-1]['LON'])
-        # Iterate through each dictionary in the deque
-        for record in Queue:
+    def MakeOutputQueue(self, input):
+        for record in input:
             record.pop('MMSI', None)  # Remove 'MMSI', do nothing if the key doesn't exist
             record.pop('BaseDateTime', None)  # Remove 'BaseDateTime', do nothing if the key doesn't exist
 
-        input = torch.tensor([list(item.values()) for item in Queue])
+        input = torch.tensor([list(item.values()) for item in input])
         input = self.normalize(input)
-        input = input.unsqueeze(0) #This puts batch_size = 1 as the first element [1, seq_len, features]
-
-        #Calculate the needed timesteps
-        SOG = Queue[-1]['SOG'] * 1.852
-        distanceTime = self.radiusThreshold / SOG 
-
-        timesteps = math.ceil((distanceTime*60*60) / globals.timeIntervals)
-        print("timesteps:", timesteps)
-        buffer = self.percentage(timesteps)
-        overshot_timesteps = timesteps * 2 + buffer #Overshoots 
-        self.timesteps = timesteps
-        self.overshot_timesteps = overshot_timesteps
+        input = input.unsqueeze(0)
 
         #Run the model 
         input = input.type(torch.float32)
-        output = self.model(encoder_inputs = input, prediction_length=overshot_timesteps)
+        output = self.model(encoder_inputs = input, prediction_length=40)
         output = output.squeeze(0) #Squeeze for at få [seq_len,features]
         output = output.cpu().detach().numpy() 
         output = self.denormalize(output)
 
         self.output = output
+        return None
 
-        thresholdCoordinates = 0, 0
+    def determineThreshold(self, Queue):
+        self.Queue = Queue
+        self.input = self.Queue
+        self.MakeOutputQueue(self.input)
+        return self.radiusThreshold
 
-        
-        for timestep_int in range(overshot_timesteps):
-            contender = output[timestep_int][0], output[timestep_int][1] #lat og long
-            distance = geodesic(currentLocation, contender).kilometers
-            if (distance > self.radiusThreshold):
-                thresholdCoordinates = (output[timestep_int-1][0].item(), output[timestep_int-1][1].item())
-                
-                break
-            #timestep_int += 1
-
-        return thresholdCoordinates, self.radiusThreshold
-
-    # Husk at tjekke index på output
     def runPredictionAlgorithm(self, predictedCoordinates):
-        lat, long = self.output[1][0], self.output[1][1] #lat, long
-        CurrentPredictedCoordinates = lat.item(), long.item()
-        self.output = self.output[1:]
-        self.timestep_counter =+ 1
 
+        lat, long = self.output[0][0], self.output[0][1] #lat, long
+        CurrentPredictedCoordinates = lat.item(), long.item()
+
+        self.potentialInput.append({f'element_{i}': value.item() for i, value in enumerate(self.output[0])})
+        
+        self.output = self.output[1:]
+
+        if len(self.output) == 0:
+            self.Input = self.potentialInput
+            self.MakeOutputQueue(self.input)
+
+            
         return CurrentPredictedCoordinates

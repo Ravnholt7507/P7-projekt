@@ -33,11 +33,11 @@ def modelPicker(lastKnownLocations):
             return traditionalModels.pointBasedModel(lastKnownLocations[-1]) 
 
         '''
-        if lastKnownLocations[-1]['SOG'] * 1.852 < 0.1:
-            return traditionalModels.pointBasedModel(lastKnownLocations[-1])
+		
+        if len(lastKnownLocations) == 10 and lastKnownLocations[-1]['SOG'] * 1.852 > 3:
+            return traditionalModels.AIBasedModel(lastKnownLocations)  
         else:
-            return traditionalModels.COGBasedModel(lastKnownLocations[-1]) 
-
+            return traditionalModels.pointBasedModel(lastKnownLocations[-1])
 
 
 def average_COG(Dataframe):
