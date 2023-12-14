@@ -3,7 +3,11 @@ import pandas as pd
 df = pd.read_csv("../data/AIS_2023_01_01.csv")
 print("length of df: ", len(df))
 init = len(df)
-df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
+
+limit = True
+if limit:
+    df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
+    print('Area is limited between 23 and 24 lat and -82 and -80 lon')
 
 # Drop rows where heading == 511.0
 df = df[df['Heading'] != 511.0]
@@ -44,7 +48,7 @@ failing_mmsi = df[(df['LAT_change'].abs() > 0.014) & (df['time'] < 5) |
 # Drop all records with failing MMSI values
 df = df[~df['MMSI'].isin(failing_mmsi)]
 # remove extra columns
-df = df.drop(columns=['LAT_change', 'LON_change', 'BaseDateTime_shifted', 'time', 'speed', 'diff'])
+df = df.drop(columns=['LAT_change', 'time','LON_change','Heading', 'BaseDateTime_shifted', 'speed', 'diff'])
 after = len(df)
 print("length of df: ", len(df))
 print('rows dropped: ', (init - after) / init * 100, '%')
