@@ -33,7 +33,7 @@ class boatEntity:
     #Updates internal models of boat when locationThreshold has been exceeded
     def updateBoat(self, currentLocation):
         #("BOAT: UpdateBoat")
-        print("\nCurrent Model: ", self.currentLocation)
+        print("\nCurrent Model: ", self.current_model)
         print("Threshold exceed: ")
         print("appending location: ", len(self.last_known_locations))
         self.last_known_locations.append(dict(currentLocation)) #Burde måske flyttes til boatBehaviour (og så slet duplicates)
