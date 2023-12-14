@@ -14,8 +14,14 @@ from tqdm import tqdm
 start_time = time.time()
 
 #Initialize working data and output data
+# Use this data:
+# datapath = '../data/AIS_2023_01_01.csv'
+datapath = '../data/filtered_limited.csv'
+# datapath = '../data/filtered_unlimited.csv'
 
-interpolated_data, mapping_dict = dh.interpolater()
+print("Reading data from: ", datapath)
+
+interpolated_data, mapping_dict = dh.interpolater(datapath)
 interpolated_data.to_csv('../data/interpolated_data.csv', index=False)
 
 interpolated_data = pd.read_csv('../data/interpolated_data.csv')
@@ -36,7 +42,6 @@ output_DF['radiusThreshold'] = None
 output_DF['thresholdExceeded'] = None
 output_DF['currentModel'] = None
 
-
 g_interpolated_data = interpolated_data.groupby('MMSI')
 
 simulationOutput = np.empty((0, 5))
@@ -44,7 +49,7 @@ simulationOutput = np.empty((0, 5))
 length = len(g_interpolated_data)
 # Run simulation for each unique boat
 for name, group in tqdm(g_interpolated_data, desc="Running simulation"):
-    print("\n \n Group by mmsi: ", name)
+    # print("\n \n Group by mmsi: ", name)
     shore_instance = shore.shoreEntity(group.iloc[0])
     boat_instance = boat.boatEntity(group.iloc[0])
     simulation_instance = simulationClass.simulation(group, shore_instance, boat_instance)
@@ -57,7 +62,7 @@ for col_idx, col_name in enumerate(output_DF.columns[6:]):
 # Save dataframe as CSV
 #output_DF['VesselName'] = interpolated_data['MMSI'].map(mapping_dict)
 
-output_DF = dh.add_time(output_DF)
+output_DF = dh.add_time(output_DF,datapath)
 output_DF.to_csv('../data/output.csv', index=False)
 output_df = pd.read_csv('../data/output.csv')
 
@@ -65,7 +70,6 @@ output_df = pd.read_csv('../data/output.csv')
 
 print("\nSimulation complete!")
 print("in %s seconds\n" % (round(time.time() - start_time, 2)))
-
 
 thresholdExceeded_Count = dh.countInstances('thresholdExceeded', True, output_df)
 VectorModel_Count = dh.countInstances('currentModel', 'vectorBasedModel', output_df)
@@ -80,3 +84,11 @@ print("VectorBasedModel in use",dh.calcPartPerc(VectorModel_Count, simulationOut
 print("PointBasedModel in use",dh.calcPartPerc(PointModel_Count, simulationOutput), "%")
 print("COGModel in use",dh.calcPartPerc(COGModel_Count, simulationOutput), "%")
 print("AIModel in use",dh.calcPartPerc(AIModelCount, simulationOutput), "%")
+# Allow all columns to be printed
+pd.set_option('display.max_columns', None)
+print('simulationOutput: ', simulationOutput.shape)
+# Print 5 rows of simulationOutput
+print(pd.DataFrame(simulationOutput).head())
+
+print('cog model count: ', COGModel_Count.shape)
+print(pd.DataFrame(COGModel_Count).head())
