@@ -1,5 +1,4 @@
 import pandas as pd
-from math import radians, sin, cos, sqrt, atan2
 import DataHandler as dh
 
 df = pd.read_csv("../data/AIS_2023_01_01.csv")
@@ -26,8 +25,6 @@ df['BaseDateTime_shifted'] = df.groupby('MMSI')['BaseDateTime'].shift()
 # Time in hours
 df['time'] = (pd.to_datetime(df['BaseDateTime']) - pd.to_datetime(df['BaseDateTime_shifted'])).dt.total_seconds() / 3600
 df = df.drop(columns=['BaseDateTime_shifted'])
-
-
 
 # Calculate change in latitude and longitude for each row per MMSI
 df['LAT_change'] = df.groupby('MMSI')['LAT'].diff()
