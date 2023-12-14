@@ -303,11 +303,11 @@ class plotFrame(Frame):
             index = sel.index
             text = None
             if sel.artist == self.first:
-                text = 'Vessel: {}'.format(self.FLRhold[0].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[0].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[0].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[0].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[0].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[0].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[0].iloc[index]['COG'])
+                text = 'Vessel: {}'.format(self.FLRhold[0].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[0].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[0].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[0].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[0].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[0].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[0].iloc[index]['COG']) + '\n' + 'Current Model: {}'.format(self.FLRhold[0].iloc[index]['currentModel'])
             elif sel.artist == self.last:
-                text = 'Vessel: {}'.format(self.FLRhold[1].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[1].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[1].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[1].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[1].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[1].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[1].iloc[index]['COG'])
+                text = 'Vessel: {}'.format(self.FLRhold[1].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[1].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[1].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[1].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[1].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[1].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[1].iloc[index]['COG']) + '\n' + 'Current Model: {}'.format(self.FLRhold[1].iloc[index]['currentModel'])
             elif sel.artist == self.remainder:
-                text = 'Vessel: {}'.format(self.FLRhold[2].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[2].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[2].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[2].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[2].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[2].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[2].iloc[index]['COG'])
+                text = 'Vessel: {}'.format(self.FLRhold[2].iloc[index]['VesselName']) + '\n' + 'MMSI: {}'.format(self.FLRhold[2].iloc[index]['MMSI']) + '\n' + 'Latitude: {}'.format(self.FLRhold[2].iloc[index]['LAT']) + '\n' + 'Longitude: {}'.format(self.FLRhold[2].iloc[index]['LON']) + '\n' + 'BaseDateTime: {}'.format(self.FLRhold[2].iloc[index]['BaseDateTime']) + '\n' + 'SOG: {}'.format(self.FLRhold[2].iloc[index]['SOG']) + '\n' + 'COG: {}'.format(self.FLRhold[2].iloc[index]['COG']) + '\n' + 'Current Model: {}'.format(self.FLRhold[2].iloc[index]['currentModel'])
             sel.annotation.set_text(text)
 
         def zoom_factory(self, ax,base_scale = 2.):
@@ -506,8 +506,8 @@ class plotFrame(Frame):
                 self.legendHandles.append(self.liveDemoCurrentPred), self.legendLabels.append('Predicted')
                 self.legendHandles.append(self.intersectionsScatter), self.legendLabels.append('Collisions')
                 self.ax.legend(self.legendHandles, self.legendLabels)
-                self.liveDemoAnnotConId = mplcursors.cursor([self.liveDemoCurrent, self.liveDemoCurrentPred], hover=True)
-                self.liveDemoAnnotConId.connect("add", self.annotateLiveDemo)
+                #self.liveDemoAnnotConId = mplcursors.cursor([self.liveDemoCurrent, self.liveDemoCurrentPred], hover=True)
+                #self.liveDemoAnnotConId.connect("add", self.annotateLiveDemo)
                 self.plt.draw()
         
         def updateLiveDemo(self):
