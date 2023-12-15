@@ -114,7 +114,7 @@ class AIBasedModel:
     def __init__(self, Queue):
         self.model = getModel("Seq2Seq")
         self.model.load_state_dict(torch.load('..\\ann\\saved_models\\LSTMSeq2seqAtt.pth', map_location=torch.device('cpu')))
-        self.radiusThreshold = 0.5
+        self.radiusThreshold = 0.1
         self.Queue = Queue
         self.potentialInput = deque(maxlen=10)
         self.input = deque(maxlen=10)

@@ -10,10 +10,13 @@ import numpy as np
 import sys 
 import time
 from tqdm import tqdm
+import filter
 
 start_time = time.time()
 
+
 #Initialize working data and output data
+ais_input = filter.filter()
 # Use this data:
 # datapath = '../data/AIS_2023_01_01.csv'
 datapath = '../data/filtered_limited.csv'
@@ -77,7 +80,7 @@ COGModel_Count = dh.countInstances('currentModel', 'COGBasedModel', output_df)
 AIModelCount = dh.countInstances('currentModel', 'AImodel', output_df)
 
 print("Total AIS updates: %s" % (len(thresholdExceeded_Count)))
-print("Reduced AIS updates by:",round((gv.readLimit-len(thresholdExceeded_Count))/gv.readLimit*100,1), "%\n")
+print("Reduced AIS updates by:",round((len(ais_input)-len(thresholdExceeded_Count))/len(ais_input)*100,1), "%\n")
 
 print("VectorBasedModel in use",dh.calcPartPerc(VectorModel_Count, simulationOutput), "%")
 print("PointBasedModel in use",dh.calcPartPerc(PointModel_Count, simulationOutput), "%")
