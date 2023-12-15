@@ -10,13 +10,13 @@ import numpy as np
 import sys 
 import time
 from tqdm import tqdm
-import filter
+from liveImplementation import filter
 
 start_time = time.time()
 
 
 #Initialize working data and output data
-ais_input = filter.filter()
+ais_input = filter.filter_data()
 # Use this data:
 # datapath = '../data/AIS_2023_01_01.csv'
 datapath = '../data/filtered_limited.csv'
