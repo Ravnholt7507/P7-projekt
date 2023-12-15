@@ -40,17 +40,17 @@ def modelPicker(lastKnownLocations):
             return traditionalModels.pointBasedModel(lastKnownLocations[-1])
 
 
-def average_COG(Dataframe):
+def average_COG(dataframe):
 	total = 0
-	Missing_COCKS = 0
+	missing_COGs = 0
     
-	for x in range(len(Dataframe)):
-		if Dataframe[x]['COG'] != None:
-			for y in range(x+1 ,len(Dataframe)):
-				if Dataframe[y]['COG'] != None:
-					total += abs(Dataframe[x]['COG']) - Dataframe[y]['COG']
+	for x in range(len(dataframe)):
+		if dataframe[x]['COG'] != None:
+			for y in range(x+1 ,len(dataframe)):
+				if dataframe[y]['COG'] != None:
+					total += abs(dataframe[x]['COG']) - dataframe[y]['COG']
 					break
 		else:
-			Missing_COCKS =+ 1
+			missing_COGs =+ 1
 
-	return (total / (len(Dataframe) - Missing_COCKS))
+	return (total / (len(dataframe) - missing_COGs))
