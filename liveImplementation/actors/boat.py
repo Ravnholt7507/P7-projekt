@@ -24,7 +24,7 @@ class boatEntity:
         actualLocationPoint = (self.currentLocation['LAT'], self.currentLocation['LON'])
         predictedPoint = (self.predictedLocation[0], self.predictedLocation[1])
         realDistance = haversine(predictedPoint, actualLocationPoint)
-        print(f"error distance: {realDistance} km")
+        print(f"error distance: {round(realDistance,2)} km")
         return realDistance > self.radiusThreshold
 
     #Sends update to shore when locationThreshold has been exceeded
