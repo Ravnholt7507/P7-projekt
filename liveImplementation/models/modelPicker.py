@@ -11,7 +11,7 @@ def modelPicker(lastKnownLocations):
         - COG based
         - Vector based
         - AI based
-        - If Heading = 511, go to next case
+        - If Heading = 511, go to next cases
     '''
     rateOfTurn = calcRateOfTurn(lastKnownLocations)
     print("rateOfTurn", rateOfTurn)
