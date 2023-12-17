@@ -177,10 +177,7 @@ def find_intersection_between_all(ship_data, num_clusters):
         
         points = np.array([circles['LON'], circles['LAT'], circles['radiusThreshold']])
         lines = np.array([vectors['LON'], vectors['LAT'], vectors['predictedLON'], vectors['predictedLAT'], vectors['SOG']])
-        print('x', len(points[0]))
-        print('y', len(lines[0]))
-        print('circles', len(circles))
-        print('vectors', len(vectors))
+
         for x in range(len(points[0])):
             for y in range(len(lines[0])):
                 LON, LAT = lines[0][y], lines [1][y]

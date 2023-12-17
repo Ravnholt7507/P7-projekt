@@ -13,7 +13,6 @@ df4 = pd.concat([df3, df4])
 df4 = df4.drop_duplicates(subset=["MMSI", "BaseDateTime"], keep="first")
 interpolated = df4.sort_values(by=["MMSI", "BaseDateTime"])
 
-
 # Perform clustering
 start_time = time.time()
 
