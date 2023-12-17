@@ -1,11 +1,9 @@
 import numpy as np
 from sklearn.cluster import KMeans
-from sklearn.neighbors import NearestNeighbors
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.cluster.hierarchy import fcluster
-import cartopy.crs as ccrs
 
 def cluster_ships_kmeans(ship_data, num_clusters):
     """
@@ -135,10 +133,9 @@ def linkage_clustering(ship_data):
     # plt.savefig('dendrogram.png')
 
     # Specify the threshold or number of clusters
-    threshold = 2.0
+    threshold = 0.5
     clusters = fcluster(linkage_matrix, threshold, criterion='distance')
 
-    # Add clusters to ship_data as a new column
     ship_data['cluster'] = clusters
 
     # Calculate cluster statistics

@@ -23,11 +23,8 @@ with open('data/predictions.csv', 'w') as fp:
 df = pd.read_csv('data/actual_positions.csv')
 
 print(f"Predicting {len(df['MMSI'].unique())} ship positions...")
-pred_time = time.time()
 prediction.all_ships(df)
-print("in %s seconds" % (round_time(time.time() - pred_time)))
 
-# load ship data from a CSV file
 ship_data = pd.read_csv('data/actual_positions.csv')
 ship_data = ship_data.drop_duplicates(
     subset="MMSI", keep='first').reset_index(drop=True)
@@ -43,9 +40,7 @@ ship_data["pred_lon"] = preds_lon
 ship_data['distance'] = ship_data.apply(lambda row: haversine((row['LAT'], row['LON']), (row['pred_lat'], row['pred_lon']), unit=Unit.KILOMETERS), axis=1)
 
 print('Clustering ships...')
-cluster_time = time.time()
 clusters = cluster.linkage_clustering(ship_data)
-print("in %s seconds" % (round_time(time.time() - cluster_time)))
 
 # Calculate number of clusters
 num_clusters = len(pd.Series(clusters).value_counts())
@@ -57,12 +52,8 @@ ship_data["cluster"] = clusters
 # ship_data = ship_data.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign',
                         #    'VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 
-# Save ship data to CSV file
 ship_data.to_csv('data/ship_data.csv', index=False)
 
-collision_time = time.time()
 collision.find_collisions(ship_data, num_clusters)
-print("in %s seconds" % (round_time(time.time() - collision_time)))
 
-# Print time taken to run the program
 print("Program finished in %s seconds" % (round_time(time.time() - start_time)))

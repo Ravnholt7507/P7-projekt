@@ -26,6 +26,7 @@ clusters = cluster.linkage_clustering(interpolated)
 num_clusters = len(pd.Series(clusters).value_counts())
 print(f"Number of clusters: {num_clusters}")
 interpolated["cluster"] = clusters
+
 # Drop columns that are not needed (Heading, Vessel Name, IMO, Call Sign, Vessel Type, Status, Length, Width, Draft, Cargo)
 # Check if Heading column exists
 if "Heading" in interpolated.columns:

@@ -12,7 +12,6 @@ def find_intersection(p1, v1, p2, v2):
     cross_product = np.cross(v1, v2)
 
     if np.allclose(cross_product, 0):
-        # print("Vectors are parallel or collinear, no intersection")
         # Vectors are parallel or collinear, no intersection
         return None
 
@@ -25,20 +24,18 @@ def find_intersection(p1, v1, p2, v2):
     else:
         # The vectors do not intersect within their segments
         return None
-# Make another find_collisions function but using tqdm
+    
 def find_collisions(ship_data, num_clusters):
     
-    # Clear intersection_points.csv
     with open('data/intersection_points.csv', 'w') as fp:
         fp.truncate()
-        # Write header
         fp.write('LON,LAT,cluster,id,time_diff\n')
     
     Total_intersections = 0
     max_intersection_count = 0
     max_cluster = 0
     
-    # Make function where intersection is found for each point p1 to every point p2 in the same cluster
+    # Intersection is found for each point p1 to every point p2 in the same cluster
     print('Finding intersections...')
     for cluster in tqdm(range(num_clusters)):
 
@@ -75,6 +72,7 @@ def find_collisions(ship_data, num_clusters):
                             with open('data/intersection_points.csv', 'a') as fp:
                                 fp.write(f"{intersection[0]},{intersection[1]},{cluster},{0},{time_diff}\n")
         Total_intersections += intersection_count
+        
         # Find the cluster with the most intersections
         if time_intersection > max_intersection_count:
             max_intersection_count = time_intersection
@@ -104,8 +102,6 @@ def find_collisions(ship_data, num_clusters):
     
     # Make background lightblue
     plt.gca().set_facecolor('lightblue')
-    
-    # Add legend LON and LAT
     plt.xlabel('LON')
     plt.ylabel('LAT')
     
@@ -123,7 +119,6 @@ def find_vector_colission(ship_data, num_clusters):
     
     with open('data/vector_colissions.csv', 'w') as fp:
         fp.truncate()
-        # Write header
         fp.write('MMSI1,Pos1,vec1,time1,MMSI2,pos2,vec2,time2,intersection,time_diff\n')
         
     for cluster in tqdm(range(num_clusters)):
@@ -150,10 +145,8 @@ def find_vector_colission(ship_data, num_clusters):
                     
                     if intersection is not None:
                         collisions += 1
-                        # Calculate time difference between the two ships
                         time_diff = abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y])
 
-                        # Save MMSI, lat, lon and collision points between the two ships to a csv file
                         with open('data/vector_colissions.csv', 'a') as fp:
                             fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1},{vec1},{cluster_data['BaseDateTime'][x]},{cluster_data['MMSI'].iloc[y]},{pos2},{vec2},{cluster_data['BaseDateTime'][y]},{intersection},{time_diff}\n")
     

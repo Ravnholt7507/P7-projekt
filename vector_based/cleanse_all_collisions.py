@@ -2,13 +2,8 @@ import pandas as pd
 
 def cleanse(save_to):
      
-     # Read the CSV file
      df = pd.read_csv('data/AIS_2023_01_01.csv')
-
-     # Sort the data by MMSI and BaseDateTime
      df = df.sort_values(by=['MMSI', 'BaseDateTime'])
-     
-     # Drop all ships where the SOG is less than 2
      df = df[df.SOG > 2]
 
      # Drop all ships with less than 2 rows
