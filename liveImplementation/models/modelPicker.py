@@ -14,12 +14,12 @@ def modelPicker(lastKnownLocations):
         - If Heading = 511, go to next cases
     '''
     rateOfTurn = calcRateOfTurn(lastKnownLocations)
-    print("rateOfTurn", rateOfTurn)
+    #print("rateOfTurn", rateOfTurn)
 
     if (lastKnownLocations[-1]['SOG']<0.3):
         return traditionalModels.pointBasedModel(lastKnownLocations[-1])
     
-    if (rateOfTurn >= 7 and len(lastKnownLocations) == 10):
+    if (rateOfTurn >= 2 and len(lastKnownLocations) == 10):
           return traditionalModels.AIBasedModel(lastKnownLocations)
     
     if (lastKnownLocations[-1]['COG'] != None):

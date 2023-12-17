@@ -10,7 +10,7 @@ def limit_area(df):
   return df
 
 def drop_invalid_rows(df):
-  df = df[df['Heading'] != 511.0]
+  #df = df[df['Heading'] != 511.0]
   df = df[df['SOG'] != 102.3]
   return df
 

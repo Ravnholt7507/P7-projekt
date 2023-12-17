@@ -24,7 +24,7 @@ class boatEntity:
         actualLocationPoint = (self.currentLocation['LAT'], self.currentLocation['LON'])
         predictedPoint = (self.predictedLocation[0], self.predictedLocation[1])
         realDistance = haversine(predictedPoint, actualLocationPoint)
-        print(f"error distance: {round(realDistance,2)} km")
+        #print(f"error distance: {round(realDistance,2)} km")
         return realDistance > self.radiusThreshold
 
     #Sends update to shore when locationThreshold has been exceeded
@@ -34,9 +34,9 @@ class boatEntity:
     #Updates internal models of boat when locationThreshold has been exceeded
     def updateBoat(self, currentLocation):
         #("BOAT: UpdateBoat")
-        print("\nCurrent Model: ", self.current_model)
+        """ print("\nCurrent Model: ", self.current_model)
         print("Threshold exceed: ")
-        print("appending location: ", len(self.last_known_locations))
+        print("appending location: ", len(self.last_known_locations)) """
         self.last_known_locations.append(dict(currentLocation)) #Burde måske flyttes til boatBehaviour (og så slet duplicates)
         self.current_model = mp.modelPicker(self.last_known_locations)
         self.radiusThreshold = self.current_model.determineThreshold(self.last_known_locations)
@@ -52,9 +52,9 @@ class boatEntity:
                 self.updateShore(shoreEntity)
                 self.thresholdExceeded = True
         else:
-            print("\nCurrentModel: ", self.current_model)
+            """ print("\nCurrentModel: ", self.current_model)
             print("Threshold NOT exceeded")
-            print("appending location: ", len(self.last_known_locations))
+            print("appending location: ", len(self.last_known_locations)) """
             self.last_known_locations.append(dict(currentLocation))
 
         

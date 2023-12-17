@@ -34,7 +34,8 @@ all_data_for_fitting = pd.read_csv('../data/interpolated_complete.csv')
 scaler = dh.Fit_Scaler_To_Data(all_data_for_fitting)
 gv.scaler = scaler
 
-interpolated_data = interpolated_data[0:1000]
+#interpolated_data = interpolated_data[0:1000]
+
 print("Hvor mange AIS punkter: ", len(interpolated_data))
 
 output_DF = interpolated_data.copy()
