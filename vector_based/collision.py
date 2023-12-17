@@ -3,6 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from haversine import haversine, Unit
 from tqdm import tqdm
+from math import asin, atan2, cos, degrees, radians, sin
+from shapely.geometry import Point
+from shapely.geometry import LineString
+from geographiclib.geodesic import Geodesic
 
 def find_intersection(p1, v1, p2, v2):
     cross_product = np.cross(v1, v2)
@@ -21,7 +25,6 @@ def find_intersection(p1, v1, p2, v2):
     else:
         # The vectors do not intersect within their segments
         return None
-
 # Make another find_collisions function but using tqdm
 def find_collisions(ship_data, num_clusters):
     
@@ -115,37 +118,6 @@ def find_collisions(ship_data, num_clusters):
     
     return max_cluster
 
-def find_distance(ship_data, num_clusters):
-    margin = 0.5
-    collisions = 0
-    # Clear collisions.csv
-    with open('data/collisions.csv', 'w') as fp:
-        fp.truncate()
-        fp.write('MMSI1,LON1,LAT1,radius1,MMSI2,LON2,LAT2,radius2,\n')
-    for cluster in tqdm(range(num_clusters)):
-        cluster_data = ship_data[ship_data['cluster'] == cluster]
-        cluster_data = cluster_data.reset_index(drop=True)
-        cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
-
-        p1 = (cluster_data['locationThresholdLON'].tolist(), cluster_data['locationThresholdLAT'].tolist(), cluster_data['radiusThreshold'].tolist())
-
-        for x in range(len(p1[0])):
-            for y in range(x+1, len(p1[0])):
-                if cluster_data['MMSI'].iloc[x] != cluster_data['MMSI'].iloc[y]:
-                    if abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y]) < pd.Timedelta(minutes=3):
-                        radius1 = p1[2][x]
-                        radius2 = p1[2][y]
-                        distance = haversine((p1[1][x],p1[0][x]),(p1[1][y],p1[0][y]), unit=Unit.KILOMETERS)
-                        if (radius1 + radius2 + margin) >= distance:
-                            collisions += 1
-                            #save collisions and radius threshold to csv file aswell as the two mmsi that colide
-                            mmsi1 = cluster_data['MMSI'].iloc[x]
-                            mmsi2 = cluster_data['MMSI'].iloc[y]
-                            with open('data/collisions.csv', 'a') as fp:
-                                fp.write(f"{mmsi1},{p1[0][x]},{p1[1][x]},{radius1},{mmsi2},{p1[0][y]},{p1[1][y]},{radius2}\n")
-
-    print(collisions)
-
 def find_vector_colission(ship_data, num_clusters):
     collisions = 0
     
@@ -159,17 +131,20 @@ def find_vector_colission(ship_data, num_clusters):
         cluster_data = cluster_data.reset_index(drop=True)
         cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
 
-        p1 = (cluster_data['LON'].tolist(), cluster_data['LAT'].tolist())
-        v1 = (cluster_data['locationThresholdLON'].tolist(), cluster_data['locationThresholdLAT'].tolist())
+        p1 = np.array([cluster_data['LON'], cluster_data['LAT']])
+        vector = np.array([cluster_data['LON'], cluster_data['LAT'], cluster_data['SOG'], cluster_data['COG']])
 
+        v1 = vectors(vector)
+        v1 = np.array(v1)
+        
         # Compare every vector with every other vector in the same cluster
         for x in range(len(p1[0])):
             for y in range(x+1, len(p1[0])):
                 if cluster_data['MMSI'].iloc[x] != cluster_data['MMSI'].iloc[y]:
-                    pos1 = np.array([p1[0][x], p1[1][x]])
-                    pos2 = np.array([p1[0][y], p1[1][y]])
-                    vec1 = np.array([v1[0][x]-p1[0][x], v1[1][x] - p1[1][x]])
-                    vec2 = np.array([v1[0][y]-p1[0][y], v1[1][y] - p1[1][y]])
+                    pos1 = p1[:,x]
+                    pos2 = p1[:,y]
+                    vec1 = v1[x,:] - p1[:,x]
+                    vec2 = v1[y,:] - p1[:,y]
                     
                     intersection = find_intersection(pos1, vec1, pos2, vec2)
                     
@@ -183,3 +158,81 @@ def find_vector_colission(ship_data, num_clusters):
                             fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1},{vec1},{cluster_data['BaseDateTime'][x]},{cluster_data['MMSI'].iloc[y]},{pos2},{vec2},{cluster_data['BaseDateTime'][y]},{intersection},{time_diff}\n")
     
     print(collisions)
+
+def vectors(vector):
+    v1 = []
+    for i in range(len(vector[0])):
+        speed = vector[2][i] * 1.852
+        distance = speed * 600 / 3600
+        bearing = vector[3][i]
+        v1.append(get_point_at_distance(vector[1][i], vector[0][i], distance, bearing))
+    return v1
+
+def find_intersection_between_all(ship_data, num_clusters):
+
+    arb_time = 600
+    count = 0
+    checks = 0
+
+    for cluster in tqdm(range(num_clusters)):
+        cluster_data = ship_data[ship_data['cluster'] == cluster]
+        cluster_data = cluster_data.reset_index(drop=True)
+        cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
+
+        circles = cluster_data[cluster_data["currentModel"] == "pointBasedModel"]
+        vectors = cluster_data[cluster_data["currentModel"] != "pointBasedModel"]
+        
+        points = np.array([circles['LON'], circles['LAT'], circles['radiusThreshold']])
+        lines = np.array([vectors['LON'], vectors['LAT'], vectors['predictedLON'], vectors['predictedLAT'], vectors['SOG']])
+        print('x', len(points[0]))
+        print('y', len(lines[0]))
+        print('circles', len(circles))
+        print('vectors', len(vectors))
+        for x in range(len(points[0])):
+            for y in range(len(lines[0])):
+                LON, LAT = lines[0][y], lines [1][y]
+                PREDLON, PREDLAT = lines[2][y], lines[3][y]
+                
+                distance = lines[4][y] * arb_time / 3600
+                COG = Geodesic.WGS84.Inverse(LAT, LON, PREDLAT, PREDLON)
+
+                updated_cords = get_point_at_distance(LAT, LON, distance, COG['azi1'])
+
+                line = LineString([(LON, LAT), updated_cords])
+                center = points[0][x], points[1][x]
+                radius = points[2][x]
+
+                count += find_line_circle_intersection(center, radius, line)
+                checks += 1
+                
+    print(count)
+    print(checks)
+
+def find_line_circle_intersection(p, r, line):
+
+    center_point = Point(p)
+    circle_boundary = center_point.buffer(r).boundary
+
+    intersection_points = circle_boundary.intersection(line)
+
+    if intersection_points.is_empty:
+        return 0
+    else:
+        return 1
+
+def get_point_at_distance(lat1, lon1, d, bearing, R=6371):
+    '''
+    lat: initial latitude, in degrees
+    lon: initial longitude, in degrees
+    d: target distance from initial
+    bearing: (true) heading in degrees
+    R: optional radius of sphere, defaults to mean radius of earth
+
+    Returns new lat/lon coordinate {d}km from initial, in degrees
+    '''
+    lat1 = radians(lat1)
+    lon1 = radians(lon1)
+    a = radians(bearing)
+    lat2 = asin(sin(lat1) * cos(d/R) + cos(lat1) * sin(d/R) * cos(a))
+    lon2 = lon1 + atan2(sin(a) * sin(d/R) * cos(lat1), cos(d/R) - sin(lat1) * sin(lat2))
+    return [degrees(lon2), degrees(lat2)]

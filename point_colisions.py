@@ -3,7 +3,6 @@ import vector_based.collision as collision
 import pandas as pd
 import time
 
-
 def round_time(x):
     return round(x, 2)
 
@@ -14,27 +13,13 @@ df4 = pd.concat([df3, df4])
 df4 = df4.drop_duplicates(subset=["MMSI", "BaseDateTime"], keep="first")
 interpolated = df4.sort_values(by=["MMSI", "BaseDateTime"])
 
-df2 = df2.drop(
-    columns=[
-        "Heading",
-        "IMO",
-        "CallSign",
-        "VesselType",
-        "Status",
-        "Length",
-        "Width",
-        "Draft",
-        "Cargo",
-        "TransceiverClass",
-    ]
-)
 
 # Perform clustering
 start_time = time.time()
 
-print("lenght b4:", len(interpolated))
-interpolated = interpolated.sample(frac=0.2, random_state=1)
-print("thanosed", len(interpolated))
+#print("lenght b4:", len(interpolated))
+#interpolated = interpolated.sample(frac=0.2, random_state=1)
+#print("thanosed", len(interpolated))
 
 print("Clustering...")
 clusters = cluster.linkage_clustering(interpolated)
@@ -75,6 +60,7 @@ start_time = time.time()
 print("Calculating colisions...")
 # Take all rows where currentModel is COGbased and save them to a new dataframe
 cogbased = interpolated[interpolated["currentModel"] == "COGBasedModel"]
-
-collision.find_vector_colission(cogbased, num_clusters)
+collision.find_intersection_between_all(interpolated, num_clusters)
+#collision.find_vector_colission(cogbased, num_clusters)
 print(f"Distance calculation time: {round_time(time.time() - start_time)} seconds")
+
