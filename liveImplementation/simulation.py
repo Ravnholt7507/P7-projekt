@@ -1,5 +1,5 @@
 import numpy as np
-import globalVariables as gv
+import settings as s
 
 class simulation:
     def __init__(self, group, shoreEntity, BoatEntity) -> None:
@@ -15,7 +15,7 @@ class simulation:
         while self.current_index+1 <= len(self.group):
             # print("\n Interpolated point Point: ", self.current_index)
             instanceOutput = self.boatEntity.boatBehaviour(self.group.iloc[self.current_index], self.shoreEntity)
-            gv.targetValues = self.group.iloc[self.current_index]['LAT'], self.group.iloc[self.current_index]['LON'] 
+            s.targetValues = self.group.iloc[self.current_index]['LAT'], self.group.iloc[self.current_index]['LON'] 
             self.shoreEntity.shoreBehaviour()
             self.current_index = self.current_index+1
             self.completeOutput = np.vstack((self.completeOutput, instanceOutput))

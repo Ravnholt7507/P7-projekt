@@ -4,7 +4,7 @@ import actors.boat as boat
 import models.traditionPredModels as tradModels
 import DataHandler as dh
 import simulation as simulationClass
-import globalVariables as gv
+import settings as s
 import pandas as pd
 import numpy as np
 import sys 
@@ -32,7 +32,7 @@ interpolated_data = pd.read_csv('../data/interpolated_data.csv')
 #These three lines are only for fitting data to our normalizer for AIBased prediction
 all_data_for_fitting = pd.read_csv('../data/interpolated_complete.csv')
 scaler = dh.Fit_Scaler_To_Data(all_data_for_fitting)
-gv.scaler = scaler
+s.scaler = scaler
 
 #interpolated_data = interpolated_data[0:1000]
 
@@ -79,8 +79,10 @@ thresholdExceeded_Count = dh.countInstances('thresholdExceeded', True, output_df
 VectorModel_Count = dh.countInstances('currentModel', 'vectorBasedModel', output_df)
 PointModel_Count = dh.countInstances('currentModel', 'pointBasedModel', output_df)
 COGModel_Count = dh.countInstances('currentModel', 'COGBasedModel', output_df)
-AIModelCount = dh.countInstances('currentModel', 'AImodel', output_df)
-print("AIModelCount: ", len(AIModelCount))
+AIModel_Count = dh.countInstances('currentModel', 'AImodel', output_df)
+HeadingModel_Count = dh.countInstances('currentModel', 'HeadingBasedModel', output_df)
+
+print("AIModelCount: ", len(AIModel_Count))
 print("simulationOutput: ", len(simulationOutput))
 
 print("Total AIS updates: %s" % (len(thresholdExceeded_Count)))
@@ -89,6 +91,13 @@ print("Reduced AIS updates by:",round((len(ais_input)-len(thresholdExceeded_Coun
 print("VectorBasedModel in use",dh.calcPartPerc(VectorModel_Count, simulationOutput), "%")
 print("PointBasedModel in use",dh.calcPartPerc(PointModel_Count, simulationOutput), "%")
 print("COGModel in use",dh.calcPartPerc(COGModel_Count, simulationOutput), "%")
-print("AIModel in use",dh.calcPartPerc(AIModelCount, simulationOutput), "%")
+print("AIModel in use",dh.calcPartPerc(AIModel_Count, simulationOutput), "%")
+print("HeadingModel in use",dh.calcPartPerc(HeadingModel_Count, simulationOutput), "%")
 
-print("gv.counter: ", gv.counter)
+
+#check modelPicker for variable increments
+print("s.counterRateOfTurn0: ", s.counterRateOfTurn0)
+print("s.counterRateOfTurn1: ", s.counterRateOfTurn1)
+print("s.counterRateOfTurn2: ", s.counterRateOfTurn2)
+print("s.counterRateOfTurn3: ", s.counterRateOfTurn3)
+print("s.counterRateOfTurn4: ", s.counterRateOfTurn4)

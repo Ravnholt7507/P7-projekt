@@ -13,7 +13,7 @@ import haversine as hv
 from haversine import haversine
 from geopy.distance import distance
 from geopy.point import Point
-import globalVariables as globals
+import settings as s
 from geographiclib.geodesic import Geodesic
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -60,7 +60,7 @@ class COGBasedModel:
 
     def runPredictionAlgorithm(self, predictedCoordinates):
         #print("COGBasedModel: Running predictionAlgorithm")
-        distanceTravelled = self.speed * (globals.timeIntervals / 3600)
+        distanceTravelled = self.speed * (s.timeIntervals / 3600)
         return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.COG)
     
 class vectorBasedModel:
@@ -81,7 +81,7 @@ class vectorBasedModel:
         return self.radiusThreshold
     
     def runPredictionAlgorithm(self, predictedCoordinates):
-        distanceTravelled = self.speed * (globals.timeIntervals / 3600)
+        distanceTravelled = self.speed * (s.timeIntervals / 3600)
         return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.COG)
     
 class HeadingBasedModel:
@@ -105,7 +105,7 @@ class HeadingBasedModel:
 
     def runPredictionAlgorithm(self, predictedCoordinates):
         #print("HeadingBasedModel: Running predictionAlgorithm")
-        distanceTravelled = self.speed * (globals.timeIntervals / 3600)
+        distanceTravelled = self.speed * (s.timeIntervals / 3600)
         return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.Heading)
 
 
@@ -124,12 +124,12 @@ class AIBasedModel:
         return "AImodel"
     
     def normalize(self, tensor):
-        scaler = globals.scaler
+        scaler = s.scaler
         tensor = scaler.transform(tensor)
         return torch.from_numpy(tensor)
 
     def denormalize(self, tensor):
-        scaler = globals.scaler
+        scaler = s.scaler
         denorm_tensor = scaler.inverse_transform(tensor)
         return torch.from_numpy(denorm_tensor)
 

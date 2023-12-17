@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-import globalVariables as globals
+import settings as s
 from geopy.distance import geodesic
 from sklearn.preprocessing import MinMaxScaler
 import random
@@ -11,7 +11,7 @@ def countInstances(columnm, value, dataframe):
     return dataframe.loc[dataframe[columnm] == value]
 
 def calcPartPerc(part, whole):
-    return round((len(part)/len(whole))*100)
+    return round((len(part)/len(whole))*100,4)
 
 def Fit_Scaler_To_Data(df):
     scaler = MinMaxScaler()
@@ -51,7 +51,7 @@ def calculate_distance(lat1, lon1, lat2, lon2):
   return distance
 
 def interpolater(datapath):
-    df = pd.read_csv(datapath, nrows=globals.readLimit)
+    df = pd.read_csv(datapath, nrows=s.readLimit)
     df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
     df['BaseDateTime'] = pd.to_datetime(df['BaseDateTime'])
     df.sort_values(by=['MMSI', 'BaseDateTime'], inplace=True)
@@ -94,10 +94,6 @@ def interpolater(datapath):
 
     interpolated_df = pd.concat(interpolated_data)
     interpolated_df.reset_index(inplace=True)
-
-    # print mmsi of the fastest ship
-    print(interpolated_df.loc[interpolated_df['SOG'].idxmax()]['MMSI'])
-    print(interpolated_df['SOG'].max())
 
     print('Boats: ',len(interpolated_df['MMSI']))
     print('Unique boats: ',len(interpolated_df['MMSI'].unique()))

@@ -3,7 +3,7 @@ from haversine import haversine
 from collections import deque
 import numpy as np
 from geopy.distance import geodesic
-import globalVariables as gv
+import settings as s
 
 class boatEntity:
     def __init__(self, currentLocation) -> None:
@@ -17,7 +17,7 @@ class boatEntity:
         self.radiusThreshold = self.current_model.determineThreshold(self.last_known_locations)
         self.predictedLocation = (currentLocation['LAT'], currentLocation['LON'])
         #print("Predicted_location: ", self.predictedLocation)
-        #print("target_location: ", gv.targetValues)
+        #print("target_location: ", s.targetValues)
         self.thresholdExceeded = False
 
     def exceedsThreshold(self) -> bool:

@@ -1,6 +1,6 @@
 import models.modelPicker as mp
 from collections import deque
-import globalVariables as gv
+import settings as s
 
 
 class shoreEntity:
