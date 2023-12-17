@@ -36,16 +36,16 @@ def modelPicker(lastKnownLocations):
     
 
 def calcRateOfTurn(queue):
-    if queue[-1]['COG'] != None and queue[-2]['COG'] != None:
+    if queue[-1]['COG'] != None:
         locations = np.array([(entry['COG']) for entry in queue])   
-        last_two_cog_locations = locations[-2:]  
-        cog_diff = np.diff[last_two_cog_locations]
+        last_two_cog_locations = locations[-2:]
+        cog_diff = np.diff(last_two_cog_locations)
         return abs(cog_diff)
-    elif queue[-1]['Heading'] != None and queue[-2]['Heading'] != None:
+    elif queue[-1]['Heading'] != None:
         locations = np.array([(entry['Heading']) for entry in queue])   
         last_two_Heading_locations = locations[-2:]  
-        cog_diff = np.diff[last_two_cog_locations]
-        return abs(cog_diff)
+        heading_diff = np.diff(last_two_Heading_locations)
+        return abs(heading_diff)
     if len(queue) > 2:
 
         # Convert deque to a NumPy array and extract 'LAT' and 'LON'
@@ -60,7 +60,7 @@ def calcRateOfTurn(queue):
         angle_diff = np.diff(angles)[-1]
         angle_diff_degrees = np.degrees(angle_diff)
 
-        return angle_diff_degrees
+        return abs(angle_diff_degrees)
     
     
       
