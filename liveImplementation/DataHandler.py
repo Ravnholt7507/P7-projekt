@@ -106,8 +106,7 @@ def interpolater(datapath):
 
 def add_time(output_df,datapath):
     # Read the data from another CSV file with a limit of 'limit' rows
-    limit = 50000
-    df_time = pd.read_csv(datapath, nrows=limit)
+    df_time = pd.read_csv(datapath)
     df_time = df_time.sort_values(by=['MMSI', 'BaseDateTime']).drop_duplicates(subset=['MMSI'], keep='first')
 
     # Convert 'BaseDateTime' to seconds after midnight and rename the column to 'time_seconds'

@@ -65,6 +65,7 @@ for col_idx, col_name in enumerate(output_DF.columns[7:]):
 # Save dataframe as CSV
 #output_DF['VesselName'] = interpolated_data['MMSI'].map(mapping_dict)
 
+output_DF.to_csv('../data/output.csv', index=False)
 output_DF = dh.add_time(output_DF,datapath)
 output_DF.to_csv('../data/output.csv', index=False)
 output_df = pd.read_csv('../data/output.csv')
@@ -79,6 +80,8 @@ VectorModel_Count = dh.countInstances('currentModel', 'vectorBasedModel', output
 PointModel_Count = dh.countInstances('currentModel', 'pointBasedModel', output_df)
 COGModel_Count = dh.countInstances('currentModel', 'COGBasedModel', output_df)
 AIModelCount = dh.countInstances('currentModel', 'AImodel', output_df)
+print("AIModelCount: ", len(AIModelCount))
+print("simulationOutput: ", len(simulationOutput))
 
 print("Total AIS updates: %s" % (len(thresholdExceeded_Count)))
 print("Reduced AIS updates by:",round((len(ais_input)-len(thresholdExceeded_Count))/len(ais_input)*100,1), "%\n")
@@ -87,3 +90,5 @@ print("VectorBasedModel in use",dh.calcPartPerc(VectorModel_Count, simulationOut
 print("PointBasedModel in use",dh.calcPartPerc(PointModel_Count, simulationOutput), "%")
 print("COGModel in use",dh.calcPartPerc(COGModel_Count, simulationOutput), "%")
 print("AIModel in use",dh.calcPartPerc(AIModelCount, simulationOutput), "%")
+
+print("gv.counter: ", gv.counter)

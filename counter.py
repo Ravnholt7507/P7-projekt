@@ -1,7 +1,7 @@
 import pandas as pd
 import pandas as pd
 def load_data():
-    df = pd.read_csv("../data/AIS_2023_01_01.csv")
+    df = pd.read_csv("data/AIS_2023_01_01.csv")
     return df
 
 def find_360(df):

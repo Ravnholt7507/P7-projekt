@@ -2,6 +2,7 @@ import models.traditionPredModels as traditionalModels
 import random
 import math
 import numpy as np
+import globalVariables as gv
 
 def modelPicker(lastKnownLocations):
     '''
@@ -14,21 +15,24 @@ def modelPicker(lastKnownLocations):
         - If Heading = 511, go to next cases
     '''
     rateOfTurn = calcRateOfTurn(lastKnownLocations)
-    #print("rateOfTurn", rateOfTurn)
 
     if (lastKnownLocations[-1]['SOG']<0.3):
         return traditionalModels.pointBasedModel(lastKnownLocations[-1])
     
     if (rateOfTurn >= 2 and len(lastKnownLocations) == 10):
+          
           return traditionalModels.AIBasedModel(lastKnownLocations)
-    
-    if (lastKnownLocations[-1]['COG'] != None):
+
+    if (not(lastKnownLocations[-1]['COG'] != 360)):
+          gv.counter = gv.counter+1
+
+    if (lastKnownLocations[-1]['COG'] != 360):
         return traditionalModels.COGBasedModel(lastKnownLocations[-1])
     
-    if (lastKnownLocations[-1]['Heading'] != None): 
+    if (lastKnownLocations[-1]['Heading'] != 511): 
         return traditionalModels.HeadingBasedModel(lastKnownLocations[-1])
     
-    if (lastKnownLocations[-1]['COG'] != None and lastKnownLocations[-1]['Heading'] != None and len(lastKnownLocations)>1):
+    if (lastKnownLocations[-1]['COG'] != 360 and lastKnownLocations[-1]['Heading'] != 511 and len(lastKnownLocations)>1):
           return traditionalModels.vectorBasedModel(lastKnownLocations)
     
     else:
@@ -36,18 +40,19 @@ def modelPicker(lastKnownLocations):
     
 
 def calcRateOfTurn(queue):
-    if queue[-1]['COG'] != None:
-        locations = np.array([(entry['COG']) for entry in queue])   
-        last_two_cog_locations = locations[-2:]
-        cog_diff = np.diff(last_two_cog_locations)
-        return abs(cog_diff)
-    elif queue[-1]['Heading'] != None:
-        locations = np.array([(entry['Heading']) for entry in queue])   
-        last_two_Heading_locations = locations[-2:]  
-        heading_diff = np.diff(last_two_Heading_locations)
-        return abs(heading_diff)
-    if len(queue) > 2:
-
+    if len(queue)>1:
+        
+        if queue[-1]['COG'] != 360 and queue[-2]['COG'] != 360:
+            locations = np.array([(entry['COG']) for entry in queue])   
+            last_two_cog_locations = locations[-2:]
+            cog_diff = np.diff(last_two_cog_locations)
+            return abs(cog_diff)
+        elif queue[-1]['Heading'] != 511 and queue[-2]['Heading'] != 511:
+            locations = np.array([(entry['Heading']) for entry in queue])   
+            last_two_Heading_locations = locations[-2:]  
+            heading_diff = np.diff(last_two_Heading_locations)
+            return abs(heading_diff)
+    elif len(queue) > 2:
         # Convert deque to a NumPy array and extract 'LAT' and 'LON'
         locations = np.array([(entry['LAT'], entry['LON']) for entry in queue])
 
@@ -61,6 +66,8 @@ def calcRateOfTurn(queue):
         angle_diff_degrees = np.degrees(angle_diff)
 
         return abs(angle_diff_degrees)
+    else:
+          return 0
     
     
       

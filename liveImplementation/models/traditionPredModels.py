@@ -101,7 +101,6 @@ class HeadingBasedModel:
             self.radiusThreshold = 0.5
             self.speed = currentLocation['SOG'] * 1.852
             #print("HeadingBasedModel: Threshold determined as: ", thresholdCoordinates[0], thresholdCoordinates[1])
-            print ("HALLO", self.radiusThreshold)
             return self.radiusThreshold
 
     def runPredictionAlgorithm(self, predictedCoordinates):
