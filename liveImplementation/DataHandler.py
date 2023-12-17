@@ -59,7 +59,7 @@ def interpolater(datapath):
     # # Check if Heading column exists
     if 'Heading' in df.columns:
         mapping_dict = df.set_index('MMSI')['VesselName'].to_dict()
-        df = df.drop(columns=['Heading', 'VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+        df = df.drop(columns=['VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
     
     frequency = '10S'
 
@@ -71,7 +71,8 @@ def interpolater(datapath):
         resampled = group.resample(frequency).first()
         resampled[['LAT', 'LON']] = resampled[['LAT', 'LON']].interpolate(method='linear')
         resampled['COG'] = resampled['COG'].ffill()
-
+        resampled['Heading'] = resampled['Heading'].ffill()
+ 
         # Calculate speeds for original data points
         speeds = []
         for i in range(1, len(group)):
@@ -127,7 +128,7 @@ def add_time(output_df,datapath):
     # Convert seconds after midnight to datetime format starting from 2023-01-01
     output_df['BaseDateTime'] = pd.to_datetime(output_df['BaseDateTime'], unit='s', origin='2023-01-01')
     # drop Heading,VesselName_y,IMO,CallSign,VesselType,Status,Length,Width,Draft,Cargo,TransceiverClass from output_df
-    output_df = output_df.drop(columns=['Heading', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
+    output_df = output_df.drop(columns=['IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
     #rename VesselName_x to VesselName
     output_df = output_df.rename(columns={'VesselName_x': 'VesselName'})
     

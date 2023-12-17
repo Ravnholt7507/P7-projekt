@@ -58,7 +58,7 @@ for name, group in tqdm(g_interpolated_data, desc="Running simulation"):
     simulationOutput = np.vstack((simulationOutput, simulation_instance.run_simulation()))
 
 # Append output metrics to copy of working CSV file -> gives complete output_DF
-for col_idx, col_name in enumerate(output_DF.columns[6:]):
+for col_idx, col_name in enumerate(output_DF.columns[7:]):
     output_DF[col_name] = [row[col_idx] for row in simulationOutput]
 
 # Save dataframe as CSV

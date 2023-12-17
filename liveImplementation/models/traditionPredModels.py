@@ -138,6 +138,7 @@ class AIBasedModel:
         for record in input:
             record.pop('MMSI', None)  # Remove 'MMSI', do nothing if the key doesn't exist
             record.pop('BaseDateTime', None)  # Remove 'BaseDateTime', do nothing if the key doesn't exist
+            record.pop('Heading', None)
 
         input = torch.tensor([list(item.values()) for item in input])
         input = self.normalize(input)
