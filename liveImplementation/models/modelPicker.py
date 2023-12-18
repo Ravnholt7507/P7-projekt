@@ -15,13 +15,11 @@ def modelPicker(lastKnownLocations):
         - If Heading = 511, go to next cases
     '''
     rateOfTurn = calcRateOfTurn(lastKnownLocations)
-    if(rateOfTurn>=2):
-          s.counterRateOfTurn0=s.counterRateOfTurn0+1
 
-    if (lastKnownLocations[-1]['SOG']<0.3):
+    if (lastKnownLocations[-1]['SOG']<s.pointSpeed):
         return traditionalModels.pointBasedModel(lastKnownLocations[-1])
     
-    if (rateOfTurn >= 2 and len(lastKnownLocations) == 10):
+    if (rateOfTurn >= s.rateOfTurn and len(lastKnownLocations) == 10):
           
           return traditionalModels.AIBasedModel(lastKnownLocations)
 
@@ -45,13 +43,11 @@ def calcRateOfTurn(queue):
             locations = np.array([(entry['COG']) for entry in queue])   
             last_two_cog_locations = locations[-2:]
             cog_diff = np.diff(last_two_cog_locations)
-            s.counterRateOfTurn1 = s.counterRateOfTurn1+1
             return abs(cog_diff)
         elif queue[-1]['Heading'] != 511 and queue[-2]['Heading'] != 511:
             locations = np.array([(entry['Heading']) for entry in queue])   
             last_two_Heading_locations = locations[-2:]  
             heading_diff = np.diff(last_two_Heading_locations)
-            s.counterRateOfTurn2 = s.counterRateOfTurn2+1
 
             return abs(heading_diff)
     elif len(queue) > 2:
@@ -66,10 +62,8 @@ def calcRateOfTurn(queue):
         angles = np.arctan2(vectors[:, 1], vectors[:, 0])
         angle_diff = np.diff(angles)[-1]
         angle_diff_degrees = np.degrees(angle_diff)
-        s.counterRateOfTurn3 = s.counterRateOfTurn3+1
         return abs(angle_diff_degrees)
     else:
-          s.counterRateOfTurn4 = s.counterRateOfTurn4+1
           return 0
     
     

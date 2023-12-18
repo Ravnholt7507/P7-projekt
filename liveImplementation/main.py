@@ -91,11 +91,3 @@ print("PointBasedModel in use",dh.calcPartPerc(PointModel_Count, simulationOutpu
 print("COGModel in use",dh.calcPartPerc(COGModel_Count, simulationOutput), "%")
 print("AIModel in use",dh.calcPartPerc(AIModel_Count, simulationOutput), "%")
 print("HeadingModel in use",dh.calcPartPerc(HeadingModel_Count, simulationOutput), "%")
-
-
-#check modelPicker for variable increments
-print("s.counterRateOfTurn0: ", s.counterRateOfTurn0)
-print("s.counterRateOfTurn1: ", s.counterRateOfTurn1)
-print("s.counterRateOfTurn2: ", s.counterRateOfTurn2)
-print("s.counterRateOfTurn3: ", s.counterRateOfTurn3)
-print("s.counterRateOfTurn4: ", s.counterRateOfTurn4)

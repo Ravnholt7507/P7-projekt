@@ -22,7 +22,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class pointBasedModel:
 
     def __init__(self, currentLocation) -> None:
-        self.radiusThreshold = 0.05
+        self.radiusThreshold = s.Radius
     
     #REPEATING
     #Defines the behaviour when printing an instance of the class
@@ -53,14 +53,14 @@ class COGBasedModel:
         currentLocation = lastKnownLocations[-1]
         #print("COGBasedModel: Determining threshold")
         self.COG = currentLocation['COG']
-        self.radiusThreshold = 0.057
+        self.radiusThreshold = s.Radius
         self.speed = currentLocation['SOG'] * 1.852
         #print("COGBasedModel: Threshold determined as: ", thresholdCoordinates[0], thresholdCoordinates[1])
         return self.radiusThreshold
 
     def runPredictionAlgorithm(self, predictedCoordinates):
         #print("COGBasedModel: Running predictionAlgorithm")
-        distanceTravelled = self.speed * (s.timeIntervals / 3600)
+        distanceTravelled = self.speed * (s.timeIntervalsInt / 3600)
         return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.COG)
     
 class vectorBasedModel:
@@ -71,7 +71,7 @@ class vectorBasedModel:
         return("vectorBasedModel")
 
     def determineThreshold(self, lastKnownLocations):
-        self.radiusThreshold = 0.5
+        self.radiusThreshold = s.Radius
         previousCoordinates = lastKnownLocations[-2]['LAT'], lastKnownLocations[-2]['LON']
         initialCoordinates = lastKnownLocations[-1]['LAT'], lastKnownLocations[-1]['LON']
         self.speed = lastKnownLocations[-1]['SOG'] * 1.852
@@ -81,7 +81,7 @@ class vectorBasedModel:
         return self.radiusThreshold
     
     def runPredictionAlgorithm(self, predictedCoordinates):
-        distanceTravelled = self.speed * (s.timeIntervals / 3600)
+        distanceTravelled = self.speed * (s.timeIntervalsInt / 3600)
         return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.COG)
     
 class HeadingBasedModel:
@@ -98,22 +98,22 @@ class HeadingBasedModel:
             currentLocation = lastKnownLocations[-1]
             #print("HeadingBasedModel: Determining threshold")
             self.Heading = currentLocation['Heading']
-            self.radiusThreshold = 0.5
+            self.radiusThreshold = s.Radius
             self.speed = currentLocation['SOG'] * 1.852
             #print("HeadingBasedModel: Threshold determined as: ", thresholdCoordinates[0], thresholdCoordinates[1])
             return self.radiusThreshold
 
     def runPredictionAlgorithm(self, predictedCoordinates):
         #print("HeadingBasedModel: Running predictionAlgorithm")
-        distanceTravelled = self.speed * (s.timeIntervals / 3600)
+        distanceTravelled = self.speed * (s.timeIntervalsInt / 3600)
         return distance(kilometers=distanceTravelled).destination(predictedCoordinates, self.Heading)
 
 
 class AIBasedModel:
     def __init__(self, Queue):
         self.model = getModel("Seq2Seq")
-        self.model.load_state_dict(torch.load('..\\ann\\saved_models\\LSTMSeq2seqAtt.pth', map_location=torch.device('cpu')))
-        self.radiusThreshold = 0.1
+        self.model.load_state_dict(torch.load(f'..\\ann\\saved_models\\{s.timeIntervals}.pth', map_location=torch.device('cpu')))
+        self.radiusThreshold = s.Radius
         self.Queue = Queue
         self.potentialInput = deque(maxlen=10)
         self.input = deque(maxlen=10)

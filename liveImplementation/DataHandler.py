@@ -61,7 +61,7 @@ def interpolater(datapath):
         mapping_dict = df.set_index('MMSI')['VesselName'].to_dict()
         df = df.drop(columns=['VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
     
-    frequency = '10S'
+    frequency = s.timeIntervals
 
     df.set_index('BaseDateTime', inplace=True)
     grouped = df.groupby('MMSI')

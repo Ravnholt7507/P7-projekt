@@ -1,15 +1,19 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
-timeIntervals = 10
-readLimit = 50000
 output_CSV = pd.DataFrame()
 scaler = MinMaxScaler()
-tts = 0
-counterRateOfTurn0 = 0
-counterRateOfTurn1 = 0
-counterRateOfTurn2 = 0
-counterRateOfTurn3 = 0
-counterRateOfTurn4 = 0
-targetValues = 0
-predictedValues = 0
+
+
+readLimit = 50000
+
+timeIntervalSeq = ['10S', '20S', '120S']
+timeIntervals = '10S'
+timeIntervalsInt = int(''.join(filter(str.isdigit, timeIntervals)))
+
+radiusSeq = [0.025, 0.05, 0.075, 0.1]
+Radius = 0
+
+rateOfTurnSeq = [0.5, 1, 2, 4]
+rateOfTurn = 2
+pointSpeed = 0.3
