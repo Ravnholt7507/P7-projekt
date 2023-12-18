@@ -57,10 +57,12 @@ print(f'MMSI`s: {totalruns}')
 print(f'Avg total distance: {total_distance / total_count} kilometers')
 
 if count != 0:
+    print(f'Threshold distance: {threshold_dist} kilometers')
     threshold_dist = threshold_dist / count
-    print(f'Average threshold distance: {threshold_dist} kilometers')
+    print(f'Average threshold distance: {threshold_dist * 1000} meters') 
 if count2 != 0:
+    print(f'Still distance: {still_distance} kilometers')
     avg_still_distance = still_distance / count2
-    print(f'Average still distance: {avg_still_distance} kilometers')
+    print(f'Average still distance: {avg_still_distance * 1000} meters')
     
 print(f'Elapsed time: {elapsed_time} seconds')
