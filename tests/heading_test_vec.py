@@ -9,13 +9,12 @@ df = df.drop(columns=['VesselName', 'IMO', 'CallSign','VesselType', 'Status', 'L
 df = df.groupby('MMSI').filter(lambda x: len(x) > 1)
 df = df.sort_values(by=['MMSI', 'BaseDateTime'])
 
-# Convert BaseDateTime to datetime format
 df['BaseDateTime'] = pd.to_datetime(df['BaseDateTime'])
 
 # Calculate time difference in seconds
 df['time_diff'] = df.groupby('MMSI')['BaseDateTime'].diff().dt.total_seconds()
 
-#remove the first element from timediff
+# remove the first element from timediff
 df['time_diff'] = df['time_diff'].shift(-1)
 
 # Calculate traveled distance
@@ -30,17 +29,17 @@ df['prediction'] = df.apply(lambda row: geodesic(kilometers=row['traveled']).des
 # Calculate actual position
 df['act'] = list(zip(df['LAT'].shift(-1), df['LON'].shift(-1)))
 
-# Calculate predicted position
-df['pred'] = df['prediction'].apply(lambda x: [x.latitude, x.longitude])
+# Use apply to unpack prediction 
+df['prediction'] = df['prediction'].apply(lambda x: [x.latitude, x.longitude])
 
 # Calculate haversine distance
 # Units: kilometers
-df['distance'] = df.apply(lambda row: haversine(row['act'], row['pred']), axis=1)
+df['distance'] = df.apply(lambda row: haversine(row['act'], row['prediction']), axis=1)
 
 # Drop the last row of each group
 df = df.groupby('MMSI').apply(lambda group: group.iloc[:-1]).reset_index(drop=True)
 
-df = df.drop(columns=['traveled', 'prediction', 'act', 'pred'])
+df = df.drop(columns=['traveled', 'prediction', 'act'])
 
 # Print results
 total_boats = len(df)

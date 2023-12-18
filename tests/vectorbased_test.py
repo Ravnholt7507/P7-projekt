@@ -13,8 +13,6 @@ df = df.groupby('MMSI').filter(lambda x: len(x) > 2)
 df = df.sort_values(by=['MMSI', 'BaseDateTime'])
 
 count = 0
-
-
 total_distance = 0
 
 for mmsi, group in df.groupby('MMSI'):
@@ -38,8 +36,12 @@ for mmsi, group in df.groupby('MMSI'):
         total_distance += distance
         count += 1
 
+
+# Drop the first row of each group
+df = df.groupby('MMSI').apply(lambda group: group.iloc[1:]).reset_index(drop=True)
 # Print results
 total_boats = len(df)
+
 unique_boats = len(df['MMSI'].unique())
 avg_distance = (total_distance / count) * 1000  # Converting kilometers to meters
 elapsed_time = time.time() - start_time
