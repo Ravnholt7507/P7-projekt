@@ -38,7 +38,6 @@ def filter():
   # Calculate speed
   # Speed is in knots
   df['speed'] = (df['distance'] / df['time']) / 1.852
-  print(df.nlargest(10, 'speed')[['speed', 'MMSI']])
 
   # Calculate difference between SOG and speed
   df['diff'] = df['SOG'] - df['speed']
