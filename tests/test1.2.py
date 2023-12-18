@@ -4,7 +4,7 @@ from haversine import haversine
 from geopy.distance import geodesic
 
 start_time = time.time()
-df = pd.read_csv('../data/filtered.csv')
+df = pd.read_csv('../data/filtered_unlimited.csv')
 df = df.drop(columns=['VesselName','Heading', 'IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
 df = df.groupby('MMSI').filter(lambda x: len(x) > 1)
 df = df.sort_values(by=['MMSI', 'BaseDateTime'])
