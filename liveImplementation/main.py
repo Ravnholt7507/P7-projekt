@@ -70,7 +70,6 @@ output_DF.to_csv('../data/output.csv', index=False)
 output_df = pd.read_csv('../data/output.csv')
 
 #PRINT PERFORMANCE METRICS
-
 print("\nSimulation complete!")
 print("in %s seconds\n" % (round(time.time() - start_time, 2)))
 
