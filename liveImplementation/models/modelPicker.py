@@ -1,8 +1,8 @@
-import models.traditionPredModels as traditionalModels
+import liveImplementation.models.traditionPredModels as traditionalModels
 import random
 import math
 import numpy as np
-import settings as s
+import liveImplementation.settings as s
 
 def modelPicker(lastKnownLocations):
     '''

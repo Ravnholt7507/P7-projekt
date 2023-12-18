@@ -1,9 +1,9 @@
-import models.modelPicker as mp
+import liveImplementation.models.modelPicker as mp
 from haversine import haversine
 from collections import deque
 import numpy as np
 from geopy.distance import geodesic
-import settings as s
+import liveImplementation.settings as s
 
 class boatEntity:
     def __init__(self, currentLocation) -> None:

@@ -1,8 +1,8 @@
 import pandas as pd
-import DataHandler as dh
+import liveImplementation.DataHandler as dh
 
 def filter():
-  df = pd.read_csv("../data/AIS_2023_01_01.csv")
+  df = pd.read_csv("data/AIS_2023_01_01.csv")
 
   print("length of AIS data: ", len(df))
   init = len(df)
@@ -60,9 +60,9 @@ def filter():
 
   if limit:
       print('saved to filtered_limited.csv')
-      df.to_csv('../data/filtered_limited.csv', index=False)
+      df.to_csv('data/filtered_limited.csv', index=False)
   else:
     print('saved to filtered_unlimited.csv')
-    df.to_csv('../data/filtered_unlimited.csv', index=False)
+    df.to_csv('data/filtered_unlimited.csv', index=False)
 
   return df

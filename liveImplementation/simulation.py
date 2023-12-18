@@ -1,5 +1,5 @@
 import numpy as np
-import settings as s
+import liveImplementation.settings as s
 
 class simulation:
     def __init__(self, group, shoreEntity, BoatEntity) -> None:

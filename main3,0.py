@@ -3,6 +3,8 @@ from tkinter import ttk
 from tkinter import filedialog as fd
 import tkinter.messagebox as msg
 import vector_based.prediction as prediction
+import liveImplementation.main as live
+import point_colisions as point_colisions
 #import all_collisions as all_collisions
 from PIL import ImageTk, Image 
 import pandas as pd
@@ -11,6 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.figure import Figure
 from matplotlib.collections import LineCollection
+from haversine import haversine
 import matplotlib.collections
 import seaborn as sns
 import mplcursors
@@ -36,8 +39,8 @@ class inputFrame(Frame):
         self.buttonFrame1 = ttk.Frame(self, width=100)
         self.demoButton = ttk.Button(self.buttonFrame1, text='Prepare Demo', command=lambda: self.parent.plotFrame.map.loadBoats())
         self.stepFrame = ttk.Frame(self.buttonFrame1)
-        self.stepBackButton = ttk.Button(self.stepFrame, text='Step Back')
-        self.stepforwardButton = ttk.Button(self.stepFrame, text='Step Forward', command=lambda: self.parent.plotFrame.map.demo())
+        self.stepBackButton = ttk.Button(self.stepFrame, text='Step Back', command=lambda: self.parent.plotFrame.map.demo('backward'))
+        self.stepforwardButton = ttk.Button(self.stepFrame, text='Step Forward', command=lambda: self.parent.plotFrame.map.demo('forward'))
         self.progressBarFrame = ttk.Frame(self.buttonFrame1)
         self.progressBar = ttk.Progressbar(self.progressBarFrame, orient=HORIZONTAL, length=100, mode='determinate')
         self.progressLabel3 = ttk.Label(self.progressBarFrame, text='Loading boats...')
@@ -47,6 +50,7 @@ class inputFrame(Frame):
         self.heatmapButton = ttk.Button(self.buttonFrame1, text='Heatmap', command=lambda: self.parent.plotFrame.map.heatMap())
         self.resetZoomButton = ttk.Button(self.buttonFrame1, text='Reset Zoom')
         self.resetMapButton = ttk.Button(self.buttonFrame1, text='Reset Map/Demo', command=lambda: self.parent.plotFrame.map.resetZoom())
+        self.generateDataButton = ttk.Button(self.buttonFrame1, text='Generate Data', command=lambda: self.generateData())
         
         #Widget Placement
         self.inputLabel.grid(row=0, column=0, sticky=NSEW)
@@ -64,6 +68,15 @@ class inputFrame(Frame):
         self.heatmapButton.grid(row=5, column=0, sticky=NSEW, padx=10, pady=2)
         self.resetZoomButton.grid(row=6, column=0, sticky=NSEW, padx=10, pady=2) 
         self.resetMapButton.grid(row=7, column=0, sticky=NSEW, padx=10, pady=2)
+        self.generateDataButton.grid(row=15, column=0, sticky=SW, padx=10, pady=2)
+        
+    def generateData(self):
+        self.parent.outputFrame.showOutput(['Generating data...'], True)
+        live.liveImplementation()
+        self.parent.outputFrame.showOutput(['Data generated!'], False)
+        self.parent.outputFrame.showOutput(['Checking for collisions...'], False)
+        point_colisions.collisions()
+        self.parent.outputFrame.showOutput(['Collisions checked!'], False)
         
     def ready(self):
         self.showCollisionsButton.invoke()
@@ -75,7 +88,7 @@ class inputFrame(Frame):
         self.annotationsButton['state'] = 'disabled'
         self.heatmapButton['state'] = 'disabled'
         self.resetZoomButton['state'] = 'disabled'
-        self.resetMapButton['state'] = 'disabled'
+        #self.resetMapButton['state'] = 'disabled'
         
         self.progressBarFrame.grid_remove()
         self.stepFrame.grid_remove()
@@ -129,25 +142,15 @@ class plotFrame(Frame):
             self.ax.margins(666666666,66666666)
 
             #live demo attributes
-            self.liveData = None
-            self.collissionsData = None
+            self.demoStep = -1
+            self.maxStep = 0
+            self.boats = []
             self.liveDemoCurrent = None
             self.liveDemoCurrentPred = None
-            self.liveDemoThresholdCicles = []
-            self.boats = []
-            self.boatLocations = [[],[]]
-            self.predictedBoatLocations = [[],[]]
-            self.patches = []
             self.patchCollection = None
-            self.lineCollection = None
-            self.paths = []
             self.pathCollection = None
             self.demoDF = pd.DataFrame(columns=['BaseDateTime','MMSI','LAT','LON','SOG','COG','VesselName','predictedLAT','predictedLON','locationThresholdLAT','locationThresholdLON','radiusThreshold','thresholdExceeded','currentModel'])
-            self.intersections = []
-            self.intersectionsScatter = None
             self.collisionsScatter = None
-            self.demoStep = 0
-            
             self.hMap = None
             
             #additonal plot setup
@@ -156,6 +159,7 @@ class plotFrame(Frame):
             self.legendLabels = []
             self.plt.legend()
             self.plt.legend().set_visible(False)
+            self.legendFlag = False
             self.liveDemoAnnotConId = None
             self.zoomConId = self.fig.canvas.mpl_connect('scroll_event',self.zoom_factory(self.ax, 1.5))
             self.figure = FigureCanvasTkAgg(self.fig , master =self.parent.imagebox)
@@ -167,7 +171,7 @@ class plotFrame(Frame):
         def loadBoats(self):
             if self.parent.boats == []:
                 self.parent.parent.outputFrame.showOutput(['Loading boats...'], True)
-                liveData = pd.read_csv('data/output.csv')
+                liveData = pd.read_csv('data/output.csv') 
                 liveData = liveData.groupby('MMSI', as_index=False)
                 collisionData = pd.read_csv('data/vector_colissions.csv')
                 self.parent.parent.inputFrame.demoButton['state'] = 'disabled'
@@ -183,76 +187,105 @@ class plotFrame(Frame):
                     self.parent.parent.inputFrame.progressBar['value'] = self.parent.parent.inputFrame.progressBar['value'] + 1
                     self.parent.parent.inputFrame.progressBar.update()
                     self.parent.parent.inputFrame.progressLabel3['text'] = 'Loading boat {} of {}'.format(int(self.parent.parent.inputFrame.progressBar['value']), int(self.parent.parent.inputFrame.progressBar['maximum']))
+                    if len(boat.data) > self.maxStep:
+                        self.maxStep = len(boat.data)-1
             self.parent.parent.inputFrame.progressBar['value'] = 0
             self.parent.parent.inputFrame.progressBarFrame.grid_remove()
-            self.parent.parent.inputFrame.demoButton.configure(text = 'Start Demo', command=lambda: self.demo())
+            self.parent.parent.inputFrame.demoButton.configure(text = 'Start Demo', command=lambda: self.demo('forward'))
             self.parent.parent.inputFrame.demoButton['state'] = 'normal'
-
 
         class Boat():
             def __init__(self, parent, group):
                 self.parent = parent
                 self.data = group
-                #line below is for testing purposes
-                self.data["radiusThreshold"] = self.data["radiusThreshold"] / 111.32
-                self.currentStep = 0
-                self.currentRow = None
-                self.currentPredPoint = None
-                self.currentThreshold = []
-                self.pdReset = pd.DataFrame(columns=['BaseDateTime','MMSI','LAT','LON','SOG','COG','predictedLAT','predictedLON','locationThresholdLAT','locationThresholdLON','radiusThreshold','thresholdExceeded','currentModel','VesselName'])
-                self.rowsInThreshhold = self.pdReset
-                self.pointsInThresholdPred = self.pdReset
+                #change threshhold to degrees from kilometers
+                self.data['radiusThreshold'] = self.data['radiusThreshold'] / 111.12
                 self.collisions = []
+                self.currentStep = -1
+                self.currentRow = None
+                self.currentThreshold = []
+                self.rowsInThreshhold = pd.DataFrame(columns=['BaseDateTime','MMSI','LAT','LON','SOG','COG','predictedLAT','predictedLON','locationThresholdLAT','locationThresholdLON','radiusThreshold','thresholdExceeded','currentModel','VesselName'])
 
             def stepForward(self):
-                if self.currentStep < len(self.data):
+                if self.currentStep < len(self.data)-1:
+                    self.currentStep = self.currentStep + 1
                     if self.data.iloc[self.currentStep]["thresholdExceeded"] == False:
                         self.currentRow = self.data.iloc[self.currentStep]
+                        self.currentThreshold = ([[self.data.iloc[self.currentStep]["LON"], self.data.iloc[self.currentStep]["LAT"]], self.data.iloc[self.currentStep]["radiusThreshold"]])
                         self.rowsInThreshhold.loc[len(self.rowsInThreshhold)] = self.currentRow
-                        self.currentThreshold = ([[self.data.iloc[self.currentStep]["locationThresholdLON"], self.data.iloc[self.currentStep]["locationThresholdLAT"]], self.data.iloc[self.currentStep]["radiusThreshold"]])
                         
                     elif self.data.iloc[self.currentStep]["thresholdExceeded"] == True:
                         self.currentRow = self.data.iloc[self.currentStep]
-                        #delete all rows in self.rowsInThreshhold
+                        self.currentThreshold = ([[self.data.iloc[self.currentStep]["LON"], self.data.iloc[self.currentStep]["LAT"]], self.data.iloc[self.currentStep]["radiusThreshold"]])
                         self.rowsInThreshhold = pd.DataFrame(columns=self.rowsInThreshhold.columns)
                         self.rowsInThreshhold.loc[len(self.rowsInThreshhold)] = self.currentRow
-                        self.currentThreshold = ([[self.data.iloc[self.currentStep]["locationThresholdLON"], self.data.iloc[self.currentStep]["locationThresholdLAT"]], self.data.iloc[self.currentStep]["radiusThreshold"]])
-                    self.currentStep = self.currentStep + 1
-            
-        def demo(self):
+                    
+            def stepBackward(self):
+                if self.currentStep >= 0:
+                    self.currentStep = self.currentStep - 1
+                    self.currentRow = self.data.iloc[self.currentStep]
+                    self.currentThreshold = ([[self.data.iloc[self.currentStep]["LON"], self.data.iloc[self.currentStep]["LAT"]], self.data.iloc[self.currentStep]["radiusThreshold"]])
+                    self.rowsInThreshhold = pd.DataFrame(columns=self.rowsInThreshhold.columns)
+                    lastExceeded = self.data.loc[self.currentStep::-1, "thresholdExceeded"].idxmax() if any(self.data.loc[self.currentStep::-1, "thresholdExceeded"]) else None
+                    if lastExceeded != None:
+                        for i in range(lastExceeded, self.currentStep+1):
+                            self.rowsInThreshhold.loc[len(self.rowsInThreshhold)] = self.data.iloc[i]
+                    elif lastExceeded == None:
+                        self.rowsInThreshhold.loc[len(self.rowsInThreshhold)] = self.currentRow
+
+        def disableButtons(self):
+            self.parent.parent.inputFrame.demoButton['state'] = 'disabled'
             self.parent.parent.inputFrame.stepBackButton['state'] = 'disabled'
             self.parent.parent.inputFrame.stepforwardButton['state'] = 'disabled'
+            self.parent.parent.inputFrame.showCollisionsButton['state'] = 'disabled'
+            self.parent.parent.inputFrame.circlesButton['state'] = 'disabled'
+            self.parent.parent.inputFrame.annotationsButton['state'] = 'disabled'
+            self.parent.parent.inputFrame.heatmapButton['state'] = 'disabled'
+            self.parent.parent.inputFrame.resetZoomButton['state'] = 'disabled'
+            self.parent.parent.inputFrame.resetMapButton['state'] = 'disabled'
+
+        def demo(self, direction):
+            self.disableButtons()
+            if direction == 'forward':
+                if self.demoStep != self.maxStep:
+                    self.parent.parent.outputFrame.showOutput(['Stepping forward...'], True)
+                    self.demoStep = self.demoStep + 1
+            elif direction == 'backward':
+                if self.demoStep != 0:
+                    self.parent.parent.outputFrame.showOutput(['Stepping backward...'], True)
+                    self.demoStep = self.demoStep - 1
             if self.demoStep == 0:
                 self.parent.parent.outputFrame.showOutput(['Starting demo...'], True)
                 self.parent.parent.inputFrame.demoButton.grid_remove()
                 self.parent.parent.inputFrame.stepFrame.grid()
-            if self.demoStep != 0:
-                self.parent.parent.outputFrame.showOutput(['Stepping forward...'], True)
+            if self.demoStep > 0 or direction == 'backward':
                 self.liveDemoCurrent.remove()
-                self.liveDemoCurrent = None
                 self.liveDemoCurrentPred.remove()
-                self.liveDemoCurrentPred = None
                 self.collisionsScatter.remove()
-                self.collisionsScatter = None
                 if self.liveDemoAnnotConId != None:
                     self.liveDemoAnnotConId.remove()
-                    self.liveDemoAnnotConId = None
                 if self.pathCollection != None:
                     self.pathCollection.remove()
-                    self.pathCollection = None
                     self.intersectionsLines = []
                     self.patchCollection.remove()
-                    self.patchCollection = None
             templist = pd.DataFrame(columns=['BaseDateTime','MMSI','LAT','LON','SOG','COG','predictedLAT','predictedLON','locationThresholdLAT','locationThresholdLON','radiusThreshold','thresholdExceeded','currentModel','VesselName'])
-            patches = []
             boatLocations = [[],[]]
             predictedBoatLocations = [[],[]]
+            patches = []
             intersectionLines = []
             intersections = []
             self.parent.parent.inputFrame.progressBarFrame.grid()
             self.parent.parent.inputFrame.progressBar['maximum'] = len(self.parent.boats)
             for boat in self.parent.boats:
-                boat.stepForward()
+                print(boat.currentStep, self.demoStep)
+                if direction == 'forward':
+                    boat.stepForward()
+                    print(boat.currentStep == self.demoStep)
+                elif direction == 'backward':
+                    if boat.currentStep - 1 == self.demoStep:
+                        boat.stepBackward()
+                    print(boat.currentStep == self.demoStep)
+                print(boat.currentStep, self.demoStep)
                 boatLocations[0].extend(boat.rowsInThreshhold['LON'].tolist())
                 boatLocations[1].extend(boat.rowsInThreshhold['LAT'].tolist())
                 predictedBoatLocations[0].extend(boat.rowsInThreshhold['predictedLON'].tolist())
@@ -267,20 +300,7 @@ class plotFrame(Frame):
                         intersectionLines.extend(list(zip(zip(filtered_df['lat1'], filtered_df['lon1']), zip(filtered_df['vlat1'], filtered_df['vlon1']))) + list(zip(zip(filtered_df['lat2'], filtered_df['lon2']), zip(filtered_df['vlat2'], filtered_df['vlon2']))))
                         intersection_points = list(zip(filtered_df['intersectionLat'], filtered_df['intersectionLon']))
                         intersections.extend(intersection_points)
-                        #for each row in filtered_df
-                        for index, row in filtered_df.iterrows():
-                            if row['time1'] == time and row['MMSI1'] == mmsi:
-                                self.parent.parent.outputFrame.showOutput('-'*50, False)
-                                self.parent.parent.outputFrame.showOutput(['Collision detected between MMSI {} and MMSI {} at time {}!'.format(row['MMSI1'], row['MMSI2'], row['time1'])], False)
-                                #print coordinates of collision
-                                self.parent.parent.outputFrame.showOutput(['Collision coordinates: {}, {}'.format(row['intersectionLat'], row['intersectionLon'])], False)
-                                self.parent.parent.outputFrame.showOutput('-'*50, False)
-                            elif row['time2'] == time and row['MMSI2'] == mmsi:
-                                self.parent.parent.outputFrame.showOutput('-'*50, False)
-                                self.parent.parent.outputFrame.showOutput(['Collision detected between MMSI {} and MMSI {} at time {}!'.format(row['MMSI1'], row['MMSI2'], row['time2'])], False)
-                                self.parent.parent.outputFrame.showOutput(['Collision coordinates: {}, {}'.format(row['intersectionLat'], row['intersectionLon'])], False)
-                                self.parent.parent.outputFrame.showOutput('-'*50, False)
-
+                        self.printCollisions(filtered_df, time, mmsi)
                 self.parent.parent.inputFrame.progressBar['value'] = self.parent.parent.inputFrame.progressBar['value'] + 1
                 self.parent.parent.inputFrame.progressBar.update()
                 self.parent.parent.inputFrame.progressLabel3['text'] = 'Boat {} of {} stepping'.format(int(self.parent.parent.inputFrame.progressBar['value']), int(self.parent.parent.inputFrame.progressBar['maximum']))
@@ -295,23 +315,50 @@ class plotFrame(Frame):
             self.pathCollection = self.ax.add_collection(lc)
             self.patchCollection = self.ax.add_collection(pc)
             if self.demoStep == 0:
-                self.legendHandles.append(self.liveDemoCurrent), self.legendLabels.append('Actual')
-                self.legendHandles.append(self.liveDemoCurrentPred), self.legendLabels.append('Predicted')
-                self.legendHandles.append(self.collisionsScatter), self.legendLabels.append('Collisions')
-                self.ax.legend(self.legendHandles, self.legendLabels)
                 self.parent.parent.inputFrame.showCollisionsButton['state'] = 'normal'
                 self.parent.parent.inputFrame.circlesButton['state'] = 'normal'
                 self.parent.parent.inputFrame.annotationsButton['state'] = 'normal'
                 self.parent.parent.inputFrame.heatmapButton['state'] = 'normal'
+            if self.legendFlag == False:
+                self.legendHandles.append(self.liveDemoCurrent), self.legendLabels.append('Actual')
+                self.legendHandles.append(self.liveDemoCurrentPred), self.legendLabels.append('Predicted')
+                self.legendHandles.append(self.collisionsScatter), self.legendLabels.append('Collisions')
+                self.ax.legend(self.legendHandles, self.legendLabels)
+                self.legendFlag = True
             self.liveDemoAnnotConId = mplcursors.cursor(self.liveDemoCurrent, hover=True)
             self.liveDemoAnnotConId.connect("add", self.annotateLiveDemo)
             self.plt.draw()
-            self.demoStep = self.demoStep + 1
             self.showCollisions()
             self.showThresholdCircles()
             self.showAnnotations()
-            self.parent.parent.inputFrame.stepBackButton['state'] = 'normal'
-            self.parent.parent.inputFrame.stepforwardButton['state'] = 'normal'
+            if self.demoStep != 0:
+                self.parent.parent.inputFrame.stepBackButton['state'] = 'normal'
+            if self.demoStep != self.maxStep:
+                self.parent.parent.inputFrame.stepforwardButton['state'] = 'normal'
+            #activate buttons
+            self.parent.parent.inputFrame.showCollisionsButton['state'] = 'normal'
+            self.parent.parent.inputFrame.circlesButton['state'] = 'normal'
+            self.parent.parent.inputFrame.annotationsButton['state'] = 'normal'
+            self.parent.parent.inputFrame.heatmapButton['state'] = 'normal'
+            self.parent.parent.inputFrame.resetZoomButton['state'] = 'normal'
+            self.parent.parent.inputFrame.resetMapButton['state'] = 'normal'
+        
+        def printCollisions(self, filtered_df, time, mmsi):
+            for index, row in filtered_df.iterrows():
+                if row['time1'] == time and row['MMSI1'] == mmsi:
+                    self.parent.parent.outputFrame.showOutput('-'*50, False)
+                    text = ['Collision detected between MMSI {} and MMSI {} at time {}!'.format(row['MMSI1'], row['MMSI2'], row['time1'])]
+                    self.parent.parent.outputFrame.showOutput(text, False)
+                    text = ['Collision coordinates: {}, {}'.format(row['intersectionLat'], row['intersectionLon'])]
+                    self.parent.parent.outputFrame.showOutput(text, False)
+                    self.parent.parent.outputFrame.showOutput('-'*50, False)
+                elif row['time2'] == time and row['MMSI2'] == mmsi:
+                    self.parent.parent.outputFrame.showOutput('-'*50, False)
+                    text = ['Collision detected between MMSI {} and MMSI {} at time {}!'.format(row['MMSI1'], row['MMSI2'], row['time2'])]
+                    self.parent.parent.outputFrame.showOutput(text, False)
+                    text = ['Collision coordinates: {}, {}'.format(row['intersectionLat'], row['intersectionLon'])]
+                    self.parent.parent.outputFrame.showOutput(text, False)
+                    self.parent.parent.outputFrame.showOutput('-'*50, False)
         
         def showCollisions(self):
             if self.parent.parent.inputFrame.collisionsVar.get() == 1:
@@ -323,6 +370,7 @@ class plotFrame(Frame):
                 self.pathCollection.set_visible(False)
                 self.collisionsScatter.set_visible(False)
                 self.plt.draw()
+
         def showThresholdCircles(self):
             if self.parent.parent.inputFrame.circlesVar.get() == 1:
                 if self.patchCollection != None:
@@ -350,11 +398,10 @@ class plotFrame(Frame):
                 df = df.apply(lambda x: x.sort_values(['BaseDateTime'], ascending=True))
                 df = df.reset_index(drop=True)
                 df = df.groupby('MMSI').tail(1)
-                self.hMap = sns.kdeplot(data = df, x="LON", y="LAT", cmap='Reds', fill=True, bw_method=0.1)
+                self.hMap = sns.kdeplot(data = df, x="LON", y="LAT", cmap='Reds', fill=True, bw_method=0.1, shade=False)
                 self.hMap.collections[0].set_alpha(0)   
                 self.plt.draw()
             else:
-                print('removing heatmap')
                 self.hMap.remove()
                 self.plt.draw()
 
@@ -385,7 +432,7 @@ class plotFrame(Frame):
                 else:
                     # deal with something that should never happen
                     scale_factor = 1
-                    print(event.button)
+                    #print(event.button)
                 # set new limits
                 ax.set_xlim([xdata - cur_xrange*scale_factor,
                             xdata + cur_xrange*scale_factor])
@@ -396,10 +443,8 @@ class plotFrame(Frame):
             fig = ax.get_figure() # get the figure of interest
             # attach the call back
             fig.canvas.mpl_connect('scroll_event',zoom_fun)
-
-            #return the function
             return zoom_fun
-  
+
         def resetZoom(self):
             if self.predPath != None:
                 """ self.drawPredictedPath()

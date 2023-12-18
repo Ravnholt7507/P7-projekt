@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-import settings as s
+import liveImplementation.settings as s
 from geopy.distance import geodesic
 from sklearn.preprocessing import MinMaxScaler
 import random

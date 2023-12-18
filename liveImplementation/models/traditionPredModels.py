@@ -13,7 +13,7 @@ import haversine as hv
 from haversine import haversine
 from geopy.distance import distance
 from geopy.point import Point
-import settings as s
+import liveImplementation.settings as s
 from geographiclib.geodesic import Geodesic
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -112,7 +112,8 @@ class HeadingBasedModel:
 class AIBasedModel:
     def __init__(self, Queue):
         self.model = getModel("Seq2Seq")
-        self.model.load_state_dict(torch.load(f'..\\ann\\saved_models\\{s.timeIntervals}.pth', map_location=torch.device('cpu')))
+        self.model.load_state_dict(torch.load(f'ann/saved_models/{s.timeIntervals}.pth', map_location=torch.device('cpu')))
+
         self.radiusThreshold = s.Radius
         self.Queue = Queue
         self.potentialInput = deque(maxlen=10)

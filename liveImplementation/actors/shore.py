@@ -1,7 +1,6 @@
-import models.modelPicker as mp
+import liveImplementation.models.modelPicker as mp
 from collections import deque
-import settings as s
-
+import liveImplementation.settings as s
 
 class shoreEntity:
     def __init__(self, currentLocation) -> None:

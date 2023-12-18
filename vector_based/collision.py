@@ -148,7 +148,7 @@ def find_vector_colission(ship_data, num_clusters):
                         time_diff = abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y])
 
                         with open('data/vector_colissions.csv', 'a') as fp:
-                            fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1[0]},{pos1[1]},{v1[x][0]},{v1[x][1]},{cluster_data['BaseDateTime'][x]},{cluster_data['MMSI'].iloc[y]},{pos2[0]},{pos2[1]},{v1[y][1]},{v1[y][1]},{cluster_data['BaseDateTime'][y]},{intersection[0]},{intersection[1]},{time_diff}\n")
+                            fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1[0]},{pos1[1]},{v1[x][0]},{v1[x][1]},{cluster_data['BaseDateTime'][x]},{cluster_data['MMSI'].iloc[y]},{pos2[0]},{pos2[1]},{v1[y][0]},{v1[y][1]},{cluster_data['BaseDateTime'][y]},{intersection[0]},{intersection[1]},{time_diff}\n")
     
     print(collisions)
 
