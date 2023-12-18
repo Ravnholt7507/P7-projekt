@@ -14,14 +14,14 @@ total_distance = 0
 count = 0
 count2 = 0
 total_count = 0
-totalruns = 0
+mis = 0
 still_distance = 0
 threshold_dist = 0
 df['BaseDateTime'] = pd.to_datetime(df['BaseDateTime'])
 
 for mmsi, group in tqdm(df.groupby('MMSI'), desc='MMSI'):
     group = group.reset_index(drop=True)
-    totalruns += 1
+    mis += 1
     i = 0
     while i < len(group) - 1:
         actual = group.iloc[i]['LAT'], group.iloc[i]['LON']
@@ -52,7 +52,7 @@ print('point based test')
 print(f'Total boats: {len(df)}')
 print(f'Number of measurements: {count}')
 print(f'Number of still measurements: {count2}')
-print(f'MMSI`s: {totalruns}')
+print(f'MMSI`s: {mis}')
 
 print(f'Avg total distance: {total_distance / total_count} kilometers')
 
