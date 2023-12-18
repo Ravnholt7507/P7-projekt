@@ -44,7 +44,6 @@ if "Heading" in interpolated.columns:
         ]
     )
 
-# interpolated.to_csv('data/colission_interpolated.csv', index=False)
 
 # Print 5 largest clusters
 print(interpolated["cluster"].value_counts().nlargest(5))
@@ -55,12 +54,11 @@ print(f"Clustering time: {round_time(time.time() - start_time)} seconds")
 start_time = time.time()
 
 # If not vectorbased and COG is used, use this:
-# collision.find_distance(interpolated, num_clusters)
+collision.intersection_vec_circle(interpolated, num_clusters)
 
 print("Calculating colisions...")
 # Take all rows where currentModel is COGbased and save them to a new dataframe
 cogbased = interpolated[interpolated["currentModel"] == "COGBasedModel"]
-collision.find_intersection_between_all(interpolated, num_clusters)
-#collision.find_vector_colission(cogbased, num_clusters)
+# collision.find_vector_colission(cogbased, num_clusters)
 print(f"Distance calculation time: {round_time(time.time() - start_time)} seconds")
 

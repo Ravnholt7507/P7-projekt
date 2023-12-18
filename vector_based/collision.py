@@ -25,7 +25,7 @@ def find_intersection(p1, v1, p2, v2):
         # The vectors do not intersect within their segments
         return None
     
-def find_collisions(ship_data, num_clusters):
+def old_find_collisions(ship_data, num_clusters):
     
     with open('data/intersection_points.csv', 'w') as fp:
         fp.truncate()
@@ -39,7 +39,7 @@ def find_collisions(ship_data, num_clusters):
     print('Finding intersections...')
     for cluster in tqdm(range(num_clusters)):
 
-        cluster_data = ship_data[ship_data['cluster'] == cluster]
+        cluster_data = ship_data[ship_data['cluster'] == cluster + 1]
         cluster_data = cluster_data.reset_index(drop=True)
 
         p1 = (cluster_data['LON'].tolist(), cluster_data['LAT'].tolist())
@@ -122,14 +122,14 @@ def find_vector_colission(ship_data, num_clusters):
         fp.write('MMSI1,lat1,lon1,vlat1,vlon1,time1,MMSI2,lat2,lon2,vlat2,vlon2,time2,intersectionLat,intersectionLon,time_diff\n')
         
     for cluster in tqdm(range(num_clusters)):
-        cluster_data = ship_data[ship_data['cluster'] == cluster]
+        cluster_data = ship_data[ship_data['cluster'] == cluster + 1]
         cluster_data = cluster_data.reset_index(drop=True)
         cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
 
         p1 = np.array([cluster_data['LON'], cluster_data['LAT']])
         vector = np.array([cluster_data['LON'], cluster_data['LAT'], cluster_data['SOG'], cluster_data['COG']])
 
-        v1 = vectors(vector)
+        v1 = calc_vector(vector)
         v1 = np.array(v1)
         
         # Compare every vector with every other vector in the same cluster
@@ -152,7 +152,7 @@ def find_vector_colission(ship_data, num_clusters):
     
     print(collisions)
 
-def vectors(vector):
+def calc_vector(vector):
     v1 = []
     for i in range(len(vector[0])):
         speed = vector[2][i] * 1.852
@@ -161,23 +161,26 @@ def vectors(vector):
         v1.append(get_point_at_distance(vector[1][i], vector[0][i], distance, bearing))
     return v1
 
-def find_intersection_between_all(ship_data, num_clusters):
+def intersection_vec_circle(ship_data, num_clusters):
+    # Make header for csv file
+    with open('data/vector_circle_intersections.csv', 'w') as fp:
+        fp.truncate()
+        fp.write('MMSI1,centerLon,centerLat,time1,MMSI2,lon1,lat1,lon2,lat2,time2,time_diff\n')
 
     arb_time = 600
     count = 0
     checks = 0
-
     for cluster in tqdm(range(num_clusters)):
-        cluster_data = ship_data[ship_data['cluster'] == cluster]
+        cluster_data = ship_data[ship_data['cluster'] == cluster + 1]
         cluster_data = cluster_data.reset_index(drop=True)
         cluster_data['BaseDateTime'] = pd.to_datetime(cluster_data['BaseDateTime'])
 
         circles = cluster_data[cluster_data["currentModel"] == "pointBasedModel"]
         vectors = cluster_data[cluster_data["currentModel"] != "pointBasedModel"]
         
-        points = np.array([circles['LON'], circles['LAT'], circles['radiusThreshold']])
-        lines = np.array([vectors['LON'], vectors['LAT'], vectors['predictedLON'], vectors['predictedLAT'], vectors['SOG']])
-
+        points = np.array([circles['LON'], circles['LAT'], circles['radiusThreshold'], circles['BaseDateTime']])
+        lines = np.array([vectors['LON'], vectors['LAT'], vectors['predictedLON'], vectors['predictedLAT'], vectors['SOG'], vectors['BaseDateTime']])
+        
         for x in range(len(points[0])):
             for y in range(len(lines[0])):
                 LON, LAT = lines[0][y], lines [1][y]
@@ -191,14 +194,20 @@ def find_intersection_between_all(ship_data, num_clusters):
                 line = LineString([(LON, LAT), updated_cords])
                 center = points[0][x], points[1][x]
                 radius = points[2][x]
-
-                count += find_line_circle_intersection(center, radius, line)
-                checks += 1
                 
-    print(count)
-    print(checks)
+                if line_circle_intersection(center, radius, line) == 1:
+                    count += 1
+                    time_diff = abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y])
+                    
+                    with open('data/vector_circle_intersections.csv', 'a') as fp:
+                        fp.write(f"{circles['MMSI'].iloc[x]},{center[0]},{center[1]},{points[3][x]},{vectors['MMSI'].iloc[y]},{LON},{LAT},{updated_cords[0]},{updated_cords[1]},{lines[5][y]},{time_diff}\n")
+                    
+                checks += 1
+    print('Intersections:',count)
+    print('Total checks:',checks)
+    
 
-def find_line_circle_intersection(p, r, line):
+def line_circle_intersection(p, r, line):
 
     center_point = Point(p)
     circle_boundary = center_point.buffer(r).boundary
