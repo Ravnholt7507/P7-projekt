@@ -39,8 +39,6 @@ df['distance'] = df.apply(lambda row: haversine(row['act'], row['prediction']), 
 # Drop the last row of each group
 df = df.groupby('MMSI').apply(lambda group: group.iloc[:-1]).reset_index(drop=True)
 
-df = df.drop(columns=['traveled', 'prediction', 'act'])
-
 # Print results
 total_boats = len(df)
 unique_boats = len(df['MMSI'].unique())
