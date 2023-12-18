@@ -119,7 +119,7 @@ def find_vector_colission(ship_data, num_clusters):
     
     with open('data/vector_colissions.csv', 'w') as fp:
         fp.truncate()
-        fp.write('MMSI1,Pos1,vec1,time1,MMSI2,pos2,vec2,time2,intersection,time_diff\n')
+        fp.write('MMSI1,lat1,lon1,vlat1,vlon1,time1,MMSI2,lat2,lon2,vlat2,vlon2,time2,intersectionLat,intersectionLon,time_diff\n')
         
     for cluster in tqdm(range(num_clusters)):
         cluster_data = ship_data[ship_data['cluster'] == cluster]
@@ -148,7 +148,7 @@ def find_vector_colission(ship_data, num_clusters):
                         time_diff = abs(cluster_data['BaseDateTime'][x] - cluster_data['BaseDateTime'][y])
 
                         with open('data/vector_colissions.csv', 'a') as fp:
-                            fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1},{vec1},{cluster_data['BaseDateTime'][x]},{cluster_data['MMSI'].iloc[y]},{pos2},{vec2},{cluster_data['BaseDateTime'][y]},{intersection},{time_diff}\n")
+                            fp.write(f"{cluster_data['MMSI'].iloc[x]},{pos1[0]},{pos1[1]},{v1[x][0]},{v1[x][1]},{cluster_data['BaseDateTime'][x]},{cluster_data['MMSI'].iloc[y]},{pos2[0]},{pos2[1]},{v1[y][1]},{v1[y][1]},{cluster_data['BaseDateTime'][y]},{intersection[0]},{intersection[1]},{time_diff}\n")
     
     print(collisions)
 
