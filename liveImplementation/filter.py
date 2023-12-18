@@ -12,10 +12,8 @@ def filter():
     df = df[(df['LAT'] > 23) & (df['LAT'] < 24) & (df['LON'] > -82) & (df['LON'] < -80)]
     print('Area is limited between 23 and 24 lat and -82 and -80 lon')
 
-  # Drop rows where heading == 511.0
+  # Drop trash values
   df = df[df['Heading'] != 511.0]
-
-  # Drop rows where sog == 102.3
   df = df[df['SOG'] != 102.3]
 
   df = df.sort_values(by=['MMSI', 'BaseDateTime'], ascending=True)
@@ -35,14 +33,12 @@ def filter():
   # Distance in km
   df['distance'] = df.apply(lambda row: dh.calculate_distance(row['LAT'], row['LON'], row['LAT'] + row['LAT_change'], row['LON'] + row['LON_change']), axis=1)
 
-  # Calculate speed
-  # Speed is in knots
+  # Calculate speed in knots
   df['speed'] = (df['distance'] / df['time']) / 1.852
 
   # Calculate difference between SOG and speed
   df['diff'] = df['SOG'] - df['speed']
 
-  # Drop rows based on conditions
   # 0.014 degrees per second corresponds to ~50 knots
   # Drop rows where latitude change is greater than 0.014 degrees per second and time is less than 30 seconds
   # Identify MMSI values that have any failing records
@@ -53,9 +49,9 @@ def filter():
   # Drop all records with failing MMSI values
   df = df[~df['MMSI'].isin(failing_mmsi)]
   # remove extra columns
+
   df = df.drop(columns=['LAT_change','LON_change','speed', 'diff', 'distance', 'time'])
   after = len(df)
-  # Drop dupes
   df = df.drop_duplicates(keep='first')
 
   print("length of df: ", len(df))
