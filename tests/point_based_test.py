@@ -60,9 +60,3 @@ print(f'Total distance: {total_distance} kilometers')
 print(f'Average distance: {avg_distance} kilometers')
 print(f'Average still distance: {avg_still_distance * 1000}  meters')
 print(f'Elapsed time: {elapsed_time} seconds')
-
-# print('mmsi', mmsi)
-# print('i', i, 'j', j, 'dist', dist)
-
-# # print time diff
-# print('time diff', group.iloc[j]['BaseDateTime'] - group.iloc[i]['BaseDateTime'])
