@@ -37,6 +37,7 @@ def filter():
   df['speed'] = (df['distance'] / df['time']) / 1.852
 
   # Calculate difference between SOG and speed
+  # To drop rows where SOG is greater or less than speed by more than 2 knots to remove outliers
   df['diff'] = df['SOG'] - df['speed']
 
   # 0.014 degrees per second corresponds to ~50 knots
@@ -48,8 +49,8 @@ def filter():
 
   # Drop all records with failing MMSI values
   df = df[~df['MMSI'].isin(failing_mmsi)]
-  # remove extra columns
 
+  # remove extra columns
   df = df.drop(columns=['LAT_change','LON_change','speed', 'diff', 'distance', 'time'])
   after = len(df)
   df = df.drop_duplicates(keep='first')
