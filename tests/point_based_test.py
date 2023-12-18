@@ -13,8 +13,10 @@ df = df.sort_values(by=['MMSI', 'BaseDateTime'])
 total_distance = 0
 count = 0
 count2 = 0
+total_count = 0
 totalruns = 0
 still_distance = 0
+threshold_dist = 0
 df['BaseDateTime'] = pd.to_datetime(df['BaseDateTime'])
 
 for mmsi, group in tqdm(df.groupby('MMSI'), desc='MMSI'):
@@ -27,9 +29,10 @@ for mmsi, group in tqdm(df.groupby('MMSI'), desc='MMSI'):
         while j < len(group) - 1:
             predicted = group.iloc[j]['LAT'], group.iloc[j]['LON']
             dist = haversine(actual,predicted)
-
+            total_distance += dist
+            total_count += 1
             if dist  > 0.05:
-                total_distance += dist
+                threshold_dist += dist
                 count += 1
                 i = j
                 break
@@ -40,13 +43,7 @@ for mmsi, group in tqdm(df.groupby('MMSI'), desc='MMSI'):
         else:
             i += 1
 
-avg_distance = total_distance / count
 elapsed_time = time.time() - start_time
-
-avg_still_distance = still_distance / count2
-
-total_distance = total_distance + still_distance
-
 
 # drop last row of each group
 df = df.groupby('MMSI').apply(lambda group: group.iloc[:-1]).reset_index(drop=True)
@@ -55,8 +52,15 @@ print('point based test')
 print(f'Total boats: {len(df)}')
 print(f'Number of measurements: {count}')
 print(f'Number of still measurements: {count2}')
-print(f'Total runs: {totalruns}')
-print(f'Total distance: {total_distance} kilometers')
-print(f'Average distance: {avg_distance} kilometers')
-print(f'Average still distance: {avg_still_distance * 1000}  meters')
+print(f'MMSI`s: {totalruns}')
+
+print(f'Avg total distance: {total_distance / total_count} kilometers')
+
+if count != 0:
+    threshold_dist = threshold_dist / count
+    print(f'Average threshold distance: {threshold_dist} kilometers')
+if count2 != 0:
+    avg_still_distance = still_distance / count2
+    print(f'Average still distance: {avg_still_distance} kilometers')
+    
 print(f'Elapsed time: {elapsed_time} seconds')
