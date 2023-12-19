@@ -69,7 +69,7 @@ def liveImplementation():
     output_DF = dh.add_time(output_DF)
     
     output_DF.to_csv('data/output.csv', index=False)
-    # output_df = pd.read_csv('data/output.csv')
+    output_df = pd.read_csv('data/output.csv')
 
     #PRINT PERFORMANCE METRICS
     print("\nSimulation complete!")
