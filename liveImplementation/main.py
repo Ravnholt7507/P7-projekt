@@ -14,8 +14,9 @@ from tqdm import tqdm
 def liveImplementation():
     start_time = time.time()
 
-
     #Initialize working data and output data
+    # data = (1,2,3,4,5,6,7,8,9,10)
+    # ais_input = np.array(data)
     ais_input = filter.filter()
     # Use this data:
     # datapath = '../data/AIS_2023_01_01.csv'
@@ -64,11 +65,11 @@ def liveImplementation():
 
     # Save dataframe as CSV
     #output_DF['VesselName'] = interpolated_data['MMSI'].map(mapping_dict)
-
+    
+    output_DF = dh.add_time(output_DF)
+    
     output_DF.to_csv('data/output.csv', index=False)
-    output_DF = dh.add_time(output_DF,datapath)
-    output_DF.to_csv('data/output.csv', index=False)
-    output_df = pd.read_csv('data/output.csv')
+    # output_df = pd.read_csv('data/output.csv')
 
     #PRINT PERFORMANCE METRICS
     print("\nSimulation complete!")

@@ -100,31 +100,32 @@ def interpolater(datapath):
 
     return interpolated_df, mapping_dict
 
-def add_time(output_df,datapath):
-    # Read the data from another CSV file with a limit of 'limit' rows
-    df_time = pd.read_csv(datapath)
-    df_time = df_time.sort_values(by=['MMSI', 'BaseDateTime']).drop_duplicates(subset=['MMSI'], keep='first')
+def convert_to_seconds(df):
+    df['BaseDateTime'] = pd.to_datetime(df['BaseDateTime'])
+    df['BaseDateTime'] = df['BaseDateTime'].dt.hour * 3600 + df['BaseDateTime'].dt.minute * 60 + df['BaseDateTime'].dt.second
 
-    # Convert 'BaseDateTime' to seconds after midnight and rename the column to 'time_seconds'
-    df_time['BaseDateTime'] = pd.to_datetime(df_time['BaseDateTime'])
-    df_time['BaseDateTime'] = df_time['BaseDateTime'].dt.hour * 3600 + df_time['BaseDateTime'].dt.minute * 60 + df_time['BaseDateTime'].dt.second
-    df_time = df_time.rename(columns={'BaseDateTime': 'time_seconds'})
-    df_time = df_time.drop(columns=['LAT', 'LON', 'SOG', 'COG'])
-    
-    output_df = output_df.sort_values(by=['MMSI', 'BaseDateTime'])
-    output_df['BaseDateTime'] = pd.to_datetime(output_df['BaseDateTime'])
-    output_df['BaseDateTime'] = output_df['BaseDateTime'].dt.hour * 3600 + output_df['BaseDateTime'].dt.minute * 60 + output_df['BaseDateTime'].dt.second
-    
-    # Merge the two dataframes
+def add_time(output_df):
+    df_time = pd.read_csv('data/AIS_2023_01_01.csv')
+    df_time.sort_values(by=['MMSI', 'BaseDateTime'], inplace=True)
+    df_time.drop_duplicates(subset=['MMSI'], keep='first', inplace=True)
+
+    convert_to_seconds(df_time)
+    df_time.rename(columns={'BaseDateTime': 'time_seconds'}, inplace=True)
+    df_time.drop(columns=['LAT', 'LON', 'SOG', 'COG'], inplace=True)
+
+    convert_to_seconds(output_df)
+
+    heading = output_df['Heading']
+    output_df.drop(columns=['Heading'], inplace=True)
+
     output_df = pd.merge(output_df, df_time, on='MMSI')
-    output_df['BaseDateTime'] = output_df['BaseDateTime'] + output_df['time_seconds']
-    output_df = output_df.drop(columns=['time_seconds'])
-    output_df = output_df.sort_values(by=['MMSI', 'BaseDateTime'])
-    # Convert seconds after midnight to datetime format starting from 2023-01-01
+    output_df['BaseDateTime'] += output_df['time_seconds']
+    output_df.drop(columns=['time_seconds'], inplace=True)
+
+    output_df['Heading'] = heading
+    output_df.sort_values(by=['MMSI', 'BaseDateTime'], inplace=True)
+
     output_df['BaseDateTime'] = pd.to_datetime(output_df['BaseDateTime'], unit='s', origin='2023-01-01')
-    # drop Heading,VesselName_y,IMO,CallSign,VesselType,Status,Length,Width,Draft,Cargo,TransceiverClass from output_df
-    output_df = output_df.drop(columns=['IMO', 'CallSign','VesselType', 'Status', 'Length', 'Width', 'Draft', 'Cargo', 'TransceiverClass'])
-    #rename VesselName_x to VesselName
-    output_df = output_df.rename(columns={'VesselName_x': 'VesselName'})
-    
+    output_df.rename(columns={'VesselName_x': 'VesselName'}, inplace=True)
+
     return output_df
