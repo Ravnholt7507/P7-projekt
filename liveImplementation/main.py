@@ -35,7 +35,7 @@ def liveImplementation():
     scaler = dh.Fit_Scaler_To_Data(all_data_for_fitting)
     s.scaler = scaler
 
-    interpolated_data = interpolated_data[0:20]
+    #interpolated_data = interpolated_data[0:10000]
 
     print("Hvor mange AIS punkter: ", len(interpolated_data))
 
