@@ -48,8 +48,8 @@ class inputFrame(Frame):
         self.circlesButton = ttk.Checkbutton(self.buttonFrame1, text='Show Threshold Circles', variable=self.circlesVar, onvalue=1, offvalue=0, command=lambda: self.parent.plotFrame.map.showThresholdCircles())
         self.annotationsButton = ttk.Checkbutton(self.buttonFrame1, text='Show Annotations', variable=self.annotationsVar, onvalue=1, offvalue=0, command=lambda: self.parent.plotFrame.map.showAnnotations())
         self.heatmapButton = ttk.Button(self.buttonFrame1, text='Heatmap', command=lambda: self.parent.plotFrame.map.heatMap())
-        self.resetZoomButton = ttk.Button(self.buttonFrame1, text='Reset Zoom')
-        self.resetMapButton = ttk.Button(self.buttonFrame1, text='Reset Map/Demo', command=lambda: self.parent.plotFrame.map.resetZoom())
+        #self.resetZoomButton = ttk.Button(self.buttonFrame1, text='Reset Zoom', command=lambda: self.parent.plotFrame.map.resetZoom())
+        #self.resetMapButton = ttk.Button(self.buttonFrame1, text='Reset Map/Demo', command=lambda: self.parent.plotFrame.map.resetWorldmap())
         self.generateDataButton = ttk.Button(self.buttonFrame1, text='Generate Data', command=lambda: self.generateData())
 
         #Widget Placement
@@ -66,8 +66,8 @@ class inputFrame(Frame):
         self.circlesButton.grid(row=3, column=0, sticky=NSEW, padx=10, pady=2)
         self.annotationsButton.grid(row=4, column=0, sticky=NSEW, padx=10, pady=2)
         self.heatmapButton.grid(row=5, column=0, sticky=NSEW, padx=10, pady=2)
-        self.resetZoomButton.grid(row=6, column=0, sticky=NSEW, padx=10, pady=2) 
-        self.resetMapButton.grid(row=7, column=0, sticky=NSEW, padx=10, pady=2)
+        #self.resetZoomButton.grid(row=6, column=0, sticky=NSEW, padx=10, pady=2) 
+        #self.resetMapButton.grid(row=7, column=0, sticky=NSEW, padx=10, pady=2)
         self.generateDataButton.grid(row=15, column=0, sticky=NSEW, padx=10, pady=2)
         
     def generateData(self):
@@ -87,8 +87,8 @@ class inputFrame(Frame):
         self.circlesButton['state'] = 'disabled'
         self.annotationsButton['state'] = 'disabled'
         self.heatmapButton['state'] = 'disabled'
-        self.resetZoomButton['state'] = 'disabled'
-        self.resetMapButton['state'] = 'disabled'
+        #self.resetZoomButton['state'] = 'disabled'
+        #self.resetMapButton['state'] = 'disabled'
         
         self.progressBarFrame.grid_remove()
         self.stepFrame.grid_remove()
@@ -244,8 +244,8 @@ class plotFrame(Frame):
             self.parent.parent.inputFrame.circlesButton['state'] = 'disabled'
             self.parent.parent.inputFrame.annotationsButton['state'] = 'disabled'
             self.parent.parent.inputFrame.heatmapButton['state'] = 'disabled'
-            self.parent.parent.inputFrame.resetZoomButton['state'] = 'disabled'
-            self.parent.parent.inputFrame.resetMapButton['state'] = 'disabled'
+            #self.parent.parent.inputFrame.resetZoomButton['state'] = 'disabled'
+            #self.parent.parent.inputFrame.resetMapButton['state'] = 'disabled'
 
         def demo(self, direction):
             self.disableButtons()
@@ -348,8 +348,8 @@ class plotFrame(Frame):
             self.parent.parent.inputFrame.circlesButton['state'] = 'normal'
             self.parent.parent.inputFrame.annotationsButton['state'] = 'normal'
             self.parent.parent.inputFrame.heatmapButton['state'] = 'normal'
-            self.parent.parent.inputFrame.resetZoomButton['state'] = 'normal'
-            self.parent.parent.inputFrame.resetMapButton['state'] = 'normal'
+            #self.parent.parent.inputFrame.resetZoomButton['state'] = 'normal'
+            #self.parent.parent.inputFrame.resetMapButton['state'] = 'normal'
         
         def printCollisions(self, filtered_df, time, mmsi):
             for index, row in filtered_df.iterrows():
@@ -455,10 +455,6 @@ class plotFrame(Frame):
 
         def resetZoom(self):
             if self.predPath != None:
-                """ self.drawPredictedPath()
-                self.ax.margins(1,1)
-                #self.scatterActual()
-                self.plt.draw() """
                 self.plt.xlim(66666666666)
                 self.plt.ylim(66666666666)
                 self.plt.draw()
