@@ -56,6 +56,7 @@ def collisions():
 
     # If not vectorbased and COG is used, use this:
     collision.intersection_vec_circle(interpolated, num_clusters)
+    collision.find_vector_colission(interpolated, num_clusters)
 
     print("Calculating colisions...")
     # Take all rows where currentModel is COGbased and save them to a new dataframe

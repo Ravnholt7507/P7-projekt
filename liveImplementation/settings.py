@@ -12,7 +12,7 @@ timeIntervals = '10S'
 timeIntervalsInt = int(''.join(filter(str.isdigit, timeIntervals)))
 
 radiusSeq = [0.025, 0.05, 0.075, 0.1]
-Radius = 0
+Radius = 0.075
 
 rateOfTurnSeq = [0.5, 1, 2, 4]
 rateOfTurn = 2
